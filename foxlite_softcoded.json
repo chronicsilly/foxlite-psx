@@ -1,0 +1,11 @@
+{
+  "title": "FoxLite 3D Renderer (Polymod Compat)",
+  "description": "Use this to enable polymod code in foxlite libraries",
+  "contributors": [],
+  "id": "foxlite_polymod",
+  "dependencies": null,
+  "optionalDependencies": null,
+  "api_version": "0.8.4",
+  "mod_version": "1.0.0",
+  "license": "MIT"
+}

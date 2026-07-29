@@ -1,0 +1,14 @@
+{
+	"name": "foxlite",
+	"url" : "https://github.com/dwdvIl/foxlite",
+	"license": "MIT",
+	"tags": ["3D", "renderer", "flixel", "openfl", "neko", "cpp", "android", "ios", "cross"],
+	"description": "A hardware-accelerated 3D renderer for HaxeFlixel!",
+	"version": "0.1.0",
+	"classPath": "src/",
+	"releasenote": "TODO",
+	"contributors": ["dwdvIl", "expertyeti"],
+	"dependencies": {
+		"flixel": ""
+	}
+}

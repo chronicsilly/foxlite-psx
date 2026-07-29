@@ -1,0 +1,129 @@
+
+#define BASIC_LIGHTING_FRAG
+#include "foxlite/inc/foxlite.glsl"
+#include "foxlite/inc/material.glsl"
+#include "foxlite/inc/lighting.glsl"
+#include "foxlite/inc/sky.glsl"      // For worldDirection and sky funcs
+
+void main() {
+	#ifndef SOLID
+	vec2 TexCoordv = foxlite_TexCoordv;
+
+	// For the shadow pass, we need to perform an extra division for point lights (dual paraboloid)
+	#if defined(SHADOW_PASS) && defined(SHADOW_GLSL)
+	if(currentLightType == LIGHT_POINT || currentLightType == LIGHT_AREA) {
+		if(shadowDistortClip < -1.0) discard;
+		TexCoordv /= shadowDistortW;
+	}
+	#endif
+
+	vec4 albedo = texture2D(bitmap, TexCoordv) * foxlite_Colorv;
+	
+	#if !defined(NO_ALPHA_SCISSOR) && !(defined(ALPHA_DITHER) || defined(ALPHA_DITHER_FAST))
+	if(albedo.a < alphaScissor) discard; // Alpha cutout (disabled when alpha dithering is enabled)
+	#endif
+	#else
+	vec4 albedo = foxlite_Colorv;
+	#endif
+
+	#if defined(ALPHA_DITHER) || defined(ALPHA_DITHER_FAST)
+	if(alphaDither(albedo.a) < 1.0) discard;
+	albedo.a = 1.0;
+	#endif
+
+	#ifdef SHADOW_PASS
+	// Stop code here, we don't need any extra operations
+	gl_FragData[0] = albedo;
+	return;
+	#endif
+
+	vec3 normalView = modelViewNormal;
+
+	#ifndef VERTEX_LIGHTING
+
+	#ifdef FOG
+
+	#ifdef FAST_FOG
+	float fogStrength = -viewPosition.z;
+	#else
+	float fogStrength = length(viewPosition);
+	#endif
+
+	fogStrength = clamp((fogStrength - fogStart) / (fogEnd - fogStart), 0.0, 1.0);
+	#else
+	const float fogStrength = 0.0;
+	#endif
+
+	//if(fogStrength < 1.0) { // Fog occlusion, prevents expensive calculations on fully fog-occluded pixels.
+	#ifdef NORMAL_MAP
+		vec3 tangentNormal = texture2D(normalMap, foxlite_TexCoordv).xyz * 2.0 - 1.0;
+		normalView = normalize(TBN * tangentNormal);
+	#endif
+		
+	#ifdef ORM_MAP
+		vec3 specular   = uSpecular;
+		float roughness = uRoughness;
+		float metallic  = uMetallic;
+
+		// From the glTF 2.0 spec
+		vec4 ormData = texture2D(ormMap, foxlite_TexCoordv);
+		float ao   = ormData.r;
+		roughness += ormData.g;
+		metallic  += ormData.b;
+	#else
+		// const uniform hack for GLES
+		#define specular uSpecular
+		#define roughness uRoughness
+		#define metallic uMetallic
+		const float ao = 1.0;
+	#endif
+
+	#ifndef UNSHADED
+	albedo.rgb = light(albedo.rgb * ao, -normalView, viewPosition.xyz, specular, roughness);
+	#endif
+
+	#ifdef SKY_REFLECTIONS
+		// TODO: roughness affects reflection blur
+		vec3 dir = reflect(normalize(worldDirection), worldBasis * normalView);
+		//float costheta = -dot(normalize(viewPosition.xyz), normalView);
+		//float fresnel = fresnelSchlick(clamp(costheta, 0.0, 1.0), 0.05);
+		vec3 skyColor = panoramaSky(skyTexture, dir, pow(10.0, roughness));
+		albedo.rgb = mix(albedo.rgb, skyColor, clamp(metallic - roughness, 0, 1));
+	#else
+		albedo.rgb *= 1.0 - metallic;
+	#endif
+	
+	//}
+	#ifdef FOG
+	
+	#ifdef NO_FOG_TRANSPARENCY
+		// const uniform hack for GLES
+		#define fogFragColor fogColor.rgb
+	#else
+		vec3 fogFragColor = mix(gl_LastFragData[0].rgb, fogColor.rgb, fogColor.a);
+	#endif
+	
+	#ifdef LINEAR_FOG
+		albedo.rgb = mix(albedo.rgb, fogFragColor, fogStrength);
+	#else
+		albedo.rgb = mix(albedo.rgb, fogFragColor, fogStrength * fogStrength);
+	#endif
+
+	#endif
+	#endif
+
+	#ifdef EMISSIVE_MAP
+	albedo.rgb += uEmissive * texture2D(emissiveMap, foxlite_TexCoordv).rgb;
+	#else
+	albedo.rgb += uEmissive;
+	#endif
+
+	gl_FragData[0] = albedo;
+	#ifdef DEFERRED
+	gl_FragData[1].xyz = normalView;
+	//gl_FragData[2].xyz = motionVectors;
+
+	//gl_FragData[1].w = reflectiveness;
+	//gl_FragData[2].w = emission;
+	#endif
+}

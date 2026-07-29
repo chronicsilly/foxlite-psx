@@ -1,0 +1,22 @@
+{
+  "title": "FoxLite 3D Renderer",
+  "description": "FoxLite library for all your mods!",
+  "contributors": [
+	{
+		"name": "dwdvIl",
+		"role": "Main developer"
+	},
+    {
+      "name": "Britex",
+	  "role": "Helper"
+    }
+  ],
+  "id": "foxlite",
+  "dependencies": {
+	  "foxlite_polymod": "1.0.0"
+  },
+  "optionalDependencies": null,
+  "api_version": "0.8.4",
+  "mod_version": "0.1.0",
+  "license": "MIT"
+}
