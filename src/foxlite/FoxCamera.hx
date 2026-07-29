@@ -40,7 +40,7 @@ class FoxCamera extends FoxObject {
 
 		 By default, there's one pass that will render everything in group 0 on the "default" render target.
 	**/
-	public var passes:Array<FoxRenderPass> = [new FoxRenderPass([0], "default", {useCameraColor: true})];
+	public var passes:Array<FoxRenderPass> = [new FoxRenderPass([0], "default")];
 	
 	// Camera transforms
 	public var viewMatrix:Matrix3D = new Matrix3D();
@@ -69,9 +69,7 @@ class FoxCamera extends FoxObject {
 	public function new() {
 		super();
 		name = "FoxCamera";
-		#if foxlite_polymod
 		passes[0].useCameraColor = true;
-		#end
 	}
 
 	public override function draw(camera:FoxCamera) {}
@@ -192,30 +190,30 @@ class FoxCamera extends FoxObject {
 	private function set_fov(v:Float) {
 		this.fov = v;
 		__updateMatrices = true;
-		#if !foxlite_polymod return v; #end
+		return v;
 	}
 
 	private function set_aspect(v:Float) {
 		this.aspect = v;
 		__updateMatrices = true;
-		#if !foxlite_polymod return v; #end
+		return v;
 	}
 
 	private function set_far(v:Float) {
 		this.far = v;
 		__updateMatrices = true;
-		#if !foxlite_polymod return v; #end
+		return v;
 	}
 
 	private function set_near(v:Float) {
 		this.near = v;
 		__updateMatrices = true;
-		#if !foxlite_polymod return v; #end
+		return v;
 	}
 
 	private function set_orthogonal(v:Bool) {
 		this.orthogonal = v;
 		__updateMatrices = true;
-		#if !foxlite_polymod return v; #end
+		return v;
 	}
 }

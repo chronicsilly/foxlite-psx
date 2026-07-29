@@ -7,7 +7,7 @@
 	"version": "0.1.0",
 	"classPath": "src/",
 	"releasenote": "TODO",
-	"contributors": ["dwdvIl", "expertyeti"],
+	"contributors": ["dwdvIl", "Britex"],
 	"dependencies": {
 		"flixel": ""
 	}
