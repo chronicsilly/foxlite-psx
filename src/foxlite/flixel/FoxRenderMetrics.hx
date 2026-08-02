@@ -21,7 +21,7 @@ class FoxRenderMetrics extends FlxSpriteGroup {
 	GPU FPS: $7
 	-------------
 	$9
-	', '\n', '');
+	', '\r', '');
 
 	public var extraInfo:String = "";
 
@@ -49,7 +49,7 @@ class FoxRenderMetrics extends FlxSpriteGroup {
 		cpuLastTime = cpuTime;
 		super.update(elapsed);
 	}
-	
+
 	public override function draw() {
 		var gpuTime = timestamp();
 		gpuDelta = gpuTime - gpuLastTime;
@@ -73,7 +73,7 @@ class FoxRenderMetrics extends FlxSpriteGroup {
 		var version = FoxRenderer.getGLVersion();
 		output = StringTools.replace(output, "$8", '${FoxRenderer.renderContext} ${version}');
 		output = StringTools.replace(output, "$9", '$extraInfo');
-		
+
 		text.text = output;
 	}
 
