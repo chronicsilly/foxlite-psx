@@ -110,7 +110,8 @@ void main(void)
 	const float fogStrength = 0.0;
 	#endif
 
-	foxlite_Colorv.rgb = light(foxlite_Colorv.rgb, -modelViewNormal, viewPosition.xyz, uSpecular, uRoughness);
+	float shininess = (1.0 - uRoughness) * (1.0 - uRoughness) * 256.0;
+	foxlite_Colorv.rgb = light(foxlite_Colorv.rgb, -modelViewNormal, viewPosition.xyz, uSpecular, shininess);
 
 	#ifdef FOG 
 	
@@ -120,19 +121,9 @@ void main(void)
 	foxlite_Colorv.rgb = mix(foxlite_Colorv.rgb, fogColor, fogStrength * fogStrength);
 	#endif
 	#endif
+	
 	#elif !defined(UNSHADED) && defined(SHADOW_GLSL) && !defined(SHADOW_PASS)
 	setupShadows(worldPosition);
-	#endif
-	
-	#ifdef SHADOW_PASS
-	#if defined(SHADOW_GLSL)
-	// Per-shadow light specific code
-	if(currentLightType == LIGHT_POINT || currentLightType == LIGHT_AREA) {
-		gl_Position = dualParaboloid(viewPosition, nearFarFromProjection(projection), view[3][3]);
-		foxlite_TexCoordv *= shadowDistortW;
-		return;
-	}
-	#endif
 	#endif
 
 	gl_Position = projection * viewPosition;

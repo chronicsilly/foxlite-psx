@@ -29,10 +29,6 @@ class FoxPointLight extends FoxBaseLight {
 		return FoxLightType.POINT;
 	}
 
-	public override function getShadowMapType():FoxLightType {
-		return FoxLightType.POINT;
-	}
-
 	public override function update(dt:Float) {
 		super.update(dt);
 		// Calculate view-projection transform, this is the POV of the light

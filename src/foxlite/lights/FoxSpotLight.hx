@@ -30,10 +30,6 @@ class FoxSpotLight extends FoxBaseLight {
 		return FoxLightType.SPOT;
 	}
 
-	public override function getShadowMapType():FoxLightType {
-		return FoxLightType.SPOT;
-	}
-
 	function set_angle(v:Float):Float {
 		if(v == this.angle) return v;
 		this.angle = v;

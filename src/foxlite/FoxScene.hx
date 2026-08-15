@@ -6,7 +6,7 @@ import foxlite.funkin.FoxExtendableSprite;
 import foxlite.material.FoxMaterial;
 import foxlite.mesh.FoxMesh;
 import foxlite.renderer.FoxRenderer;
-import foxlite.system.FlxTypedSignalImpl;
+import foxlite.flixel.FlxTypedSignalImpl;
 import foxlite.system.FoxDrawTree;
 import foxlite.system.FoxDrawTreeNode;
 import foxlite.texture.FoxFramebuffer;
@@ -44,6 +44,7 @@ class FoxScene extends FoxExtendableSprite {
 	public var foxCameras:Array<FoxCamera> = [];
 
 	public final onMemberAdded:FlxTypedSignalImpl<(member:FoxBasic)->Void> = new FlxTypedSignalImpl();
+	public final onMemberRemoved:FlxTypedSignalImpl<(member:FoxBasic)->Void> = new FlxTypedSignalImpl();
 
 	/**
 		The scene environment.
@@ -58,9 +59,11 @@ class FoxScene extends FoxExtendableSprite {
 	};
 
 	/**
-	* Sorted members by process priority.
-	*/
-	var sortedMembers:Array<FoxBasic> = [];
+		The sorted members by process priority.
+
+		This is only used exclusively for this 3D manager, useful for global managers and such.
+	**/
+	public var sortedMembers:Array<FoxBasic> = [];
 	public var __needsSorting:Bool = true;
 
 	/**
@@ -131,6 +134,7 @@ class FoxScene extends FoxExtendableSprite {
 		__needsSorting = true;
 		FoxRenderer.mustRebuildDrawGroups = true;
 		if(destroy) member.destroy();
+		onMemberRemoved.dispatch(member);
 	}
 
 	public function removeByName(memberName:String, destroy:Bool=false):Void {

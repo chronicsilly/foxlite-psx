@@ -25,18 +25,31 @@ class FoxRenderMetrics extends FlxSpriteGroup {
 
 	public var extraInfo:String = "";
 
-	public var cpuDelta:Float = 0;
-	public var gpuDelta:Float = 0;
+	var HISTORY = 32;
+	var cpuDeltas:Array<Float> = [];
+	var gpuDeltas:Array<Float> = [];
 
-	var cpuLastTime:Float = timestamp();
-	var gpuLastTime:Float = timestamp();
+	var cpuDeltaIdx:Int = 0;
+	var gpuDeltaIdx:Int = 0;
+
+	var cpuLastTime:Float = 0;
+	var gpuLastTime:Float = 0;
 
 	var text:FlxText = new FlxText();
 
-	public function new() {
+	public function new(deltaHistory:Int=32) {
 		text.fieldHeight = 16;
 		text.size = 16;
 		super();
+
+		HISTORY = deltaHistory;
+		cpuDeltas.resize(HISTORY);
+		gpuDeltas.resize(HISTORY);
+
+		for (i in 0...HISTORY) {
+			cpuDeltas[i] = 0;
+			gpuDeltas[i] = 0;
+		}
 
 		add(text);
 
@@ -44,20 +57,32 @@ class FoxRenderMetrics extends FlxSpriteGroup {
 	}
 
 	public override function update(elapsed) {
-		var cpuTime = timestamp();
-		cpuDelta = cpuTime - cpuLastTime;
-		cpuLastTime = cpuTime;
 		super.update(elapsed);
+		var cpuTime = Timer.stamp();
+		cpuDeltas[cpuDeltaIdx] = Math.round(1 / (cpuTime - cpuLastTime));
+		cpuDeltaIdx = (cpuDeltaIdx + 1) % HISTORY;
+		cpuLastTime = cpuTime;
 	}
 
 	public override function draw() {
-		var gpuTime = timestamp();
-		gpuDelta = gpuTime - gpuLastTime;
-		gpuLastTime = gpuTime;
 		super.draw();
+		var gpuTime = Timer.stamp();
+		gpuDeltas[gpuDeltaIdx] = Math.round(1 / (gpuTime - gpuLastTime));
+		gpuDeltaIdx = (gpuDeltaIdx + 1) % HISTORY;
+		gpuLastTime = gpuTime;
 	}
 
 	public function displayInfo() {
+
+		var cpuFPS:Float = 0;
+		var gpuFPS:Float = 0;
+
+		for(i in 0...HISTORY) {
+			cpuFPS += cpuDeltas[i];
+			gpuFPS += gpuDeltas[i];
+		}
+		cpuFPS /= HISTORY;
+		gpuFPS /= HISTORY;
 
 		var output:String = template;
 		var inst = FoxRenderer.renderedInstances > 0 ? '\n    (x${FoxRenderer.renderedInstances} instance${FoxRenderer.renderedInstances != 1 ? 's' : ''})' : '';
@@ -67,18 +92,14 @@ class FoxRenderMetrics extends FlxSpriteGroup {
 		output = StringTools.replace(output, "$3", '${FoxRenderer.stateSwitches}');
 		output = StringTools.replace(output, "$4", '${FoxRenderer.frameCount}');
 		output = StringTools.replace(output, "$5", '${FoxRenderer.allocationsThisFrame}');
-		output = StringTools.replace(output, "$6", '${Math.round(1 / cpuDelta)}');
-		output = StringTools.replace(output, "$7", '${Math.round(1 / gpuDelta)}');
+		output = StringTools.replace(output, "$6", '${Math.round(cpuFPS)}');
+		output = StringTools.replace(output, "$7", '${Math.round(gpuFPS)}');
 
 		var version = FoxRenderer.getGLVersion();
 		output = StringTools.replace(output, "$8", '${FoxRenderer.renderContext} ${version}');
 		output = StringTools.replace(output, "$9", '$extraInfo');
 
 		text.text = output;
-	}
-
-	public inline function timestamp():Float {
-		return Timer.stamp();
 	}
 
 	public override function destroy() {

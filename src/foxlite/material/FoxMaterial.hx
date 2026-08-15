@@ -10,9 +10,10 @@ import foxlite.material.FoxTriangleFace;
 import foxlite.renderer.FoxRenderer;
 import foxlite.stencil.FoxStencilAction;
 import foxlite.texture.FoxMipFilter;
+import foxlite.texture.FoxTextureFilter;
+import foxlite.texture.FoxWrapMode;
 import foxlite.texture.FoxTexture;
 import haxe.ds.StringMap;
-import lime.graphics.opengl.GL;
 import lime.math.Vector2;
 import lime.math.Vector4;
 import openfl.display3D.Context3DMipFilter;
@@ -50,6 +51,12 @@ class FoxMaterial {
 	public var name:String;
 	public var shader:FoxShader = null;
 	public var assetsKey:String;
+
+	/**
+		This controls the rendering order of materials.
+
+		Lower priority means the model will be rendered before other models.
+	**/
 	public var renderPriority(default, set):Int = 0;
 
 	/**
@@ -69,9 +76,9 @@ class FoxMaterial {
 		__id = __GLOBAL_ID;
 
 		// Write default uniforms
-		params.set("color", new Vector4(1, 1, 1, 1));
-		params.set("uvOffset", new Vector2(0, 0));
-		params.set("uvScale", new Vector2(1, 1));
+		params.set("color", [1, 1, 1, 1]);
+		params.set("uvOffset", [0, 0]);
+		params.set("uvScale", [1, 1]);
 		params.set("uScattering", 0.0);
 		shader = shader_;
 	}
@@ -87,8 +94,8 @@ class FoxMaterial {
 				if(passShader.uniformCache.get(param.key)?.type == UType.INT) passShader.setInt(param.key, param.value);
 				else passShader.setFloat(param.key, param.value);
 			}
-			else if(Std.isOfType(param.value, Matrix3D)) passShader.setMatrix4(param.key, param.value);
 			else if(Std.isOfType(param.value, Array)) passShader.setFloatArray(param.key, param.value);
+			else if(Std.isOfType(param.value, Matrix3D)) passShader.setMatrix4(param.key, param.value);
 			else if(Std.isOfType(param.value, Vector2)) passShader.setVector2(param.key, param.value);
 			else if(Std.isOfType(param.value, Vector3D) || Std.isOfType(param.value, Vector4)) {
 				if(passShader.uniformCache.get(param.key)?.type == UType.FLOAT_VEC3) passShader.setVector3(param.key, param.value);
@@ -173,11 +180,11 @@ class FoxMaterial {
 			var material = new FoxMaterial();
 			material.name = matName;
 			material.assetsKey = name;
-			material.blendMode = Std.isOfType(mat.blendMode, String) ? FoxBlendMode.fromString(mat.blendMode) : mat.blendMode;
+			if(Std.isOfType(mat.blendMode, String)) material.blendMode = FoxBlendMode.fromString(mat.blendMode);
 			if(Std.isOfType(mat.alphaScissor, Bool)) material.alphaScissor = mat.alphaScissor;
 			if(Std.isOfType(mat.depthWrite, Bool)) material.depthWrite = mat.depthWrite;
 			if(Std.isOfType(mat.renderPriority, Int)) material.renderPriority = mat.renderPriority;
-			if(mat.wireframe == true) material.renderMode = GL.LINES;
+			if(mat.wireframe == true) material.renderMode = 0x0001; // GL.LINES
 			if(Std.isOfType(mat.lineWidth, Int) || Std.isOfType(mat.lineWidth, Float)) material.lineWidth = mat.lineWidth;
 
 			if(mat.params != null) {
@@ -187,9 +194,9 @@ class FoxMaterial {
 			}
 		
 			// Load shader
-			var shader = FoxShader.fromAsset(mat.shader, mat.shaderDefines);
-
-			material.shader = shader;
+			if(Std.isOfType(mat.shader, String)) {
+				material.shader = FoxShader.fromAsset(mat.shader, mat.shaderFlags);
+			}
 			
 			// Load textures
 			if(mat.textures != null) {
@@ -197,33 +204,34 @@ class FoxMaterial {
 					var tex = Reflect.field(mat.textures, samplerName);
 					if(tex == null) continue;
 					// TODO: add more formats maybe?
-					var texture = FoxTexture.fromImage(FoxLoaderUtil.imagePath(tex.name), tex.mipFilter != FoxMipFilter.MIPNONE, null, {
-						wrapMode: tex.wrapMode,
-						mipFilter: tex.mipFilter,
-						filter: tex.filter
+					var mipFilter = Std.isOfType(tex.mipFilter, String) ? FoxMipFilter.fromString(tex.mipFilter) : FoxMipFilter.MIPNONE;
+					var texture = FoxTexture.fromImage(FoxLoaderUtil.imagePath(tex.name), mipFilter != FoxMipFilter.MIPNONE, null, {
+						wrapMode: Std.isOfType(tex.wrapMode, String) ? FoxWrapMode.fromString(tex.wrapMode) : FoxWrapMode.CLAMP,
+						mipFilter: mipFilter,
+						filter: Std.isOfType(tex.filter, String) ? FoxTextureFilter.fromString(tex.filter) : FoxTextureFilter.LINEAR
 					});
 					material.textures.set(samplerName, texture);
 				}
 			}
 			
-			material.depthTest = mat.depthTest;
+			if(Std.isOfType(mat.depthTest, Bool)) material.depthTest = mat.depthTest;
 
-			material.depthFunc = Std.isOfType(mat.depthFunc, String) ? FoxDepthCompareMode.fromString(mat.depthFunc) : mat.depthFunc;
-			material.culling = Std.isOfType(mat.culling, String) ? FoxTriangleFace.fromString(mat.culling) : mat.culling;
-			material.shadowCulling = Std.isOfType(mat.shadowCulling, String) ? FoxTriangleFace.fromString(mat.shadowCulling) : mat.shadowCulling;
+			if(Std.isOfType(mat.depthFunc, String)) material.depthFunc = FoxDepthCompareMode.fromString(mat.depthFunc);
+			if(Std.isOfType(mat.culling, String)) material.culling = FoxTriangleFace.fromString(mat.culling);
+			if(Std.isOfType(mat.shadowCulling, String)) material.shadowCulling = FoxTriangleFace.fromString(mat.shadowCulling);
 
 			if(mat.stencil != null) {
 				var stencil = new FoxStencilAction();
 				var sd:Dynamic = mat.stencil;
-				stencil.value = sd.value ?? 0;
-				stencil.read = sd.read ?? false;
-				stencil.write = sd.write ?? false;
+				if(Std.isOfType(sd.value, Int) || Std.isOfType(sd.value, Float)) stencil.value = Std.int(sd.value);
+				if(Std.isOfType(sd.read, Bool)) stencil.read = sd.read;
+				if(Std.isOfType(sd.write, Bool)) stencil.write = sd.write;
 				if(Std.isOfType(sd.readMask, String)) stencil.readMask = Std.parseInt(sd.readMask);
 				if(Std.isOfType(sd.writeMask, String)) stencil.writeMask = Std.parseInt(sd.writeMask);
-				if(sd.triangleFace != null) stencil.triangleFace = Std.isOfType(sd.triangleFace, String) ? FoxTriangleFace.fromString(sd.triangleFace) : sd.triangleFace;
-				if(sd.actionOnBothPass != null) stencil.actionOnBothPass = Std.isOfType(sd.actionOnBothPass, String) ? FoxStencilActionType.fromString(sd.actionOnBothPass) : sd.actionOnBothPass;
-				if(sd.actionOnDepthFail != null) stencil.actionOnDepthFail = Std.isOfType(sd.actionOnDepthFail, String) ? FoxStencilActionType.fromString(sd.actionOnDepthFail) : sd.actionOnDepthFail;
-				if(sd.actionOnDepthPassStencilFail != null) stencil.actionOnDepthPassStencilFail = Std.isOfType(sd.actionOnDepthPassStencilFail, String) ? FoxStencilActionType.fromString(sd.actionOnDepthPassStencilFail) : sd.actionOnDepthPassStencilFail;
+				if(Std.isOfType(sd.triangleFace, String)) stencil.triangleFace = FoxTriangleFace.fromString(sd.triangleFace);
+				if(Std.isOfType(sd.actionOnBothPass, String)) stencil.actionOnBothPass = FoxStencilActionType.fromString(sd.actionOnBothPass);
+				if(Std.isOfType(sd.actionOnDepthFail, String)) stencil.actionOnDepthFail = FoxStencilActionType.fromString(sd.actionOnDepthFail);
+				if(Std.isOfType(sd.actionOnFail, String)) stencil.actionOnFail = FoxStencilActionType.fromString(sd.actionOnFail);
 				material.stencil = stencil;
 			}
 

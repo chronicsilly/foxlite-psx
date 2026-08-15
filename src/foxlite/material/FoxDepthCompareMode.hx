@@ -43,7 +43,7 @@ package foxlite.material;
 	**/
 	public inline static final NOT_EQUAL = 7;
 
-	public static function fromString(mode:String):FoxDepthCompareMode {
+	@:from public static function fromString(mode:String):FoxDepthCompareMode {
 		mode = mode.toLowerCase();
 		return switch(mode) {
 			case "equal": FoxDepthCompareMode.EQUAL;
@@ -53,6 +53,18 @@ package foxlite.material;
 			case "less_equal": FoxDepthCompareMode.LESS_EQUAL;
 			case "never": FoxDepthCompareMode.NEVER;
 			default: FoxDepthCompareMode.ALWAYS;
+		}
+	}
+
+	@:to public static function toString(mode:FoxDepthCompareMode) {
+		return switch(mode) {
+			case FoxDepthCompareMode.EQUAL: "equal";
+			case FoxDepthCompareMode.GREATER: "greater";
+			case FoxDepthCompareMode.GREATER_EQUAL: "greater_equal";
+			case FoxDepthCompareMode.LESS: "less";
+			case FoxDepthCompareMode.LESS_EQUAL: "less_equal";
+			case FoxDepthCompareMode.NEVER: "never";
+			default: "always";
 		}
 	}
 }

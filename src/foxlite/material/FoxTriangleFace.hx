@@ -8,13 +8,22 @@ package foxlite.material;
 	public inline static final FRONT_AND_BACK = 2;
 	public inline static final NONE = 3;
 
-	public static function fromString(face:String):FoxTriangleFace {
+	@:from public static function fromString(face:String):FoxTriangleFace {
 		face = face.toLowerCase();
 		return switch(face) {
 			case "back": FoxTriangleFace.BACK;
 			case "front": FoxTriangleFace.FRONT;
 			case "front_and_back": FoxTriangleFace.FRONT_AND_BACK;
 			default: FoxTriangleFace.NONE;
+		}
+	}
+
+	@:to public static function toString(face:FoxTriangleFace) {
+		return switch(face) {
+			case FoxTriangleFace.BACK: "back";
+			case FoxTriangleFace.FRONT: "front";
+			case FoxTriangleFace.FRONT_AND_BACK: "front_and_back";
+			default: "none";
 		}
 	}
 }

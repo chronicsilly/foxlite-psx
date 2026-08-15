@@ -184,7 +184,7 @@ class FoxRenderPass {
 				matShader.setMatrix4("view", camera.viewMatrix);
 				matShader.setMatrix4("invView", camera.__invViewMatrix);
 
-				render(data, matShader, visibilityLayers);
+				render(data, matShader, visibilityLayers, samplerId);
 			}
 		}
 
@@ -202,7 +202,7 @@ class FoxRenderPass {
 		var visibilityLayers = camera.modelLayers;
 
 		FoxRenderer.setTarget(shadowFramebuffer);
-		if(clearShadowMap) context.clear();
+		if(clearShadowMap) context.clear(0, 0, 0, 0, 1, 0, 6);
 
 		GL.viewport(Std.int(__shadowMapRegion.x), Std.int(__shadowMapRegion.y), __shadowMapRegion.width <= 0 ? shadowFramebuffer.width : Std.int(__shadowMapRegion.width), __shadowMapRegion.height <= 0 ? shadowFramebuffer.height : Std.int(__shadowMapRegion.height));
 
@@ -227,20 +227,17 @@ class FoxRenderPass {
 				iResolution.setTo(glTex.__width, glTex.__height);
 				matShader.setVector2("iResolution", iResolution);
 
-				FoxRenderer.useMaterialForShadow(context, mat);
+				var samplerId = FoxRenderer.useMaterialForShadow(context, mat);
 				
 				shadowNode.material = data.material;
 				shadowNode.meshes = data.meshes;
 				shadowNode.models = shadowModels;
 				
-				// The light type that's currently being used for this shader
-				matShader.setInt("currentLightType", light.getType());
-				
 				// Render from the perspective of the light source
 				matShader.setMatrix4("projection", light.projectionMatrix);
 				matShader.setMatrix4("view", viewMatrix);
 
-				render(shadowNode, matShader, visibilityLayers);
+				render(shadowNode, matShader, visibilityLayers, samplerId);
 			}
 		}
 	}
@@ -255,28 +252,19 @@ class FoxRenderPass {
 			var r = light.shadowAtlasRect;
 			__shadowMapRegion.setTo(r.x, r.y, r.z, r.w);
 			
-			var shadowMapAtlas = lightData.shadowMapAtlas[light.getShadowMapType()];
+			var shadowMapAtlas = lightData.getShadowAtlas(light.getType());
+			if(shadowMapAtlas == null) continue;
 			shadowPass(light, camera, drawGroups, shadowMapAtlas);
 			
-			switch(light.getType()) {
-				case FoxLightType.POINT, FoxLightType.AREA: {
-					// Render back
-					// The state of the shader is always the same
-					// We only have to change the viewport rect and view matrix
-					// Maybe a TODO for the future
-					
-					// Since we don't make use of the projection matrix,
-					// We can use the view matrix as a signal for flipping the Z axis for dual paraboloid
-					light.viewMatrix.rawData.set(15, -1);
-					__shadowMapRegion.setTo(r.x+r.z, r.y, r.z, r.w);
-					shadowPass(light, camera, drawGroups, shadowMapAtlas);
-				}
-			}
+			// TODO: For point lights, render 6 times in a cubemap
+			// Then use it as a samplerCube in the shader
+			// Figure out somehow how to use more than one for lights, if-else comparisons are slow but plausible
+			// and texture arrays aren't available in GLSL 2
 		}
 		clearShadowMap = prevClear;
 	}
 
-	public function render(data:FoxDrawTreeNode, _shader:FoxShader, layers:FoxLayer) {
+	public function render(data:FoxDrawTreeNode, _shader:FoxShader, layers:FoxLayer, samplerOffset:Int=0) {
 		var meshIterator = data.meshes.iterator();
 		var prevModel:FoxModel = null;
 		for(model in data.models) {
@@ -291,16 +279,22 @@ class FoxRenderPass {
 				// -- Skinned mesh --
 				var skinloc = _shader.__uSkinnedLocation;
 				if(skinloc != -1) {
-					if(model.skin == null) GL.uniform1i(#if !foxlite_polymod cast #end skinloc, 0);	
+					if(model.skin == null) GL.uniform1i(cast skinloc, 0);	// uSkinned = false
 					else {
 						// Upload bone transforms
+						var boneData = model.skin.boneData;
+						FoxRenderer.useTexture(samplerOffset, boneData);
+						GL.uniform1i(cast _shader.__bonesDataLocation, samplerOffset); // Set BONESDATA to bones buffer
+						GL.uniform1f(cast _shader.__bonesDataSizeLocation, 1 / boneData.getLength()); // BONESDATA texel size
+
+						GL.uniform1i(cast skinloc, 1); // uSkinned = true
 					}
 				}
 
 				// -- Instanced mesh
 				var instloc = _shader.__uInstancedLocation;
 				if(instloc != -1) {
-					GL.uniform1i(#if !foxlite_polymod cast #end instloc, model.isInstanced() ? 1 : 0);
+					GL.uniform1i(cast instloc, model.isInstanced() ? 1 : 0);
 				}
 			}
 			model.renderMesh(mesh);
@@ -310,7 +304,9 @@ class FoxRenderPass {
 	public function setGlobals(shader:FoxShader, camera:FoxCamera, framebuffer:FoxFramebuffer) {
 		// Set global data
 		var env = camera.scene.environment;
-		shader.setSampler2D("skyTexture", env.skyTexture);
+		if(env.skyTexture != null) shader.setSampler2D("skyTexture", env.skyTexture);
+		else shader.textureInput.remove('skyTexture');
+		
 		shader.setVector2("skyOffset", env.skyOffset);
 		shader.setVector4("fogColor", env.fogColor);
 
@@ -351,7 +347,7 @@ class FoxRenderPass {
 			if(pass.clearShadowMap is Bool) renderPass.clearShadowMap = pass.clearShadowMap;
 
 			if(pass.groups is Array) {
-				renderPass.groups = #if !foxlite_polymod cast #end pass.groups;
+				renderPass.groups = cast pass.groups;
 			}
 
 			pipeline.push(renderPass);

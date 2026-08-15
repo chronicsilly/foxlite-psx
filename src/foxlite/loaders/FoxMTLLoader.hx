@@ -6,7 +6,6 @@ import foxlite.loaders.FoxLoaderUtil;
 import foxlite.material.FoxMaterial;
 import foxlite.texture.FoxTexture;
 import haxe.ds.StringMap;
-import lime.math.Vector4;
 import openfl.geom.Vector3D;
 
 class FoxMTLLoader {
@@ -67,49 +66,45 @@ class FoxMTLLoader {
 					var tk = tokenizer.def;
 					tk.match(line);
 
-					var p:Vector4 = curMat.params.get("color");
+					var p:Array<Float> = curMat.params.get("color");
 					if(p == null) {
-						p = new Vector4(1, 1, 1, 1);
+						p = [1, 1, 1, 1];
 						curMat.params.set("color", p);
 					}
-					p.w = Std.parseFloat(tk.matched(2));
+					p[3] = Std.parseFloat(tk.matched(2));
 				};
 				case 'Ka': {
 					var tk = tokenizer.K;
 					tk.match(line);
 
-					var p:Vector4 = curMat.params.get("color");
+					var p:Array<Float> = curMat.params.get("color");
 					if(p == null) {
-						p = new Vector4(1, 1, 1, 1);
+						p = [1, 1, 1, 1];
 						curMat.params.set("color", p);
 					}
-					p.setTo(
-						Std.parseFloat(tk.matched(2)),
-						Std.parseFloat(tk.matched(3)),
-						Std.parseFloat(tk.matched(4))
-					);
+					p[0] = Std.parseFloat(tk.matched(2));
+					p[1] = Std.parseFloat(tk.matched(3));
+					p[2] = Std.parseFloat(tk.matched(4));
 				};
 				case 'Ke': {
 					var tk = tokenizer.K;
 					tk.match(line);
 
-					var p:Vector3D = new Vector3D(
+					curMat.params.set("uEmissive", [
 						Std.parseFloat(tk.matched(2)),
 						Std.parseFloat(tk.matched(3)),
 						Std.parseFloat(tk.matched(4))
-					);
-					curMat.params.set("uEmissive", p);
+					]);
 				};
 				case 'Ks': {
 					var tk = tokenizer.K;
 					tk.match(line);
 
-					var p:Vector3D = new Vector3D(
+					curMat.params.set("uSpecular", [
 						Std.parseFloat(tk.matched(2)),
 						Std.parseFloat(tk.matched(3)),
 						Std.parseFloat(tk.matched(4))
-					);
-					curMat.params.set("uSpecular", p);
+					]);
 				};
 				// Textures
 				case 'map_Kd': {
@@ -125,7 +120,7 @@ class FoxMTLLoader {
 					matShaderFlags.push("EMISSIVE_MAP");
 					
 					// Make sure emissives are visible
-					curMat.params.set("uEmissive", new Vector3D(1, 1, 1));
+					curMat.params.set("uEmissive", [1, 1, 1]);
 				};
 				case 'map_Bump': {
 					var tk = tokenizer.map;

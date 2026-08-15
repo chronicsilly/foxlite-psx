@@ -157,14 +157,14 @@ class FoxModel extends FoxObject {
 		FoxRenderer.mustRebuildDrawGroups = true;
 	}
 
-	public static function loadJSON(name:String) {
+	/**
+		Loads a FoxLite JSON model
+	**/
+	public function loadJSON(name:String) {
 		var data = FoxJSONLoader.load(name);
 		if(data == null) return null;
-
-		var foxModel = new FoxModel();
-		foxModel.meshes = data.meshes;
-
-		return foxModel;
+		this.meshes = data.meshes;
+		return data;
 	}
 
 	public function loadOBJ(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String) {

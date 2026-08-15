@@ -30,6 +30,12 @@ class FoxFPSCamera extends FoxCamera {
 	public var run:String = "SHIFT";
 	public var inputDir:Vector2 = new Vector2();
 
+	// Temp pos for touchscreen
+	#if !FLX_NO_TOUCH
+	public var touchLastX:Int = 0;
+	public var touchLastY:Int = 0;
+	#end
+
 	// Default: W S D A
 	public function new() {
 		super();
@@ -45,9 +51,37 @@ class FoxFPSCamera extends FoxCamera {
 			var ddt:Float = Math.min(dt * 60 * smoothFactor, 1);
 
 			// Rotation
-			if(FlxG.mouse.pressed) {
-				targetAngle.x -= FlxG.mouse.deltaViewY * sensitivity;
-				targetAngle.y -= FlxG.mouse.deltaViewX * sensitivity;
+			var input:Bool = false;
+			#if !FLX_NO_MOUSE
+			if(FlxG.mouse.pressed) input = true;
+			#end
+			#if !FLX_NO_TOUCH
+			if(FlxG.touches.list.length > 0) input = true;
+			#end
+
+			if(input) {
+				var deltaX:Float = 0;
+				var deltaY:Float = 0;
+
+				#if !FLX_NO_MOUSE
+				deltaX += FlxG.mouse.deltaViewX;
+				deltaY += FlxG.mouse.deltaViewY;
+				#end
+				
+				#if !FLX_NO_TOUCH
+				var touch = FlxG.touches.getFirst();
+				if(touch != null) {
+					if(!touch.justPressed) {
+						deltaX += touch.x - touchLastX;
+						deltaY += touch.y - touchLastY;
+					}
+					touchLastX = touch.x;
+					touchLastY = touch.y;
+				}
+				#end
+
+				targetAngle.x -= deltaY * sensitivity;
+				targetAngle.y -= deltaX * sensitivity;
 				targetAngle.x = FlxMath.bound(targetAngle.x, minPitch, maxPitch);
 			}
 
@@ -82,6 +116,10 @@ class FoxFPSCamera extends FoxCamera {
 	}
 
 	public inline function pressed(key:String):Float {
+		#if FLX_NO_KEYBOARD
+		return 0;
+		#else
 		return Reflect.getProperty(FlxG.keys.pressed, key) ? 1 : 0;
+		#end
 	}
 }

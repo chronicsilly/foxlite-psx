@@ -34,7 +34,7 @@ class FoxInstanceChunkData {
 
 	public function reallocate(context:Context3D, size:Int) {
 		glBuffer?.dispose();
-		glBuffer = context.createVertexBuffer(size, 4, #if !foxlite_polymod cast #end 0);
+		glBuffer = context.createVertexBuffer(size, 4, cast 0);
 
 		var init:Array<Float> = [];
 		init.resize(size*4);
@@ -44,7 +44,7 @@ class FoxInstanceChunkData {
 		// js handles bytes differently, we use this instead for Bytes.blit()
 		bytes = Bytes.ofData(buffer.buffer);
 		#else
-		bytes = #if !foxlite_polymod cast #end buffer.buffer;
+		bytes = cast buffer.buffer;
 		#end
 	}
 

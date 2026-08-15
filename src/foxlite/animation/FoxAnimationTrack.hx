@@ -1,24 +1,19 @@
 package foxlite.animation;
 
-import foxlite.animation.FoxAnimationTrackType;
-import foxlite.animation.FoxLerp;
+import foxlite.animation.FoxTrackType;
 import flixel.tweens.FlxEase;
-import flixel.math.FlxMath;
 
 class FoxAnimationTrack #if !foxlite_polymod <T> #end {
 	public var name:String;
-	public var frameIndex:Int = 0;
-	public var active:Bool = true;
-	public var type:FoxAnimationTrackType = FoxAnimationTrackType.FLOAT;
+	public var type #if !foxlite_polymod (default, null) #end :FoxTrackType = FoxTrackType.FLOAT;
 	public var frames:Array<FoxKeyframe<T>> = [];
-	public var value:T;
 
-	public function new(trackName:String, initialValue:T):Void {
+	public function new(trackName:String, _type:FoxTrackType):Void {
 		name = trackName;
-		value = initialValue;
+		type = _type;
 	}
 
-	public function addFrame(time:Float, value:T, easing:FoxAnimationEaseType=0) {
+	public function addFrame(time:Float, value:T, easing:FoxEaseType=0) {
 		#if foxlite_polymod
 		frames.push(new FoxKeyframe(time, value, easing));
 		#else
@@ -42,7 +37,7 @@ class FoxAnimationTrack #if !foxlite_polymod <T> #end {
 	public function getFrameIndexByTime(time:Float, closestFrame:Bool=false, ceil:Bool=false):Int {
 		for(f in 0...frames.length) {
 			if(frames[f].time < time) continue;
-			var index:Int = #if !foxlite_polymod cast #end Math.max(f - 1, 0);
+			var index:Int = cast Math.max(f - 1, 0);
 			if(ceil) return f;
 			return closestFrame && (time - frames[index].time > frames[f].time - time) ? f : index;
 		}
@@ -57,55 +52,56 @@ class FoxAnimationTrack #if !foxlite_polymod <T> #end {
 	public function getFrameByTime(time:Float, closestFrame:Bool=false, nextFrame:Bool=false):FoxKeyframe<T> {
 		for(f in 0...frames.length) {
 			if(frames[f].time < time) continue;
-			var index:Int = #if !foxlite_polymod cast #end Math.max(f - 1, 0);
+			var index:Int = cast Math.max(f - 1, 0);
 			if(nextFrame) return frames[f];
 			return frames[closestFrame && (time - frames[index].time > frames[f].time - time) ? f : index];
 		}
 		return null;
 	}
 
-	/**
-		Returns the interpolated value between two frames of this track, the frames
-		can be reversed and not strictly sequential, meaning you can interpolate between
-		any frames.
-
-		The frame easing is applied.
-	**/
-	public function getValueInterpolated(frame0:FoxKeyframe<T>, frame1:FoxKeyframe<T>, weight:Float):T {
-		weight = switch(frame0.ease) {
-			case FoxAnimationEaseType.ZERO: 	  	 0;
-			case FoxAnimationEaseType.EASE_IN: 	  	 FlxEase.quadIn(weight);
-			case FoxAnimationEaseType.EASE_OUT:   	 FlxEase.quadOut(weight);
-			case FoxAnimationEaseType.EASE_INOUT: 	 FlxEase.quadInOut(weight);
+	public static function getEaseWeight(weight:Float, easeType:FoxEaseType):Float {
+		return switch(easeType) {
+			case FoxEaseType.ZERO: 	  	 0;
+			case FoxEaseType.QUAD_IN: 	  	 FlxEase.quadIn(weight);
+			case FoxEaseType.QUAD_OUT:   	 FlxEase.quadOut(weight);
+			case FoxEaseType.QUAD_INOUT: 	 FlxEase.quadInOut(weight);
+			case FoxEaseType.BACK_IN:		 FlxEase.backIn(weight);
+			case FoxEaseType.BACK_INOUT:	 FlxEase.backInOut(weight);
+			case FoxEaseType.BACK_OUT:		 FlxEase.backOut(weight);
+			case FoxEaseType.BOUNCE_IN:	 FlxEase.bounceIn(weight);
+			case FoxEaseType.BOUNCE_INOUT:	 FlxEase.bounceInOut(weight);
+			case FoxEaseType.BOUNCE_OUT:	 FlxEase.bounceOut(weight);
+			case FoxEaseType.CIRC_IN:	 	 FlxEase.circIn(weight);
+			case FoxEaseType.CIRC_INOUT:	 FlxEase.circInOut(weight);
+			case FoxEaseType.CIRC_OUT:		 FlxEase.circOut(weight);
+			case FoxEaseType.CUBE_IN:	 	 FlxEase.cubeIn(weight);
+			case FoxEaseType.CUBE_INOUT:	 FlxEase.cubeInOut(weight);
+			case FoxEaseType.CUBE_OUT:		 FlxEase.cubeOut(weight);
+			case FoxEaseType.ELASTIC_IN:	 FlxEase.elasticIn(weight);
+			case FoxEaseType.ELASTIC_INOUT: FlxEase.elasticInOut(weight);
+			case FoxEaseType.ELASTIC_OUT:   FlxEase.elasticOut(weight);
+			case FoxEaseType.EXPO_IN:	 	 FlxEase.expoIn(weight);
+			case FoxEaseType.EXPO_INOUT: 	 FlxEase.expoInOut(weight);
+			case FoxEaseType.EXPO_OUT:   	 FlxEase.expoOut(weight);
+			case FoxEaseType.QUART_IN:	 	 FlxEase.quartIn(weight);
+			case FoxEaseType.QUART_INOUT: 	 FlxEase.quartInOut(weight);
+			case FoxEaseType.QUART_OUT:   	 FlxEase.quartOut(weight);
+			case FoxEaseType.QUINT_IN:	 	 FlxEase.quintIn(weight);
+			case FoxEaseType.QUINT_INOUT: 	 FlxEase.quintInOut(weight);
+			case FoxEaseType.QUINT_OUT:   	 FlxEase.quintOut(weight);
+			case FoxEaseType.SINE_IN:	 	 FlxEase.sineIn(weight);
+			case FoxEaseType.SINE_INOUT: 	 FlxEase.sineInOut(weight);
+			case FoxEaseType.SINE_OUT:   	 FlxEase.sineOut(weight);
+			#if (flixel >= "4.3.0")
+			case FoxEaseType.SMOOTHSTEP_IN: 		FlxEase.smoothStepIn(weight);
+			case FoxEaseType.SMOOTHSTEP_INOUT: 	FlxEase.smoothStepInOut(weight);
+			case FoxEaseType.SMOOTHSTEP_OUT: 		FlxEase.smoothStepOut(weight);
+			case FoxEaseType.SMOOTHERSTEP_IN: 		FlxEase.smootherStepIn(weight);
+			case FoxEaseType.SMOOTHERSTEP_INOUT: 	FlxEase.smootherStepInOut(weight);
+			case FoxEaseType.SMOOTHERSTEP_OUT: 	FlxEase.smootherStepOut(weight);
+			#end
 			default: weight;
 		}
-
-		// TODO: Create a macro for this to skip runtime type checks
-		var v0:Any = frame0.value;
-		var v1:Any = frame1.value;
-		return #if !foxlite_polymod cast #end switch(type) {
-			case FoxAnimationTrackType.INT: 		 Std.int(FlxMath.lerp(v0, v1, weight));
-			case FoxAnimationTrackType.BOOL: 		 v0; // Same as Zero
-			case FoxAnimationTrackType.ANGLE: 		 FoxLerp.lerpAngle(v0, v1, weight);
-			case FoxAnimationTrackType.FLOAT: 		 FlxMath.lerp(v0, v1, weight);
-			case FoxAnimationTrackType.VECTOR2: 	 FoxLerp.lerp2D(v0, v1, weight);
-			case FoxAnimationTrackType.VECTOR4: 	 FoxLerp.lerp4D(v0, v1, weight);
-			case FoxAnimationTrackType.MATRIX4:		 FoxLerp.lerpMatrix4(v0, v1, weight);
-			case FoxAnimationTrackType.VECTOR3D: 	 FoxLerp.lerp3D(v0, v1, weight);
-			case FoxAnimationTrackType.QUATERNION: 	 FoxLerp.lerpQuaternion(v0, v1, weight);
-			case FoxAnimationTrackType.EULER_ANGLES: FoxLerp.lerpAngle3D(v0, v1, weight);
-			default: v0;
-		}
-	}
-
-	/**
-		Returns the interpolated value between two timestamps of this track, controlled by time
-	**/
-	public function getValueInterpolatedByTime(time:Float):T {
-		var f0 = getFrameByTime(time);
-		var f1 = getFrameByTime(time, false, true);
-		var w = FoxLerp.inverseLerp(f0.time, f1.time, time);
-		return getValueInterpolated(f0, f1, w);
 	}
 
 	public function clearFrames() {

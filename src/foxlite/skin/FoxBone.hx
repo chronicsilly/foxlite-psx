@@ -11,11 +11,13 @@ class FoxBone extends FoxObject {
 	public var poseEnabled:Bool = true;
 	
 	/**
-		The rest pose of this bone.
+		The rest transform of this bone.
 
 		This is used as offset (pivot) for bone transform.
+
+		__Note:__ This matrix should be inverted and in global-space
 	**/
-	public var offset:Matrix3D;
+	public var rest:Matrix3D;
 
 	/**
 		The index of the parent of this bone.
@@ -29,9 +31,9 @@ class FoxBone extends FoxObject {
 
 		@param rest The rest pose transform for this bone
 	**/
-	public function new(rest:Matrix3D) {
+	public function new(_rest:Matrix3D) {
 		super();
-		offset = rest;
+		rest = _rest;
 		name = "FoxBone";
 	}
 

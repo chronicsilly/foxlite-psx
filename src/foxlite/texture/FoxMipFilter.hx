@@ -18,4 +18,21 @@ package foxlite.texture;
 		Always use the top level texture (has a performance penalty when downscaling).
 	**/
 	public inline static final MIPNONE = 2;
+
+	@:from public static function fromString(type:String):FoxMipFilter {
+		type = type.toLowerCase();
+		return switch(type) {
+			case "miplinear": FoxMipFilter.MIPLINEAR;
+			case "mipnearest": FoxMipFilter.MIPNEAREST;
+			default: FoxMipFilter.MIPNONE;
+		}
+	}
+
+	@:to public static function toString(type:FoxMipFilter) {
+		return switch(type) {
+			case FoxMipFilter.MIPLINEAR: "miplinear";
+			case FoxMipFilter.MIPNEAREST: "mipnearest";
+			default: "mipnone";
+		}
+	}
 }

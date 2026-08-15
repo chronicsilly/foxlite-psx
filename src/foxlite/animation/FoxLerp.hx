@@ -1,5 +1,6 @@
 package foxlite.animation;
 
+import foxlite.math.FoxMathUtil;
 import flixel.math.FlxMath;
 import foxlite.renderer.FoxRenderer;
 import lime.math.Vector2;
@@ -13,10 +14,11 @@ class FoxLerp {
 
 	public static function moveToward(from:Float, to:Float, step:Float):Float {
 		var diff:Float = to - from;
+		if(diff == 0) return from;
 		var dir:Float = FlxMath.signOf(diff);
 		var projected:Float = from + step * dir;
 
-		if(dir != 0 && Math.abs(projected) >= Math.abs(to)) return to;
+		if(Math.abs(projected) >= Math.abs(to)) return to;
 		return projected; 
 	}
 
@@ -26,7 +28,7 @@ class FoxLerp {
 
 	public static function lerpAngle(a:Float, b:Float, w:Float):Float {
 		// https://stackoverflow.com/questions/2708476/rotation-interpolation
-		var TAU = Math.PI*2;
+		final TAU = FoxMathUtil.TAU;
 		var shortest_angle = ((b - a) % TAU + Math.PI) % TAU - Math.PI;
    		return a + shortest_angle * w;
 	}

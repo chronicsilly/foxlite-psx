@@ -22,11 +22,7 @@ class FoxDirectionalLight extends FoxBaseLight {
 	public override function getType():FoxLightType {
 		return FoxLightType.DIRECTIONAL;
 	}
-
-	public override function getShadowMapType():FoxLightType {
-		return FoxLightType.DIRECTIONAL;
-	}
-
+	
 	function set_shadowDistance(v:Float):Float {
 		if(v == this.shadowDistance) return v;
 		FoxMathUtil.orthogonalMatrix(this.projectionMatrix, v, 1, 0.05, 512);

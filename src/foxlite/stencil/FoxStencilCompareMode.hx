@@ -45,5 +45,3 @@ class FoxStencilCompareMode {
 	public inline static final NOT_EQUAL = 7;
 }
 #end
-
-enum Bruh3 {}

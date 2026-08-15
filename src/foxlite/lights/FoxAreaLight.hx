@@ -31,10 +31,6 @@ class FoxAreaLight extends FoxPointLight {
 		return FoxLightType.AREA;
 	}
 
-	public override function getShadowMapType():FoxLightType {
-		return FoxLightType.POINT;
-	}
-
 	public override function setToLightData(camera:FoxCamera) {
 		var lightData = camera.lightData;
 		var distance = Vector3D.distance(globalPosition, camera.globalPosition);

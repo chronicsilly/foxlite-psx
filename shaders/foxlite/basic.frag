@@ -7,17 +7,7 @@
 
 void main() {
 	#ifndef SOLID
-	vec2 TexCoordv = foxlite_TexCoordv;
-
-	// For the shadow pass, we need to perform an extra division for point lights (dual paraboloid)
-	#if defined(SHADOW_PASS) && defined(SHADOW_GLSL)
-	if(currentLightType == LIGHT_POINT || currentLightType == LIGHT_AREA) {
-		if(shadowDistortClip < -1.0) discard;
-		TexCoordv /= shadowDistortW;
-	}
-	#endif
-
-	vec4 albedo = texture2D(bitmap, TexCoordv) * foxlite_Colorv;
+	vec4 albedo = texture2D(bitmap, foxlite_TexCoordv) * foxlite_Colorv;
 	
 	#if !defined(NO_ALPHA_SCISSOR) && !(defined(ALPHA_DITHER) || defined(ALPHA_DITHER_FAST))
 	if(albedo.a < alphaScissor) discard; // Alpha cutout (disabled when alpha dithering is enabled)
@@ -79,16 +69,19 @@ void main() {
 	#endif
 
 	#ifndef UNSHADED
-	albedo.rgb = light(albedo.rgb * ao, -normalView, viewPosition.xyz, specular, roughness);
+	float shininess = (1.0 - roughness) * (1.0 - roughness) * 256.0;
+	albedo.rgb = light(albedo.rgb * ao, -normalView, viewPosition.xyz, specular, shininess);
 	#endif
 
 	#ifdef SKY_REFLECTIONS
-		// TODO: roughness affects reflection blur
 		vec3 dir = reflect(normalize(worldDirection), worldBasis * normalView);
 		//float costheta = -dot(normalize(viewPosition.xyz), normalView);
 		//float fresnel = fresnelSchlick(clamp(costheta, 0.0, 1.0), 0.05);
-		vec3 skyColor = panoramaSky(skyTexture, dir, pow(10.0, roughness));
-		albedo.rgb = mix(albedo.rgb, skyColor, clamp(metallic - roughness, 0, 1));
+		vec4 skyColor = panoramaSky(skyTexture, dir, pow(8.0, roughness)-1.0);
+	#ifdef SKY_RADIANCE
+		albedo *= panoramaSky(skyTexture, dir, SKY_RADIANCE_LEVEL);
+	#endif
+		albedo = mix(albedo, skyColor, clamp(metallic, 0, 1));
 	#else
 		albedo.rgb *= 1.0 - metallic;
 	#endif

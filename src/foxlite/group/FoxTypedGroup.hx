@@ -2,6 +2,7 @@ package foxlite.group;
 
 import foxlite.FoxBasic;
 import foxlite.FoxCamera;
+import foxlite.flixel.FlxTypedSignalImpl;
 import foxlite.renderer.FoxRenderer;
 #if foxlite_polymod
 import foxlite.funkin.PolymodUtils;
@@ -13,6 +14,9 @@ import foxlite.funkin.PolymodUtils;
 class FoxTypedGroup #if !foxlite_polymod <T:FoxBasic> #end extends FoxBasic {
 	
 	public var members:Array<T> = [];
+
+	public final onMemberAdded:FlxTypedSignalImpl<(member:FoxBasic)->Void> = new FlxTypedSignalImpl();
+	public final onMemberRemoved:FlxTypedSignalImpl<(member:FoxBasic)->Void> = new FlxTypedSignalImpl();
 
 	public var length(get, never):Int;
 
@@ -29,6 +33,7 @@ class FoxTypedGroup #if !foxlite_polymod <T:FoxBasic> #end extends FoxBasic {
 		if(nullIdx == -1) members.push(member);
 		else members[nullIdx] = member;
 		FoxRenderer.mustRebuildDrawGroups = true;
+		onMemberAdded.dispatch(member);
 		return member;
 	}
 
@@ -45,6 +50,7 @@ class FoxTypedGroup #if !foxlite_polymod <T:FoxBasic> #end extends FoxBasic {
 		else members.insert(pos, member);
 		//if(member.parent == null) member.parent = this;
 		member.scene = this.scene;
+		onMemberAdded.dispatch(member);
 		FoxRenderer.mustRebuildDrawGroups = true;
 
 		return member;
@@ -60,6 +66,7 @@ class FoxTypedGroup #if !foxlite_polymod <T:FoxBasic> #end extends FoxBasic {
 		}
 		else members.splice(memIdx, 1);
 		FoxRenderer.mustRebuildDrawGroups = true;
+		onMemberRemoved(member);
 		return member;
 	}
 

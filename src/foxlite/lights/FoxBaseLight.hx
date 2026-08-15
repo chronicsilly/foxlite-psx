@@ -78,10 +78,6 @@ class FoxBaseLight extends FoxObject {
 		return -1;
 	}
 
-	public function getShadowMapType():FoxLightType {
-		return -1;
-	}
-
 	public override function update(dt) {
 		super.update(dt);
 		FoxMathUtil.directionOfToOutput(transform, direction);

@@ -16,7 +16,7 @@ class FoxStencilAction {
 
 		This sets `write` to `false`
 
-		A stencil operation shoukd not perform read and write at the same time
+		A stencil operation should not perform read and write at the same time
 	**/
 	public var read(get, set):Bool;
 
@@ -56,7 +56,7 @@ class FoxStencilAction {
 	/**
 		Updates the stencil counter if the action passed on the depth buffer, but failed in the stencil buffer
 	**/
-	public var actionOnDepthPassStencilFail:FoxStencilActionType = FoxStencilActionType.KEEP;
+	public var actionOnFail:FoxStencilActionType = FoxStencilActionType.KEEP;
 
 	// Cached ids for the renderer
 	public var referenceValueId:Int = 0;
@@ -72,11 +72,14 @@ class FoxStencilAction {
 		getActionID();
 	}
 
-	public function setActions(compare:FoxStencilCompareMode=0, onBothPass:FoxStencilActionType=5, onDepthFail:FoxStencilActionType=5, onDepthPassStencilFail:FoxStencilActionType=5) {
+	/**
+		Sets the operations for this stencil action: fail, zfail, zpass
+	**/
+	public function setActions(compare:FoxStencilCompareMode=0, onFail:FoxStencilActionType=5, onDepthFail:FoxStencilActionType=5, onBothPass:FoxStencilActionType=5) {
 		compareMode = compare;
-		actionOnBothPass = onBothPass;
+		actionOnFail = onFail;
 		actionOnDepthFail = onDepthFail;
-		actionOnDepthPassStencilFail = onDepthPassStencilFail;
+		actionOnBothPass = onBothPass;
 		getReferenceValueID();
 		getActionID();
 	}
@@ -87,7 +90,7 @@ class FoxStencilAction {
 	}
 
 	public function getActionID() {
-		actionId = compareMode | triangleFace << 3 | actionOnBothPass << 5 | actionOnDepthFail << 8 | actionOnDepthPassStencilFail << 11; // 3 bits + 2 bits + 3 bits + 3 bits
+		actionId = compareMode | triangleFace << 3 | actionOnBothPass << 5 | actionOnDepthFail << 8 | actionOnFail << 11; // 3 bits + 2 bits + 3 bits + 3 bits
 		return actionId;
 	}
 

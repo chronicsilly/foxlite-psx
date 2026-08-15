@@ -99,4 +99,12 @@ class FoxLoaderUtil {
 	public static function path(f:String):String {
 		return f.substr(0, f.lastIndexOf('/')+1);
 	}
+
+	/**
+		Returns the file extension from a path
+	**/
+	public static function extension(f:String):String {
+		var i = f.lastIndexOf('.')+1;
+		return i == 0 ? "" : f.substr(i);
+	}
 }

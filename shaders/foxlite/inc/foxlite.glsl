@@ -33,6 +33,7 @@ precision mediump int;
 #if __VERSION__ >= 300
 #define texture2D texture
 #define texture2DLod textureLod
+#define textureCube texture
 
 #ifdef VERTEX
 #define attribute in
@@ -55,7 +56,6 @@ layout(location = 0) out vec4 _GL_DRAW_BUFFERS[1];
 
 // User uniforms
 uniform vec2 iResolution;		// Camera Viewport size
-uniform float iTime;			// Elapsed time
 
 #ifdef FRAGMENT
 #define ScreenCoord gl_FragCoord.xy

@@ -30,7 +30,6 @@ class FoxFramebuffer {
 	public var depthBuffer:FoxTexture = null;
 	public var colorBuffers:Array<FoxTexture> = [];
 	public var hasDepth:Bool = false;
-	public var hasStencil:Bool = false;
 	public var context:Context3D = null;
 
 	public var drawBuffers:Array<Int> = [];
@@ -56,7 +55,7 @@ class FoxFramebuffer {
 	private function __initTexture():Void {
 		// Create dummy texture object
 		
-		@:privateAccess glTexture = new Texture(context, 2, 2, #if !foxlite_polymod cast #end 1, false, 0);
+		@:privateAccess glTexture = new Texture(context, 2, 2, cast 1, false, 0);
 
 		// Even though we don't tell OpenFL this is a framebuffer, 
 		// we can still attach a depth buffer to it and use it as target
@@ -79,12 +78,12 @@ class FoxFramebuffer {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, glTexture.__glFramebuffer);
 		// Don't overwrite ours, openfl
 		if(glTexture.__glDepthRenderbuffer == null) glTexture.__glDepthRenderbuffer = gl.createRenderbuffer();
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, #if !foxlite_polymod cast #end texture?.glTexture?.__textureID, 0);
+		var texID = texture?.glTexture?.__textureID;
+		// Attach with stencil buffer aswell
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, cast texID, 0);
 		hasDepth = texture != null;
 		glTexture.__optimizeForRenderToTexture = hasDepth; // indicate that we do have depth
 		depthBuffer = texture;
-		// Since OpenFL expects a stencil buffer along with depth, it'll create one when needed
-		hasStencil = true;
 		return FoxRenderer.checkFrameBuffer();
 	}
 
@@ -131,7 +130,6 @@ class FoxFramebuffer {
 		stencilBuffer = null;
 		__initTexture();
 		if(hasDepth) setDepthTexture(depthBuffer.resize(newWidth, newHeight));
-		//if(hasStencil) setStencilBuffer(stencilBuffer);
 		for(t in 0...textures.length) setColorTexture(t, textures[t]);
 	}
 
@@ -224,7 +222,7 @@ class FoxFramebuffer {
 	}
 
 	/**
-		Convenience method to create a 2D framebuffer (no depth attached)
+		Convenience method to create a 2D framebuffer (no depth nor stencil attached)
 	**/
 	public static function create2D(width:Int, height:Int, alphaChannel:Bool=true, type:String="unsigned_byte"):FoxFramebuffer {
 		var fb = new FoxFramebuffer();
@@ -234,11 +232,11 @@ class FoxFramebuffer {
 	}
 
 	/**
-		Convenience method to create a 3D framebuffer (depth buffer attached)
+		Convenience method to create a 3D framebuffer (depth+stencil buffers attached)
 	**/
 	public static function create3D(width:Int, height:Int, alphaChannel:Bool=true, type:String="unsigned_byte"):FoxFramebuffer {
 		var fb = new FoxFramebuffer();
-		var depth = FoxTexture.create(width, height, "DEPTH_COMPONENT24", "unsigned_int");
+		var depth = FoxTexture.create(width, height, "DEPTH24_STENCIL8", "UNSIGNED_INT_24_8");
 		var color = FoxTexture.create(width, height, alphaChannel ? "rgba" : "rgb", type);
 
 		depth.filter = FoxTextureFilter.NEAREST;
@@ -264,12 +262,13 @@ class FoxFramebuffer {
 
 		__Note 2:__ Alpha channel will be always available for extra storage.
 
-		If `bufferCount` is 0, only the depth buffer will be attached to the framebuffer.
+		If `bufferCount` is 0, only the depth buffer will be attached to the framebuffer, which may not work on all platforms.
 	**/
 	public static function createDeferred(width:Int, height:Int, bufferCount:Int=1, precision:String="32F"):FoxFramebuffer {
-		if(bufferCount >= GL.getParameter(GL.MAX_COLOR_ATTACHMENTS)) throw new RangeError('gl.MAX_COLOR_ATTACHMENTS exceeded. ($bufferCount)');
+		final maxColorAttachments = 32;
+		if(bufferCount >= maxColorAttachments) throw new RangeError('gl.MAX_COLOR_ATTACHMENTS exceeded. ($bufferCount of $maxColorAttachments)');
 		var fb = new FoxFramebuffer();
-		var depth = FoxTexture.create(width, height, "DEPTH_COMPONENT24", "unsigned_int");
+		var depth = FoxTexture.create(width, height, "DEPTH24_STENCIL8", "UNSIGNED_INT_24_8");
 		depth.filter = FoxTextureFilter.NEAREST;
 		fb.setDepthTexture(depth);
 

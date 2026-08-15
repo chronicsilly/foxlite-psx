@@ -73,7 +73,7 @@ class FoxMesh {
 	**/
 	public function setBuffer(type:FoxMeshBufferType, data:Array<Float>) {
 		var buffer = getBufferByType(type);
-		buffer.uploadFromTypedArray(TypedArray.Float32Array(#if !foxlite_polymod cast #end data));
+		buffer.uploadFromTypedArray(TypedArray.Float32Array(cast data));
 		FoxRenderer.allocationsThisFrame += 1;
 	}
 
@@ -81,7 +81,7 @@ class FoxMesh {
 		Same as `setBuffer()` but exclusive to the Index buffer
 	**/
 	public function setIndexBuffer(data:Array<Int>) {
-		indexBuffer.uploadFromTypedArray(TypedArray.UInt16Array(#if !foxlite_polymod cast #end data));
+		indexBuffer.uploadFromTypedArray(TypedArray.UInt16Array(cast data));
 		FoxRenderer.allocationsThisFrame += 1;
 	}
 
@@ -100,7 +100,7 @@ class FoxMesh {
 		offset *= 4; // Offset is actually in bytes
 		var buffer = getBufferByType(type);
 		context.__bindGLArrayBuffer(buffer.__id);
-		var packed = TypedArray.Float32Array(#if !foxlite_polymod cast #end data);
+		var packed = TypedArray.Float32Array(cast data);
 		#if foxlite_polymod
 		#if lime_webgl
 		GL.bufferSubDataWEBGL(gl.ARRAY_BUFFER, offset, packed);
@@ -120,7 +120,7 @@ class FoxMesh {
 		var gl = context.gl;
 		offset *= 2; // Offset is actually in bytes
 		context.__bindGLElementArrayBuffer(indexBuffer.__id);
-		var packed = TypedArray.UInt16Array(#if !foxlite_polymod cast #end data);
+		var packed = TypedArray.UInt16Array(cast data);
 		#if foxlite_polymod
 		#if lime_webgl
 		GL.bufferSubDataWEBGL(gl.ELEMENT_ARRAY_BUFFER, offset, packed);

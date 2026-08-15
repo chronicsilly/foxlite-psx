@@ -1,6 +1,7 @@
 package foxlite.group;
 
 import foxlite.FoxObject;
+import foxlite.flixel.FlxTypedSignalImpl;
 import foxlite.renderer.FoxRenderer;
 
 /**
@@ -14,6 +15,9 @@ import foxlite.renderer.FoxRenderer;
 class FoxObjectGroup extends FoxObject {
 	
 	public var members:Array<FoxObject> = [];
+
+	public final onMemberAdded:FlxTypedSignalImpl<(member:FoxObject)->Void> = new FlxTypedSignalImpl();
+	public final onMemberRemoved:FlxTypedSignalImpl<(member:FoxObject)->Void> = new FlxTypedSignalImpl();
 
 	public var length(get, never):Int;
 
@@ -30,6 +34,7 @@ class FoxObjectGroup extends FoxObject {
 		if(nullIdx == -1) members.push(member);
 		else members[nullIdx] = member;
 		FoxRenderer.mustRebuildDrawGroups = true;
+		onMemberAdded.dispatch(member);
 		return member;
 	}
 
@@ -47,6 +52,7 @@ class FoxObjectGroup extends FoxObject {
 		if(member.parent == null) member.parent = this;
 		member.scene = this.scene;
 		FoxRenderer.mustRebuildDrawGroups = true;
+		onMemberAdded.dispatch(member);
 
 		return member;
 	}
@@ -61,6 +67,7 @@ class FoxObjectGroup extends FoxObject {
 		}
 		else members.splice(memIdx, 1);
 		FoxRenderer.mustRebuildDrawGroups = true;
+		onMemberRemoved.dispatch(member);
 		return member;
 	}
 

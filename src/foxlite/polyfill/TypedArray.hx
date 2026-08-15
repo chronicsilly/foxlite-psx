@@ -104,5 +104,3 @@ class TypedArray {
 	}
 	#end
 }
-
-enum Bruh2 {} // Add literally any valid statement so HScript can properly close the preprocessor (Polymod 1.8.0)

@@ -82,5 +82,3 @@ class HScriptCompatMacro {
 	
 }
 #end
-
-enum Bruh1 {}

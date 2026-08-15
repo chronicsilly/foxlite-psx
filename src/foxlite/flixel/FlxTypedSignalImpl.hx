@@ -1,4 +1,4 @@
-package foxlite.system;
+package foxlite.flixel;
 
 #if foxlite_polymod
 
@@ -65,5 +65,3 @@ class FlxTypedSignalImplListener {
 // For source we just use FlxTypedSignal template
 typedef FlxTypedSignalImpl<T> = flixel.util.FlxSignal.FlxTypedSignal<T>
 #end
-
-enum Bruh4 {}

@@ -10,7 +10,7 @@ package foxlite.material;
 	public inline static final MULTIPLY = 4;
 	public inline static final PREMULTIPLIED_ALPHA = 5;
 
-	public static function fromString(blendMode:String):FoxBlendMode {
+	@:from public static function fromString(blendMode:String):FoxBlendMode {
 		blendMode = blendMode.toLowerCase();
 		return switch(blendMode) {
 			case "mix": FoxBlendMode.MIX;
@@ -19,6 +19,17 @@ package foxlite.material;
 			case "multiply": FoxBlendMode.MULTIPLY;
 			case "premultiplied_alpha": FoxBlendMode.PREMULTIPLIED_ALPHA;
 			default: FoxBlendMode.NONE;
+		}
+	}
+
+	@:to public static function toString(blendMode:FoxBlendMode) {
+		return switch(blendMode) {
+			case FoxBlendMode.MIX: "mix";
+			case FoxBlendMode.ADD: "add";
+			case FoxBlendMode.SUBTRACT: "subtract";
+			case FoxBlendMode.MULTIPLY: "multiply";
+			case FoxBlendMode.PREMULTIPLIED_ALPHA: "premultiplied_alpha";
+			default: "none";
 		}
 	}
 }

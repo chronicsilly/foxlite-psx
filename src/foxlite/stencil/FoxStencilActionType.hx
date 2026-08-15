@@ -41,14 +41,14 @@ package foxlite.stencil;
 	/**
 		Replace the stencil buffer value with the reference value.
 	**/
-	public inline static final SET = 6;
+	public inline static final REPLACE = 6;
 
 	/**
 		Set the stencil buffer value to 0.
 	**/
 	public inline static final ZERO = 7;
 
-	public static function fromString(action:String):FoxStencilActionType {
+	@:from public static function fromString(action:String):FoxStencilActionType {
 		action = action.toLowerCase();
 		return switch(action) {
 			case "decrement_saturate": FoxStencilActionType.DECREMENT_SATURATE;
@@ -56,9 +56,22 @@ package foxlite.stencil;
 			case "increment_saturate": FoxStencilActionType.INCREMENT_SATURATE;
 			case "increment_wrap": FoxStencilActionType.INCREMENT_WRAP;
 			case "invert": FoxStencilActionType.INVERT;
-			case "set": FoxStencilActionType.SET;
+			case "replace": FoxStencilActionType.REPLACE;
 			case "zero": FoxStencilActionType.ZERO;
 			default: FoxStencilActionType.KEEP;
+		}
+	}
+
+	@:to public static function toString(action:FoxStencilActionType):String {
+		return switch(action) {
+			case FoxStencilActionType.DECREMENT_SATURATE: "decrement_saturate";
+			case FoxStencilActionType.DECREMENT_WRAP: "decrement_wrap";
+			case FoxStencilActionType.INCREMENT_SATURATE: "increment_saturate";
+			case FoxStencilActionType.INCREMENT_WRAP: "increment_wrap";
+			case FoxStencilActionType.INVERT: "invert";
+			case FoxStencilActionType.REPLACE: "replace";
+			case FoxStencilActionType.ZERO: "zero";
+			default: "keep";
 		}
 	}
 }

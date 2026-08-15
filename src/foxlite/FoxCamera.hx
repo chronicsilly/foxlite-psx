@@ -48,6 +48,7 @@ class FoxCamera extends FoxObject {
 	public var projectionMatrix:Matrix3D = new Matrix3D();
 	public var __invProjectionMatrix:Matrix3D = new Matrix3D(); // For raytracing effects
 
+	// Temporary matrix for space coordinate transforms
 	public final __tempMatrix = new Matrix3D();
 
 	// Frustum culling
@@ -147,10 +148,9 @@ class FoxCamera extends FoxObject {
 		__Note 2:__ The values are unclamped! Make sure to clamp them if needed.
 	**/
 	public function getScreenPoint(point:Vector3D):Vector3D {
-		var mat = __tempMatrix; // Use cached matrix from FoxMathUtil
-		mat.copyRawDataFrom(projectionMatrix.rawData);
-		mat.prepend(viewMatrix);
-		var v = mat.transformVector(point); // projectionMatrix * viewMatrix * point
+		__tempMatrix.copyRawDataFrom(projectionMatrix.rawData);
+		__tempMatrix.prepend(viewMatrix);
+		var v = __tempMatrix.transformVector(point); // projectionMatrix * viewMatrix * point
 		v.project(); // proj.xyz /= proj.w -> NDC
 		FoxRenderer.allocationsThisFrame += 1;
 		return v;
@@ -175,10 +175,9 @@ class FoxCamera extends FoxObject {
 		Re-projects a screen-space point to world space, useful for point and click in 3D with raycast.
 	**/
 	public function getWorldSpace(point:Vector3D):Vector3D {
-		var mat = __tempMatrix; // Use cached matrix from FoxMathUtil
-		mat.copyRawDataFrom(__invProjectionMatrix.rawData);
-		mat.append(__invViewMatrix);
-		var v = mat.transformVector(point);
+		__tempMatrix.copyRawDataFrom(__invProjectionMatrix.rawData);
+		__tempMatrix.append(__invViewMatrix);
+		var v = __tempMatrix.transformVector(point);
 		FoxRenderer.allocationsThisFrame += 1;
 		return v;
 	}

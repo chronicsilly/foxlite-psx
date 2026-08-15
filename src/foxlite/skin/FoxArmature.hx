@@ -24,7 +24,7 @@ class FoxArmature extends FoxObjectGroup {
 	**/
 	public function checkModel(member:FoxObject):FoxObject {
 		if(member == null) return null;
-		var model:FoxModel = #if !foxlite_polymod cast #end member; // Check skin
+		var model:FoxModel = cast member; // Check skin
 		#if foxlite_polymod
 		if(PolymodUtils.instanceHasField(model, "skin")) model.skin = skin;
 		#else

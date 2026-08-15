@@ -33,4 +33,27 @@ package foxlite.texture;
 		sharp mosaic look).
 	**/
 	public inline static final NEAREST = 5;
+
+	@:from public static function fromString(type:String):FoxTextureFilter {
+		type = type.toLowerCase();
+		return switch(type) {
+			case "aniso16x": FoxTextureFilter.ANISOTROPIC16X;
+			case "aniso2x": FoxTextureFilter.ANISOTROPIC2X;
+			case "aniso4x": FoxTextureFilter.ANISOTROPIC4X;
+			case "aniso8x": FoxTextureFilter.ANISOTROPIC8X;
+			case "nearest": FoxTextureFilter.NEAREST;
+			default: FoxTextureFilter.LINEAR;
+		}
+	}
+
+	@:to public static function toString(type:FoxTextureFilter):String {
+		return switch(type) {
+			case FoxTextureFilter.ANISOTROPIC16X: "aniso16x";
+			case FoxTextureFilter.ANISOTROPIC2X: "aniso2x";
+			case FoxTextureFilter.ANISOTROPIC4X: "aniso4x";
+			case FoxTextureFilter.ANISOTROPIC8X: "aniso8x";
+			case FoxTextureFilter.NEAREST: "nearest";
+			default: "linear";
+		}
+	}
 }

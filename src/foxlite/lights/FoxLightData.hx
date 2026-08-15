@@ -1,5 +1,8 @@
 package foxlite.lights;
 
+import openfl.geom.Rectangle;
+import openfl.geom.Matrix3D;
+import foxlite.texture.FoxTextureBuffer;
 import foxlite.FoxCamera;
 import foxlite.lights.FoxDirectionalLight;
 import foxlite.lights.FoxLightType;
@@ -13,10 +16,50 @@ import haxe.ds.BalancedTree;
 import openfl.Vector;
 import openfl.geom.Vector3D;
 
+class PackedDirectionalLight {
+	public var color:Vector3D = new Vector3D();
+	public var direction:Vector3D = new Vector3D();
+	public var shadowRegion:Vector3D; // Pointer to the light's shadowAtlasUV
+	public var casterIndex:Int = -1;
+
+	public function new() {}
+}
+
+class PackedPointLight {
+	public var color:Vector3D = new Vector3D();
+	public var position:Vector3D = new Vector3D();
+	public var casterIndex:Int = -1;
+
+	public function new() {}
+}
+
+class PackedSpotLight {
+	public var color:Vector3D = new Vector3D();
+	public var position:Vector3D = new Vector3D();
+	public var direction:Vector3D = new Vector3D();
+	public var shadowRegion:Vector3D; // Pointer to the light's shadowAtlasUV
+	public var casterIndex:Int = -1;
+
+	public function new() {}
+}
+
+class PackedAreaLight {
+	public var color:Vector3D = new Vector3D();
+	public var position:Vector3D = new Vector3D();
+	public var direction:Vector3D = new Vector3D();
+	public var sdfData:Vector3D = new Vector3D();
+	public var casterIndex:Int = -1;
+
+	public function new() {}
+}
+
 class FoxLightData {
 
-	public inline static final MAX_LIGHTS = 24;
-	public inline static final MAX_SHADOW_LIGHTS = 8;
+	public inline static final MAX_DIRECTIONAL_LIGHTS =  4;
+	public inline static final MAX_POINT_LIGHTS 	  = 16;
+	public inline static final MAX_SPOT_LIGHTS 		  =  8;
+	public inline static final MAX_AREA_LIGHTS 		  =  8;
+	public inline static final TOTAL_LIGHTS 		  =  4 + 16 + 8 + 8;
 
 	public var ambientLight:Vector3D = new Vector3D(1, 1, 1);
 
@@ -27,25 +70,26 @@ class FoxLightData {
 	public final shadowLights:Array<FoxBaseLight> = [];
 
 	// Data
-	public var lightBuffer:Vector<Vector3D> = VectorFactory.Vector3D();
-	public var lightTypes:Array<FoxLightType> = [];
+	public final directionalLightBuffer:Array<PackedDirectionalLight> = [];
+	public final pointLightBuffer:Array<PackedPointLight> = [];
+	public final spotLightBuffer:Array<PackedSpotLight> = [];
+	public final areaLightBuffer:Array<PackedAreaLight> = [];
 
-	public var shadowLightBuffer:Vector<Vector3D> = VectorFactory.Vector3D();
-	public var shadowLightTypes:Array<FoxLightType> = [];
+	public var lightCount:Array<Int> = [0, 0, 0, 0];
 
-	/**
+	public var shadowCasterData:FoxTextureBuffer = new FoxTextureBuffer(TOTAL_LIGHTS*5, 4);
+
+	/*
 		Shadow targets, used exclusively for shadowmaps.
 
 		This is a depth texture containing portions of shadowmaps for lights.
 
 		Due to platform texture size limits, this is a tradeoff between shadow
 		texture size and how many shadows there can be at once.
-	**/
-	public var shadowMapAtlas:Array<FoxFramebuffer> = [
-		FoxFramebuffer.createShadowMap(2, 2),
-		FoxFramebuffer.createShadowMap(2, 2),
-		FoxFramebuffer.createShadowMap(2, 2)
-	];
+	*/
+	public var directionalShadowAtlas = FoxFramebuffer.createShadowMap(2, 2);
+	public var spotShadowAtlas = FoxFramebuffer.createShadowMap(2, 2);
+	// Point lights and Area lights should use Cubemaps instead
 
 	/**
 		The max width of the whole `shadowMapAtlas`. The shadowmap will expand to this size.
@@ -109,11 +153,6 @@ class FoxLightData {
 	**/
 	public var tiles2:Int = 0;
 
-	/**
-		The number of `Vector3D` per light
-	**/
-	public final vectorsPerLight:Int = 4;
-
 	private function set_shadowMapMaxWidth(v:Int):Int {
 		this.tiles0 = Math.floor(v / this.directionalLightShadowMapSize);
 		this.tiles1 = Math.floor(v / this.pointLightShadowMapSize);
@@ -141,8 +180,11 @@ class FoxLightData {
 	}
 
 	public function new() {
-		for(_ in 0...FoxLightData.MAX_LIGHTS*vectorsPerLight) lightBuffer.push(new Vector3D());
-		for(_ in 0...FoxLightData.MAX_SHADOW_LIGHTS*vectorsPerLight) shadowLightBuffer.push(new Vector3D());
+		// Initialize buffers
+		for(i in 0...FoxLightData.MAX_DIRECTIONAL_LIGHTS) directionalLightBuffer.push(new PackedDirectionalLight());
+		for(i in 0...FoxLightData.MAX_POINT_LIGHTS) pointLightBuffer.push(new PackedPointLight());
+		for(i in 0...FoxLightData.MAX_SPOT_LIGHTS) spotLightBuffer.push(new PackedSpotLight());
+		for(i in 0...FoxLightData.MAX_AREA_LIGHTS) areaLightBuffer.push(new PackedAreaLight());
 
 		var gl = FoxRenderer.getContext().gl;
 		var maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) ?? 4096;
@@ -157,133 +199,145 @@ class FoxLightData {
 	}
 
 	public function prepareLights(camera:FoxCamera) {
-		lightTypes.resize(0);
-		shadowLightTypes.resize(0);
 		shadowLights.resize(0);
-		
-		// Write directional light data
-		var i:Int = 0, j:Int = 0, k:Int = 0;
-		var buffer:Vector<Vector3D>;
-		var types:Array<Int> = null;
-
+		var i:Int = 0;
 		for(light in directionalLights) {
-			if(light.shadow) {
-				k = j;
-				buffer = shadowLightBuffer.__array;
-				types = shadowLightTypes;
-				shadowLights.push(light);
-				j += vectorsPerLight;
-			}
-			else {
-				k = i;
-				buffer = lightBuffer.__array;
-				types = lightTypes;
-				i += vectorsPerLight;
-			}
-			if(k+vectorsPerLight >= buffer.length) break; // Can't add more lights
-			var v = buffer[k];	   // color
-			var v2 = buffer[k+2];  // direction
-			v.copyFrom(light.color);
-			v.scaleBy(light.energy);
-			camera.__invViewMatrix.transformVectorToOutput(light.direction, v2); // invView * direction
-			types.push(FoxLightType.DIRECTIONAL);
-		}
+			if(i >= FoxLightData.MAX_DIRECTIONAL_LIGHTS) break;
 
-		// Write point light data
+			var c = directionalLightBuffer[i].color;
+			c.copyFrom(light.color);
+			c.scaleBy(light.energy);
+			camera.__invViewMatrix.transformVectorToOutput(light.direction, directionalLightBuffer[i].direction); // invView * direction
+
+			if(light.shadow) {
+				shadowLights.push(light);
+				directionalLightBuffer[i].shadowRegion = light.shadowAtlasUV;
+			}
+			else directionalLightBuffer[i].shadowRegion = null;
+
+			i += 1;
+		}
+		lightCount[FoxLightType.DIRECTIONAL] = i;
+
+		i = 0;
 		for(light in orderedPointLights) {
-			if(light.shadow) {
-				k = j;
-				buffer = shadowLightBuffer.__array;
-				types = shadowLightTypes;
-				shadowLights.push(light);
-				j += vectorsPerLight;
-			}
-			else {
-				k = i;
-				buffer = lightBuffer.__array;
-				types = lightTypes;
-				i += vectorsPerLight;
-			}
-			if(k+vectorsPerLight >= buffer.length) break; // Can't add more lights
-			var v = buffer[k];    // color
-			var v2 = buffer[k+1]; // position
-			v.copyFrom(light.color);
-			v.scaleBy(light.energy);
-			v.w = light.range;
-			camera.viewMatrix.transformVectorToOutput(light.globalPosition, v2);
-			v2.w = light.attenuation;
-			types.push(FoxLightType.POINT);
-		}
+			if(i >= FoxLightData.MAX_POINT_LIGHTS) break;
 
-		// Write spot light data
+			var c = pointLightBuffer[i].color;
+			c.copyFrom(light.color);
+			c.scaleBy(light.energy);
+			c.w = light.range;
+
+			var p = pointLightBuffer[i].position;
+			camera.viewMatrix.transformVectorToOutput(light.globalPosition, p); // view * position
+			p.w = light.attenuation;
+
+			if(light.shadow) shadowLights.push(light);
+			i += 1;
+		}
+		lightCount[FoxLightType.POINT] = i;
+
+		i = 0;
 		for(light in orderedSpotLights) {
+			if(i >= FoxLightData.MAX_SPOT_LIGHTS) break;
+
+			var c = spotLightBuffer[i].color;
+			c.copyFrom(light.color);
+			c.scaleBy(light.energy);
+			c.w = light.range;
+
+			var p = spotLightBuffer[i].position;
+			camera.viewMatrix.transformVectorToOutput(light.globalPosition, p); // view * position
+			p.w = light.attenuation;
+
+			var d = spotLightBuffer[i].direction;
+			camera.__invViewMatrix.transformVectorToOutput(light.direction, d); // invView * direction
+			d.w = Math.cos(light.angle);
+
 			if(light.shadow) {
-				k = j;
-				buffer = shadowLightBuffer.__array;
-				types = shadowLightTypes;
 				shadowLights.push(light);
-				j += vectorsPerLight;
+				spotLightBuffer[i].shadowRegion = light.shadowAtlasUV;
 			}
-			else {
-				k = i;
-				buffer = lightBuffer.__array;
-				types = lightTypes;
-				i += vectorsPerLight;
-			}
-			if(k+vectorsPerLight >= buffer.length) break; // Can't add more lights
-			var v = buffer[k];		// color
-			var v2 = buffer[k+1];	// position
-			var v3 = buffer[k+2];	// direction
-
-			v.copyFrom(light.color);
-			v.scaleBy(light.energy);
-			v.w = light.range;
-
-			camera.viewMatrix.transformVectorToOutput(light.globalPosition, v2); // view * position
-			v2.w = light.attenuation;
-
-			camera.__invViewMatrix.transformVectorToOutput(light.direction, v3); // invView * direction
-			v3.w = Math.cos(light.angle);
-			types.push(FoxLightType.SPOT);
+			else spotLightBuffer[i].shadowRegion = null;
+			i += 1;
 		}
+		lightCount[FoxLightType.SPOT] = i;
 
-		// Write area light data
+		i = 0;
 		for(light in orderedAreaLights) {
-			if(light.shadow) {
-				k = j;
-				buffer = shadowLightBuffer.__array;
-				types = shadowLightTypes;
-				shadowLights.push(light);
-				j += vectorsPerLight;
-			}
-			else {
-				k = i;
-				buffer = lightBuffer.__array;
-				types = lightTypes;
-				i += vectorsPerLight;
-			}
-			if(k+vectorsPerLight >= buffer.length) break; // Can't add more lights
-			var v = buffer[k];    // color
-			var v2 = buffer[k+1]; // position
-			var v3 = buffer[k+2]; // direction
-			var v4 = buffer[k+3]; // sdfData
-			v.copyFrom(light.color);
-			v.scaleBy(light.energy);
-			v.w = light.range;
-			camera.viewMatrix.transformVectorToOutput(light.globalPosition, v2);
-			v2.w = light.attenuation;
-			v3.copyFrom(light.direction); //camera.__invViewMatrix.transformVectorToOutput(light.direction, v3); // invView * direction
-			v3.w = light.getSdfRange();
-			v4.copyFrom(light.sdfData);
-			v4.w = light.sdfData.w;
-			types.push(FoxLightType.AREA);
+			if(i >= FoxLightData.MAX_AREA_LIGHTS) break;
+
+			var c = areaLightBuffer[i].color;
+			c.copyFrom(light.color);
+			c.scaleBy(light.energy);
+			c.w = light.range;
+
+			var p = areaLightBuffer[i].position;
+			camera.viewMatrix.transformVectorToOutput(light.globalPosition, p); // view * position
+			p.w = light.attenuation;
+
+			var d = areaLightBuffer[i].direction;
+			camera.__invViewMatrix.transformVectorToOutput(light.direction, d); // invView * direction
+			d.w = light.getSdfRange();
+
+			var s = areaLightBuffer[i].sdfData;
+			s.copyFrom(light.sdfData);
+			s.w = light.sdfData.w;
+
+			if(light.shadow) shadowLights.push(light);
+			i += 1;
 		}
+		lightCount[FoxLightType.AREA] = i;
 
 		// Shadowmap atlas tiling
 		prepareShadowLights(camera);
 	}
 
 	public function prepareShadowLights(camera:FoxCamera) {
+		var caster:Int = 0, i:Int = 0, j:Int = 0;
+		for(idx=>light in shadowLights) {
+			switch(light.getType()) {
+				case FoxLightType.DIRECTIONAL: {
+					var atlas = directionalShadowAtlas;
+					var uv = light.shadowAtlasUV;
+					var r = light.shadowAtlasRect;
+
+					// Tiles X and Y
+					r.setTo(i % tiles0, Std.int(i / tiles0), 1);
+					r.w = directionalLightShadowMapSize;
+					r.scaleBy(directionalLightShadowMapSize);
+
+					growShadowMapBound(atlas, Std.int(r.x + r.z), Std.int(r.y + r.w)); // Allocate shadowmap
+					
+					// UV map region
+					uv.x = r.x / atlas.width;
+					uv.y = r.y / atlas.height;
+					uv.z = uv.x + r.z / atlas.width;
+					uv.w = uv.y + r.w / atlas.height;
+					i += 1;
+				};
+				case FoxLightType.SPOT: {
+					var atlas = spotShadowAtlas;
+					var uv = light.shadowAtlasUV;
+					var r = light.shadowAtlasRect;
+
+					// Tiles X and Y
+					r.setTo(i % tiles2, Std.int(i / tiles2), 1);
+					r.w = spotLightShadowMapSize;
+					r.scaleBy(spotLightShadowMapSize);
+
+					growShadowMapBound(atlas, Std.int(r.x + r.z), Std.int(r.y + r.w)); // Allocate shadowmap
+					
+					// UV map region
+					uv.x = r.x / atlas.width;
+					uv.y = r.y / atlas.height;
+					uv.z = uv.x + r.z / atlas.width;
+					uv.w = uv.y + r.w / atlas.height;
+					i += 1;
+				};
+			}
+		}
+		/*
 		var i:Int = 0;
 		var j:Int = 0;
 		var k:Int = 0;
@@ -346,6 +400,15 @@ class FoxLightData {
 				};
 			}
 		}
+			*/
+	}
+
+	public function getShadowAtlas(lightType:FoxLightType):Null<FoxFramebuffer> {
+		return switch(lightType) {
+			case FoxLightType.DIRECTIONAL: directionalShadowAtlas;
+			case FoxLightType.SPOT: spotShadowAtlas;
+			default: null;
+		}
 	}
 
 	public function growShadowMapBound(map:FoxFramebuffer, width:Int, height:Int) {
@@ -364,73 +427,75 @@ class FoxLightData {
 	}
 
 	public function updateShaderLights(shader:FoxShader) {
-		var count = lightTypes.length;
 		shader.setVector3("ambientLight", ambientLight);
-		shader.setInt("lightCount", count);
+		shader.setIntArray("lightCount", lightCount);
 
-		var i:Int = 0;
-		var a = lightBuffer.__array;
-
-		if(count > 0) {
-			shader.setIntArray("lightTypes", lightTypes);
-
-			for(li in 0...count) {
-				shader.setVector4('lights[$li].color', a[i]);
-				shader.setVector4('lights[$li].position', a[i+1]);
-				shader.setVector4('lights[$li].direction', a[i+2]);
-				shader.setVector4('lights[$li].sdfData', a[i+3]);
-				i += vectorsPerLight;
+		for(i in 0...lightCount[FoxLightType.DIRECTIONAL]) {
+			var packed = directionalLightBuffer[i];
+			shader.setVector4('directionalLights[$i].color', packed.color);
+			shader.setVector4('directionalLights[$i].direction', packed.direction);
+			shader.setInt('directionalLights[$i].shadowCaster', packed.casterIndex);
+			if(packed.casterIndex > -1) {
+				shader.setVector4('directionalLights[$i].shadowRegion', packed.shadowRegion);
 			}
 		}
 
-		// Shadow lights
-		count = shadowLights.length;
-
-		shader.setInt("shadowCount", count);
-		if(count == 0) return;
-
-		shader.setIntArray("shadowLightTypes", shadowLightTypes);
-
-		i = 0;
-		a = shadowLightBuffer.__array;
-		for(li=>light in shadowLights) {
-			shader.setVector4('shadowLights[$li].color', a[i]);
-			shader.setVector4('shadowLights[$li].position', a[i+1]);
-			shader.setVector4('shadowLights[$li].direction', a[i+2]);
-			shader.setVector4('shadowLights[$li].sdfData', a[i+3]);
-
-			shader.setMatrix4('shadowLights[$li].viewProjection', light.viewProjection);
-			shader.setVector4('shadowLights[$li].atlasRect', light.shadowAtlasUV);
-			
-			i += vectorsPerLight;
+		for(i in 0...lightCount[FoxLightType.POINT]) {
+			var packed = pointLightBuffer[i];
+			shader.setVector4('pointLights[$i].color', packed.color);
+			shader.setVector4('pointLights[$i].position', packed.position);
+			shader.setInt('pointLights[$i].shadowCaster', packed.casterIndex);
 		}
 
-		if(count > 0) { // If there's at least one shadow
-			// TODO: cache this
-			var texsize:Array<Float> = [];
-			for(t=>a in shadowMapAtlas) {
-				shader.setSampler2D('shadowtex$t', a.depthBuffer);
-				texsize.push(1 / a.width);
-				texsize.push(1 / a.height);
+		for(i in 0...lightCount[FoxLightType.SPOT]) {
+			var packed = spotLightBuffer[i];
+			shader.setVector4('spotLights[$i].color', packed.color);
+			shader.setVector4('spotLights[$i].position', packed.position);
+			shader.setVector4('spotLights[$i].direction', packed.direction);
+			shader.setInt('spotLights[$i].shadowCaster', packed.casterIndex);
+			if(packed.casterIndex > -1) {
+				shader.setVector4('spotLights[$i].shadowRegion', packed.shadowRegion);
 			}
-			shader.setFloatArray('shadowtexelsize', texsize);
+		}
+
+		for(i in 0...lightCount[FoxLightType.AREA]) {
+			var packed = areaLightBuffer[i];
+			shader.setVector4('areaLights[$i].color', packed.color);
+			shader.setVector4('areaLights[$i].position', packed.position);
+			shader.setVector4('areaLights[$i].direction', packed.direction);
+			shader.setVector4('areaLights[$i].sdfData', packed.sdfData);
+			shader.setInt('areaLights[$i].shadowCaster', packed.casterIndex);
+		}
+
+		if(shadowLights.length > 0) { // If there's at least one shadow
+			// Caster data
+			shader.setSampler2D('shadowCasterData', shadowCasterData);
+			shader.setFloat('shadowCasterPixelSize', 1 / shadowCasterData.width);
+
+			// Directional lights
+			shader.setSampler2D('shadowtex0', directionalShadowAtlas.depthBuffer);
+			shader.setFloatArray('shadowtex0size', [1 / directionalShadowAtlas.width, 1 / directionalShadowAtlas.height]);
+			// Spot lights
+			shader.setSampler2D('shadowtex2', spotShadowAtlas.depthBuffer);
+			shader.setFloatArray('shadowtex2size', [1 / spotShadowAtlas.width, 1 / spotShadowAtlas.height]);
+		}
+		else { // Cleanup
+			var i = shader.textureInput;
+			i.remove('shadowCasterData');
+			i.remove('shadowtex0');
+			i.remove('shadowtex2');
 		}
 	}
 
 	public function clearShadowMaps() {
 		var context = FoxRenderer.getContext();
 		if(directionalLights.length > 0) {
-			FoxRenderer.setTarget(shadowMapAtlas[FoxLightType.DIRECTIONAL]);
-			context.clear();
-		}
-
-		@:privateAccess if(orderedPointLights.root != null || orderedAreaLights.root != null) {
-			FoxRenderer.setTarget(shadowMapAtlas[FoxLightType.POINT]);
+			FoxRenderer.setTarget(directionalShadowAtlas);
 			context.clear();
 		}
 
 		@:privateAccess if(orderedSpotLights.root != null) {
-			FoxRenderer.setTarget(shadowMapAtlas[FoxLightType.SPOT]);
+			FoxRenderer.setTarget(spotShadowAtlas);
 			context.clear();
 		}
 	}
@@ -444,11 +509,13 @@ class FoxLightData {
 
 	public function destroy() {
 		clearLights();
-		lightBuffer = null;
-		lightTypes = null;
-		shadowLightTypes = null;
-		shadowLights.resize(0);
-		shadowLightBuffer = null;
-		for(a in shadowMapAtlas) a.destroy(true);
+		directionalLightBuffer.resize(0);
+		pointLightBuffer.resize(0);
+		spotLightBuffer.resize(0);
+		areaLightBuffer.resize(0);
+		shadowCasterData.destroy();
+		directionalShadowAtlas.destroy();
+		spotShadowAtlas.destroy();
+		lightCount = null;
 	}
 }

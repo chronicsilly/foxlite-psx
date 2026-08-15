@@ -14,7 +14,7 @@ class FoxTextureCubemap extends FoxTexture {
 		if(glTexture == null) {
 			glTexture = context.createCubeTexture(data.width, format, false, 0);
 		}
-		tex = #if !foxlite_polymod cast #end glTexture;
+		tex = cast glTexture;
 		tex.uploadFromBitmapData(data, side, 0, mipmaps);
 	}
 	

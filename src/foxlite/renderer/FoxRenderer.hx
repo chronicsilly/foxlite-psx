@@ -12,7 +12,7 @@ import foxlite.material.FoxMaterial;
 import foxlite.math.FoxMathUtil;
 import foxlite.mesh.FoxMesh;
 import foxlite.polyfill.VectorFactory;
-import foxlite.system.FlxTypedSignalImpl;
+import foxlite.flixel.FlxTypedSignalImpl;
 import foxlite.system.Int32BufferCache;
 import foxlite.texture.FoxCubemapSide;
 import foxlite.texture.FoxFramebuffer;
@@ -36,7 +36,7 @@ import lime.utils.DataPointer;
 class FoxRenderer {
 
 	public static final BUILD_NAME = "Preview";
-	public static final VERSION = "0.1.0";
+	public static final VERSION = "1.0.0";
 
 	public static var frameCount:Int = 0;
 	public static var drawCalls:Int = 0;
@@ -110,7 +110,8 @@ class FoxRenderer {
 		var ext;
 		ext = GL.getExtension("ARB_draw_buffers")
 		??	  GL.getExtension("EXT_draw_buffers")
-		?? 	  GL.getExtension("WEBGL_draw_buffers");
+		?? 	  GL.getExtension("WEBGL_draw_buffers")
+		?? 	  GL.getExtension("WEBGL_depth_texture"); // Allow the use of gl.DEPTH_STENCIL_ATTACHMENT
 
 		ext = GL.getExtension("EXT_texture_filter_anisotropic")
   		??	  GL.getExtension("MOZ_EXT_texture_filter_anisotropic")
@@ -202,8 +203,8 @@ class FoxRenderer {
 		// Default blending
 		enableAlphaBlending(context);
 		// No depth test (important!)
-		context.setDepthTest(false, #if !foxlite_polymod cast #end 0);
-		context.setCulling(#if !foxlite_polymod cast #end 3);
+		context.setDepthTest(false, cast 0);
+		context.setCulling(cast 3);
 		// Reset stencil
 		context.setStencilActions();
 		context.setStencilReferenceValue(0);
@@ -265,8 +266,8 @@ class FoxRenderer {
 		var gl = context.gl;
 		var glTexture = texture.glTexture;
 		context.setTextureAt(sampler, glTexture);
-		context.setSamplerStateAt(sampler, #if !foxlite_polymod cast #end texture.wrapMode, #if !foxlite_polymod cast #end texture.filter, 
-			#if !foxlite_polymod cast #end texture.mipFilter);
+		context.setSamplerStateAt(sampler, cast texture.wrapMode, cast texture.filter, 
+			cast texture.mipFilter);
 		// __flushGLTextures() but cut-down
 		glTexture.__setSamplerState(context.__state.samplerStates[sampler]);
 		GL.activeTexture(gl.TEXTURE0 + sampler);
@@ -286,8 +287,8 @@ class FoxRenderer {
 			var tex = t.value;
 			
 			context.setTextureAt(sampler, tex.glTexture);
-			context.setSamplerStateAt(sampler, #if !foxlite_polymod cast #end tex.wrapMode, #if !foxlite_polymod cast #end tex.filter, #if !foxlite_polymod cast #end tex.mipFilter);
-			GL.uniform1i(#if !foxlite_polymod cast #end t.location, sampler);
+			context.setSamplerStateAt(sampler, cast tex.wrapMode, cast tex.filter, cast tex.mipFilter);
+			GL.uniform1i(cast t.location, sampler);
 			sampler += 1;
 		}
 		FoxRenderer.stateSwitches += sampler;
@@ -307,12 +308,12 @@ class FoxRenderer {
 		FoxRenderer.useShader(shader);
 	
 		// Material data
-		context.setCulling(#if !foxlite_polymod cast #end material.culling);
+		context.setCulling(cast material.culling);
 
 		// Fun fact: OpenFL devs chose gl.depthMask() instead of gl.enable(depth)
 		// this messes up transluscent blending...
 		// instead of material.depthTest, use material.depthWrite
-		context.setDepthTest(material.depthWrite, #if !foxlite_polymod cast #end material.depthFunc);
+		context.setDepthTest(material.depthWrite, cast material.depthFunc);
 	
 		// Helper
 		FoxRenderer.setBlendMode(context, material.blendMode);
@@ -321,16 +322,7 @@ class FoxRenderer {
 		var stencil = material.stencil;
 		var hasStencil = stencil != null;
 		if(FoxRenderer.__stencilTest != hasStencil) {
-			if(hasStencil) {
-				gl.enable(gl.STENCIL_TEST);
-				#if !foxlite_polymod
-				// This many casts are temporary until a more robust stencil system is implemented
-				context.setStencilActions(cast stencil.triangleFace, cast stencil.compareMode, cast stencil.actionOnBothPass, cast stencil.actionOnDepthFail, cast stencil.actionOnDepthPassStencilFail);
-				#else
-				context.setStencilActions(stencil.triangleFace, stencil.compareMode, stencil.actionOnBothPass, stencil.actionOnDepthFail, stencil.actionOnDepthPassStencilFail);
-				#end
-				context.setStencilReferenceValue(stencil.value, stencil.readMask, stencil.writeMask);
-			}
+			if(hasStencil) gl.enable(gl.STENCIL_TEST);
 			else gl.disable(gl.STENCIL_TEST);
 			FoxRenderer.__stencilTest = hasStencil;
 			FoxRenderer.stateSwitches += 1;
@@ -345,7 +337,13 @@ class FoxRenderer {
 		// __flushGL(): applies context state to gl 
 		//context.__flushGLProgram();
 		//context.__flushGLFramebuffer(); 
-		context.__flushGLStencil();
+		
+		if(hasStencil) {
+			// This many casts are temporary until a more robust stencil system is implemented
+			context.setStencilActions(cast stencil.triangleFace, cast stencil.compareMode, cast stencil.actionOnBothPass, cast stencil.actionOnDepthFail, cast stencil.actionOnFail);
+			context.setStencilReferenceValue(stencil.value, stencil.readMask, stencil.writeMask);
+			context.__flushGLStencil();
+		}
 		//context.__flushGLViewport();
 
 		//context.__flushGLBlend(); handled by setBlendMode() now
@@ -387,24 +385,15 @@ class FoxRenderer {
 		FoxRenderer.useShader(shader);
 	
 		// Material data
-		context.setCulling(#if !foxlite_polymod cast #end material.shadowCulling); // Preferrably FRONT
-		context.setDepthTest(true, #if !foxlite_polymod cast #end 4); // always LESS
+		context.setCulling(cast material.shadowCulling); // Preferrably FRONT
+		context.setDepthTest(true, cast 4); // always LESS
 		FoxRenderer.setBlendMode(context, FoxBlendMode.NONE);
 		
 		// Stencil test
 		var stencil = material.stencil;
 		var hasStencil = stencil != null;
 		if(FoxRenderer.__stencilTest != hasStencil) {
-			if(hasStencil) {
-				gl.enable(gl.STENCIL_TEST);
-				#if !foxlite_polymod
-				// This many casts are temporary until a more robust stencil system is implemented
-				context.setStencilActions(cast stencil.triangleFace, cast stencil.compareMode, cast stencil.actionOnBothPass, cast stencil.actionOnDepthFail, cast stencil.actionOnDepthPassStencilFail);
-				#else
-				context.setStencilActions(stencil.triangleFace, stencil.compareMode, stencil.actionOnBothPass, stencil.actionOnDepthFail, stencil.actionOnDepthPassStencilFail);
-				#end
-				context.setStencilReferenceValue(stencil.value, stencil.readMask, stencil.writeMask);
-			}
+			if(hasStencil) gl.enable(gl.STENCIL_TEST);
 			else gl.disable(gl.STENCIL_TEST);
 			FoxRenderer.__stencilTest = hasStencil;
 			FoxRenderer.stateSwitches += 1;
@@ -430,7 +419,11 @@ class FoxRenderer {
 			FoxRenderer.renderMode = gl.LINES;
 		}
 
-		context.__flushGLStencil();
+		if(hasStencil) {
+			context.setStencilActions(cast stencil.triangleFace, cast stencil.compareMode, cast stencil.actionOnBothPass, cast stencil.actionOnDepthFail, cast stencil.actionOnFail);
+			context.setStencilReferenceValue(stencil.value, stencil.readMask, stencil.writeMask);
+			context.__flushGLStencil();
+		}
 		context.__flushGLCulling(); 
 		context.__flushGLDepth();
 		context.__flushGLTextures();
@@ -449,11 +442,11 @@ class FoxRenderer {
 		var attrib = mesh.material.shader.attribIdx;
 
 		// Attributes
-		context.setVertexBufferAt(attrib.position, mesh.vertexBuffer, 0, #if !foxlite_polymod cast #end 3);
-		if(attrib.texCoord != -1) context.setVertexBufferAt(attrib.texCoord, mesh.uvBuffer, 0, #if !foxlite_polymod cast #end 2);
+		context.setVertexBufferAt(attrib.position, mesh.vertexBuffer, 0, cast 3);
+		if(attrib.texCoord != -1) context.setVertexBufferAt(attrib.texCoord, mesh.uvBuffer, 0, cast 2);
 		
 		if(attrib.normal != -1) {
-			context.setVertexBufferAt(attrib.normal, mesh.normalBuffer, 0, #if !foxlite_polymod cast #end 3);		
+			context.setVertexBufferAt(attrib.normal, mesh.normalBuffer, 0, cast 3);		
 			context.setVertexBufferAt(attrib.tangent, mesh.tangentBuffer, 0);
 		}
 
@@ -487,11 +480,11 @@ class FoxRenderer {
 		var attrib = mesh.material.shader.attribIdx;
 
 		// Attributes
-		context.setVertexBufferAt(attrib.position, mesh.vertexBuffer, 0, #if !foxlite_polymod cast #end 3);
-		if(attrib.texCoord != -1) context.setVertexBufferAt(attrib.texCoord, mesh.uvBuffer, 0, #if !foxlite_polymod cast #end 2);
+		context.setVertexBufferAt(attrib.position, mesh.vertexBuffer, 0, cast 3);
+		if(attrib.texCoord != -1) context.setVertexBufferAt(attrib.texCoord, mesh.uvBuffer, 0, cast 2);
 		
 		if(attrib.normal != -1) {
-			context.setVertexBufferAt(attrib.normal, mesh.normalBuffer, 0, #if !foxlite_polymod cast #end 3);		
+			context.setVertexBufferAt(attrib.normal, mesh.normalBuffer, 0, cast 3);		
 			context.setVertexBufferAt(attrib.tangent, mesh.tangentBuffer, 0);
 		}
 
@@ -604,7 +597,7 @@ class FoxRenderer {
 
 		// Create dummy texture object
 		FoxRenderer.allocationsThisFrame += 2;
-		@:privateAccess var tex = new Texture(context, 2, 2, #if !foxlite_polymod cast #end 1, false, 0);
+		@:privateAccess var tex = new Texture(context, 2, 2, cast 1, false, 0);
 
 		// Cleanup
 		tex.dispose();
@@ -642,7 +635,7 @@ class FoxRenderer {
 		var gl = context.gl;
 
 		FoxRenderer.allocationsThisFrame += 2;
-		@:privateAccess var tex = new CubeTexture(context, 2, #if !foxlite_polymod cast #end 1, false, 0);
+		@:privateAccess var tex = new CubeTexture(context, 2, cast 1, false, 0);
 		tex.dispose();
 		
 		// Now setup our texture
@@ -708,11 +701,13 @@ class FoxRenderer {
 			internalFormat: Reflect.field(gl, fmt),
 			format: Reflect.field(gl, fmt)
 		};
-		else if(StringTools.startsWith(fmt, "DEPTH_COMPONENT")) {
-			return {
-				internalFormat: Reflect.field(gl, fmt),
-				format: gl.DEPTH_COMPONENT
-			};
+		else if(StringTools.startsWith(fmt, "DEPTH_COMPONENT")) return {
+			internalFormat: Reflect.field(gl, fmt),
+			format: gl.DEPTH_COMPONENT
+		}
+		else if(StringTools.endsWith(fmt, "STENCIL8")) return {
+			internalFormat: Reflect.field(gl, fmt),
+			format: gl.DEPTH_STENCIL
 		}
 
 		var format = "";
@@ -780,13 +775,13 @@ class FoxRenderer {
 		//var attribNames = program.__glslAttribNames;
 		//var attribTypes = program.__glslAttribTypes;
 
-		program.__glslSamplerNames = new Array();
+		program.__glslSamplerNames = []; // new Array(); does not work in V-Slice as of 0.8.6 without importing, uhoh
 		//program.__glslAttribNames = new Array();
 		//program.__glslAttribTypes = new Array();
 
 		for (name in samplerNames)
 		{
-			var index:Int = #if !foxlite_polymod cast #end gl.getUniformLocation(program.__glProgram, name);
+			var index:Int = cast gl.getUniformLocation(program.__glProgram, name);
 			if(index == -1) continue; // We don't have this uniform, skip (must do for hashlink)
 			program.__glslSamplerNames[index] = name;
 		}

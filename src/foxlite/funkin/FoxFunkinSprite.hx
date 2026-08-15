@@ -98,7 +98,7 @@ class FoxFunkinSprite extends FoxFlxSprite {
 			super.checkBitmap();
 			return;
 		}
-		@:privateAccess var renderTexture = (#if !foxlite_polymod cast #end sprite:FunkinSprite)._renderTexture;
+		@:privateAccess var renderTexture = (cast sprite:FunkinSprite)._renderTexture;
 		var graphic = renderTexture?.graphic;
 		if(graphic == null) return;
 		material.textures.get("bitmap")?.take(graphic.bitmap);
@@ -111,7 +111,7 @@ class FoxFunkinSprite extends FoxFlxSprite {
 	}
 
 	public function checkAnimate():Bool {
-		return (#if !foxlite_polymod cast #end sprite:FunkinSprite)?.isAnimate;
+		return (cast sprite:FunkinSprite)?.isAnimate;
 	}
 
 	public override function destroy() {

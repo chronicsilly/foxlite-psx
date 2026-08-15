@@ -26,7 +26,7 @@ class FoxInstanceData {
 		// js handles bytes differently, we use this instead for Bytes.blit()
 		_bytes = Bytes.ofData(__tmpBuffer.buffer);
 		#else
-		_bytes = #if !foxlite_polymod cast #end __tmpBuffer.buffer;
+		_bytes = cast __tmpBuffer.buffer;
 		#end
 	}
 

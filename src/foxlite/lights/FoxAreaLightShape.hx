@@ -10,7 +10,7 @@ package foxlite.lights;
 	public inline static final LINK = 4;
 	public inline static final HEXAGONAL_PRISM = 5;
 
-	public static function fromString(shape:String):FoxAreaLightShape {
+	@:from public static function fromString(shape:String):FoxAreaLightShape {
 		shape = shape.toLowerCase();
 		return switch(shape) {
 			case "box": FoxAreaLightShape.BOX;
@@ -22,7 +22,7 @@ package foxlite.lights;
 		}
 	}
 
-	public static function toString(shape:FoxAreaLightShape):String {
+	@:to public static function toString(shape:FoxAreaLightShape):String {
 		return switch(shape) {
 			case FoxAreaLightShape.BOX: "box";
 			case FoxAreaLightShape.TORUS: "torus";

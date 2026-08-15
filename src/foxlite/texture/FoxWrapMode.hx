@@ -26,4 +26,23 @@ package foxlite.texture;
 		Repeat in U axis but Clamp in V axis.
 	**/
 	public inline static final REPEAT_U_CLAMP_V = 3;
+
+	@:from public static function fromString(type:String):FoxWrapMode {
+		type = type.toLowerCase();
+		return switch(type) {
+			case "repeat": FoxWrapMode.REPEAT;
+			case "clamp_u_repeat_v": FoxWrapMode.CLAMP_U_REPEAT_V;
+			case "repeat_u_clamp_v": FoxWrapMode.REPEAT_U_CLAMP_V;
+			default: FoxWrapMode.CLAMP;
+		}
+	}
+
+	@:to public static function toString(type:FoxWrapMode):String {
+		return switch(type) {
+			case FoxWrapMode.REPEAT: "repeat";
+			case FoxWrapMode.CLAMP_U_REPEAT_V: "clamp_u_repeat_v";
+			case FoxWrapMode.REPEAT_U_CLAMP_V: "repeat_u_clamp_v";
+			default: "clamp";
+		}
+	}
 }

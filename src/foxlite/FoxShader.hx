@@ -119,6 +119,13 @@ class FoxShader {
 		Cached skin location for fast access
 	**/
 	public var __uSkinnedLocation:Int = -1;
+
+	/**
+		Cached bone data location for fast access
+	**/
+	public var __bonesDataLocation:Int = -1;
+	public var __bonesDataSizeLocation:Int = -1;
+
 	/**
 		Cached instanced location for fast access
 	**/
@@ -202,23 +209,16 @@ class FoxShader {
 			if(!flags.contains(f)) flags.push(f);
 		}
 
-		//if(flags != null) {
-			var defs:String = "";
-			for(def in flags) defs += '#define $def\n';
+		var defs:String = "";
+		for(def in flags) defs += '#define $def\n';
 			
-			vert = StringTools.replace(vert, PRAGMA_FOXFLAGS, vertexID + defs);
-			frag = StringTools.replace(frag, PRAGMA_FOXFLAGS, fragmentID + defs);
+		vert = StringTools.replace(vert, PRAGMA_FOXFLAGS, vertexID + defs);
+		frag = StringTools.replace(frag, PRAGMA_FOXFLAGS, fragmentID + defs);
 			
-			for(flag in flags) if(!shader.shaderDefines.contains(flag)) shader.shaderDefines.push(flag);
-		//}
-		/*
-		else {
-			vert = StringTools.replace(vert, PRAGMA_FOXFLAGS, vertexID);
-			frag = StringTools.replace(frag, PRAGMA_FOXFLAGS, fragmentID);
-		}*/
+		for(flag in flags) if(!shader.shaderDefines.contains(flag)) shader.shaderDefines.push(flag);
 
 		// Create programs
-		shader.program = shader.context.createProgram(#if !foxlite_polymod cast #end 1); // 1 = Context3DProgramFormat.GLSL
+		shader.program = shader.context.createProgram(cast 1); // 1 = Context3DProgramFormat.GLSL
 		shader.__fragSource = frag;
 		shader.__vertSource = vert;
 		shader.__needsCompiling = true;
@@ -226,7 +226,7 @@ class FoxShader {
 		// Shadow program
 		var shadowShader = new FoxShader();
 		var shadowCheck = #if !foxlite_polymod FoxShader.PRAGMA_SHADOW_PROGRAM; #else "#pragma shadow_program_check"; #end 
-		shadowShader.program = shader.context.createProgram(#if !foxlite_polymod cast #end 1);
+		shadowShader.program = shader.context.createProgram(cast 1);
 		shadowShader.__fragSource = StringTools.replace(frag, shadowCheck, "#define SHADOW_PASS");
 		shadowShader.__vertSource = StringTools.replace(vert, shadowCheck, "#define SHADOW_PASS");
 		shadowShader.__needsCompiling = true;
@@ -261,10 +261,23 @@ class FoxShader {
 				source = includes.replace(source, "// Skipped: " + file);
 				continue;
 			}
+			#if debug
 			trace("[FoxLite > FoxShader]: Including shader source: " + file);
+			#end
 
 			list.push(file);
-			source = includes.replace(source, FoxLoaderUtil.loadText(FoxLoaderUtil.shaderIncludeRoot(file)));
+			var defPath = FoxLoaderUtil.shaderIncludeRoot(file);
+			var cache = FoxCache.shaderIncludes().get(defPath);
+			if(cache == null) { // Doesn't exist in cache, try load and add
+				cache = FoxLoaderUtil.loadText(defPath);
+				// Silly but okay
+				if(cache == null) {
+					trace('[FoxLite > FoxShader]: WARNING! FILE NOT FOUND: $defPath');
+					cache = '// MISSING SOURCE: "$file" ($defPath)';
+				}
+				else FoxCache.shaderIncludes().set(defPath, cache);
+			}
+			source = includes.replace(source, cache);
 		}
 		return source;
 	}
@@ -331,7 +344,7 @@ class FoxShader {
 			if(StringTools.endsWith(name, "[0]")) name = StringTools.replace(name, "[0]", ""); 
 
 			uniformCache.set(name, {
-				location: #if !foxlite_polymod cast #end location,
+				location: cast location,
 				type: info.type,
 				size: info.size
 			});
@@ -350,6 +363,9 @@ class FoxShader {
 		attribIdx.instanceData.color = gl.getAttribLocation(glProgram, "foxlite_InstanceColor");
 		__uSkinnedLocation = uniformCache.get("uSkinned")?.location ?? -1;
 		__uInstancedLocation = uniformCache.get("uInstanced")?.location ?? -1;
+		// Bone data
+		__bonesDataLocation = uniformCache.get("BONESDATA")?.location ?? -1;
+		__bonesDataSizeLocation = uniformCache.get("BONESDATA_PIXEL_SIZE")?.location ?? -1;
 
 		__hasLights = uniformCache.exists("lightCount") 
 				   && uniformCache.exists("directionalLights[0].color")
@@ -385,7 +401,7 @@ class FoxShader {
 		shader.__fragSource = shaderA.__fragSource;
 		shader.__vertSource = shaderB.__vertSource;
 		shader.__isCombined = true;
-		shader.program = context.createProgram(#if !foxlite_polymod cast #end 1); // 1 = Context3DProgramFormat.GLSL
+		shader.program = context.createProgram(cast 1); // 1 = Context3DProgramFormat.GLSL
 		shader.shadow = shaderB.shadow; // Use vertex shadow program
 
 		shader.program.__glProgram = glProgram;
@@ -429,7 +445,7 @@ class FoxShader {
 		var data = uniformCache.get(name);
 		if(data != null) {
 			FoxRenderer.useShader(this);
-			gl.uniform1f(#if !foxlite_polymod cast #end data.location, value);
+			gl.uniform1f(cast data.location, value);
 		}
 	}
 
@@ -437,7 +453,7 @@ class FoxShader {
 		var data = uniformCache.get(name);
 		if(data != null) {
 			FoxRenderer.useShader(this);
-			gl.uniform1i(#if !foxlite_polymod cast #end data.location, value);
+			gl.uniform1i(cast data.location, value);
 		}
 	}
 
@@ -465,10 +481,10 @@ class FoxShader {
 		
 		if(data.size == 1) {
 			switch(data.type) {
-				case UType.FLOAT: gl.uniform1f(#if !foxlite_polymod cast #end data.location, values[0]); // Use setFloat() for this
-				case UType.FLOAT_VEC2: gl.uniform2f(#if !foxlite_polymod cast #end data.location, values[0], values[1]);
-				case UType.FLOAT_VEC3: gl.uniform3f(#if !foxlite_polymod cast #end data.location, values[0], values[1], values[2]);
-				case UType.FLOAT_VEC4: gl.uniform4f(#if !foxlite_polymod cast #end data.location, values[0], values[1], values[2], values[3]);
+				case UType.FLOAT: gl.uniform1f(cast data.location, values[0]); // Use setFloat() for this
+				case UType.FLOAT_VEC2: gl.uniform2f(cast data.location, values[0], values[1]);
+				case UType.FLOAT_VEC3: gl.uniform3f(cast data.location, values[0], values[1], values[2]);
+				case UType.FLOAT_VEC4: gl.uniform4f(cast data.location, values[0], values[1], values[2], values[3]);
 				#if !foxlite_polymod
 				case UType.FLOAT_MAT2: gl.uniformMatrix2fv(cast data.location, false, Float32BufferCache.get(values));
 				case UType.FLOAT_MAT3: gl.uniformMatrix3fv(cast data.location, false, Float32BufferCache.get(values));
@@ -529,10 +545,10 @@ class FoxShader {
 
 		if(data.size == 1) {
 			switch(data.type) {
-				case UType.INT, UType.BOOL: 		  gl.uniform1i(#if !foxlite_polymod cast #end data.location, values[0]); // Use setInt() for this
-				case UType.INT_VEC2, UType.BOOL_VEC2: gl.uniform2i(#if !foxlite_polymod cast #end data.location, values[0], values[1]);
-				case UType.INT_VEC3, UType.BOOL_VEC3: gl.uniform3i(#if !foxlite_polymod cast #end data.location, values[0], values[1], values[2]);
-				case UType.INT_VEC4, UType.BOOL_VEC4: gl.uniform4i(#if !foxlite_polymod cast #end data.location, values[0], values[1], values[2], values[3]);
+				case UType.INT, UType.BOOL: 		  gl.uniform1i(cast data.location, values[0]); // Use setInt() for this
+				case UType.INT_VEC2, UType.BOOL_VEC2: gl.uniform2i(cast data.location, values[0], values[1]);
+				case UType.INT_VEC3, UType.BOOL_VEC3: gl.uniform3i(cast data.location, values[0], values[1], values[2]);
+				case UType.INT_VEC4, UType.BOOL_VEC4: gl.uniform4i(cast data.location, values[0], values[1], values[2], values[3]);
 			}
 		}
 		else {
@@ -562,7 +578,7 @@ class FoxShader {
 
 	// For: bool, bvec2, bvec3, bvec4
 	public inline function setBoolArray(name:String, values:Array<Bool>):Void {
-		setIntArray(name, #if !foxlite_polymod cast #end values);
+		setIntArray(name, cast values);
 	}
 
 	// Vector and Matrix variations
@@ -571,7 +587,7 @@ class FoxShader {
 		var location = uniformCache.get(name)?.location;
 		if(location != null) {
 			FoxRenderer.useShader(this);
-			gl.uniform2f(#if !foxlite_polymod cast #end location, v.x, v.y);
+			gl.uniform2f(cast location, v.x, v.y);
 		}
 	}
 
@@ -579,7 +595,7 @@ class FoxShader {
 		var location = uniformCache.get(name)?.location;
 		if(location != null) {
 			FoxRenderer.useShader(this);
-			gl.uniform3f(#if !foxlite_polymod cast #end location, v.x, v.y, v.z);
+			gl.uniform3f(cast location, v.x, v.y, v.z);
 		}
 	}
 
@@ -587,7 +603,7 @@ class FoxShader {
 		var location = uniformCache.get(name)?.location;
 		if(location != null) {
 			FoxRenderer.useShader(this);
-			gl.uniform4f(#if !foxlite_polymod cast #end location, v.x, v.y, v.z, v.w);
+			gl.uniform4f(cast location, v.x, v.y, v.z, v.w);
 		}
 	}
 	public function setMatrix4(name:String, value:Matrix3D):Void {

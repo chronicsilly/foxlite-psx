@@ -38,3 +38,7 @@ ___(TODO: Add documentation and code snippets)___
 haxelib dev foxlite <your directory>
 ```
 3. Include it in your haxeflixel `Project.xml` by adding `<haxelib name="foxlite"/>` under `<project>`
+
+## License
+
+FoxLite is free, open source software licensed under the [MIT License](https://github.com/dwdvIl/foxlite/blob/master/LICENSE)

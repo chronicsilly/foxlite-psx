@@ -2,87 +2,67 @@
 #define SHADOW_GLSL
 
 #define SHADOW_BIAS 0.00015
-#define MAX_SHADOW_LIGHTS 8
 
-struct ShadowLight {
-	vec4 color;		// xyz = color, w = range (not applicable for directional light)
-	vec4 position;  // xyz = position, w = attenuation (not applicable for directional light)
-	vec4 direction; // xyz = direction, w = spot angle (for area lights: w = sdfRange)
-	vec4 sdfData; 	// extra data for sdf
-	
-	mat4 viewProjection;   // Light VP for shadow calculation (or hemisphere for point lights)
-	vec4 atlasRect;	// Shadowmap atlas region (width x 2 for point lights)
-};
-
-uniform ShadowLight shadowLights[MAX_SHADOW_LIGHTS];
-uniform int shadowLightTypes[MAX_SHADOW_LIGHTS];
-uniform int shadowCount;
+uniform sampler2D shadowCasterData;
+uniform float shadowCasterPixelSize;
 
 uniform sampler2D shadowtex0; // Directional light shadow atlas
-uniform sampler2D shadowtex1; // Point light (and area lights) shadow atlas
+uniform samplerCube shadowtex1; // wip - Point light shadow cubemap
 uniform sampler2D shadowtex2; // Spot light shadow atlas
+uniform samplerCube shadowtex3; // wip - Area light shadow cubemap
 
-uniform vec2 shadowtexelsize[3];
+uniform vec2 shadowtex0size;
+uniform vec2 shadowtex2size;
 
-// The light type that's currently being used for the shadow shader
-uniform int currentLightType;
-
-varying vec4 shadowLightSpacePos[MAX_SHADOW_LIGHTS];
-varying float shadowDistortW;
-varying float shadowDistortClip;
+varying vec4 directionalShadowLightSpace[MAX_DIRECTIONAL_LIGHTS];
+varying vec4 pointShadowLightSpace[1];
+varying vec4 spotShadowLightSpace[MAX_SPOT_LIGHTS];
+varying vec4 areaShadowLightSpace[1];
 
 // For shadow clipping
 #define outsideBounds(v) any(bvec2(any(lessThan(v, vec2(0))), any(greaterThan(v, vec2(1)))))
-#define nonZero(v) any(notEqual(v, vec4(0)))
-
-// Based on https://github.com/shaderLABS/Shadow-Tutorial
-#define SHADOW_DISTORT_FACTOR 0.1
-vec3 distortShadow(vec3 pos) {
-	float factor = length(pos.xy) + SHADOW_DISTORT_FACTOR;
-	return vec3(pos.xy / factor, pos.z*.5);
-}
-
-float distortShadowBias(vec3 pos, float texelSize) {
-	//square(length(pos.xy) + SHADOW_DISTORT_FACTOR) / SHADOW_DISTORT_FACTOR
-	float numerator = length(pos.xy) + SHADOW_DISTORT_FACTOR;
-	numerator *= numerator;
-	return SHADOW_BIAS * texelSize * numerator / SHADOW_DISTORT_FACTOR;
-}
-
-vec4 dualParaboloid(vec4 viewPos, vec2 clip, float flip) {
-	viewPos.z *= flip;
-	// Distance from the origin, this is our depth
-	float dist = length(viewPos.xyz);
-	vec3 dir = viewPos.xyz / dist; // Direction vector
-	
-	// Paraboloid projection: y = 1 - x^2 - z^2
-	dir.xy /= dir.z + 1.0;
-
-	// Map depth into [NEAR, FAR] range linearly based on distance
-	dir.z = (dist - clip.s) / (clip.t - clip.s);
-
-	// Varyings for fragment
-	#if defined(VERTEX) && defined(SHADOW_PASS)
-	shadowDistortClip = viewPos.z;
-	shadowDistortW = 1.0 / dist;
-	#endif
-
-	return vec4(dir.xy, dir.z, 1.0);
-}
 
 #ifdef VERTEX
 void setupShadows(vec4 worldPosition) {
-	for(int i = 0; i < MAX_SHADOW_LIGHTS; ++i) {
-		if(i >= shadowCount) break;
-		ShadowLight L = shadowLights[i];
-		shadowLightSpacePos[i] = L.viewProjection * worldPosition; // To shadow NDC
 
-		if(shadowLightTypes[i] == LIGHT_DIRECTIONAL) {
-			// For directional lights we can do this here, saving some performance
-			shadowLightSpacePos[i].xyz = shadowLightSpacePos[i].xyz * 0.5 + 0.5;
-			shadowLightSpacePos[i].z -= max(shadowtexelsize[0].x, shadowtexelsize[0].y)/3.;
+	for(int i = 0; i < MAX_DIRECTIONAL_LIGHTS; ++i) {
+		if(i >= lightCount[LIGHT_DIRECTIONAL]) break;
+		DirLight L = directionalLights[i];
+		if(L.shadowCaster != -1) {
+			mat4 viewProjection = fox_textureBufferMat4(shadowCasterData, L.shadowCaster, shadowCasterPixelSize);
+			directionalShadowLightSpace[i] = viewProjection * worldPosition;
+			directionalShadowLightSpace[i].xyz = directionalShadowLightSpace[i].xyz * 0.5 + 0.5;
+			directionalShadowLightSpace[i].z -= max(shadowtex0size.x, shadowtex0size.y)*.333333333;
 		}
 	}
+
+	for(int i = 0; i < 1; ++i) {
+		if(i >= lightCount[LIGHT_POINT]) break;
+		PointLight L = pointLights[i];
+		if(L.shadowCaster != -1) {
+			mat4 viewProjection = fox_textureBufferMat4(shadowCasterData, L.shadowCaster, shadowCasterPixelSize);
+			pointShadowLightSpace[i] = viewProjection * worldPosition;
+		}
+	}
+
+	for(int i = 0; i < MAX_SPOT_LIGHTS; ++i) {
+		if(i >= lightCount[LIGHT_SPOT]) break;
+		SpotLight L = spotLights[i];
+		if(L.shadowCaster != -1) {
+			mat4 viewProjection = fox_textureBufferMat4(shadowCasterData, L.shadowCaster, shadowCasterPixelSize);
+			spotShadowLightSpace[i] = viewProjection * worldPosition;
+		}
+	}
+
+	for(int i = 0; i < 1; ++i) {
+		if(i >= lightCount[LIGHT_AREA]) break;
+		AreaLight L = areaLights[i];
+		if(L.shadowCaster != -1) {
+			mat4 viewProjection = fox_textureBufferMat4(shadowCasterData, L.shadowCaster, shadowCasterPixelSize);
+			areaShadowLightSpace[i] = viewProjection * worldPosition;
+		}
+	}
+
 }
 #endif
 
@@ -153,9 +133,9 @@ float shadowDirectional(in vec4 projCoords, const vec4 rect) {
 		#ifdef SHADOW_FILTER_NONE
 		shadow -= sampleShadow(shadowtex0, coord, projCoords.z);
 		#elif defined(SHADOW_FILTER_CUSTOM)
-		shadow -= sampleShadowCustom(shadowtex0, coord, projCoords.z, shadowtexelsize[0]);
+		shadow -= sampleShadowCustom(shadowtex0, coord, projCoords.z, shadowtex0size);
 		#else
-		shadow -= sampleShadowPoisson18(shadowtex0, coord, projCoords.z, shadowtexelsize[0]*0.6);
+		shadow -= sampleShadowPoisson18(shadowtex0, coord, projCoords.z, shadowtex0size*0.6);
 		#endif
 	}
 	return shadow;
@@ -173,35 +153,11 @@ float shadowSpot(in vec4 S, const vec4 rect) {
 		#ifdef SHADOW_FILTER_NONE
 		shadow -= sampleShadow(shadowtex2, coord, projCoords.z);
 		#elif defined(SHADOW_FILTER_CUSTOM)
-		shadow -= sampleShadowCustom(shadowtex2, coord, projCoords.z, shadowtexelsize[2]);
+		shadow -= sampleShadowCustom(shadowtex2, coord, projCoords.z, shadowtex2size);
 		#else
-		shadow -= sampleShadowPoisson18(shadowtex2, coord, projCoords.z, shadowtexelsize[2]);
+		shadow -= sampleShadowPoisson18(shadowtex2, coord, projCoords.z, shadowtex2size);
 		#endif
 	}
-	return shadow;
-}
-
-// Dual paraboloid shadows, for Point lights
-float shadowPointDual(in vec4 S, float range, vec4 rect) {
-	float Z = sign(S.z);
-	vec3 projCoords = dualParaboloid(S, vec2(0.05, range), Z).xyz;
-	projCoords = projCoords * 0.5 + 0.5;
-	projCoords.z -= SHADOW_BIAS;
-
-	float shadow = 1.0;
-	if(!outsideBounds(projCoords.xy)) {
-		rect.xz += mix(rect.z - rect.x, 0.0, step(0.0, S.z)); // S.z < 0.0 ? 0.0 : 1.0;
-		vec2 coord = mix(rect.xy, rect.zw, projCoords.xy); // Atlas rect
-
-		#ifdef SHADOW_FILTER_NONE
-		shadow -= sampleShadow(shadowtex1, coord, projCoords.z);
-		#elif defined(SHADOW_FILTER_CUSTOM)
-		shadow -= sampleShadowCustom(shadowtex1, coord, projCoords.z, shadowtexelsize[1]);
-		#else
-		shadow -= sampleShadowPoisson18(shadowtex1, coord, projCoords.z, shadowtexelsize[1]);
-		#endif
-	}
-
 	return shadow;
 }
 
@@ -209,7 +165,7 @@ float shadowPointCubemap(in vec4 S) {
 	return 0.0;
 }
 
-float shadowArea() {
+float shadowArea(in vec4 S) {
 	return 0.0;
 }
 #endif

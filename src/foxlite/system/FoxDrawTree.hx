@@ -9,5 +9,3 @@ typedef FoxDrawTree = BalancedTree<String, FoxDrawTreeNode>;
 // Typedef not supported in polymod...
 class FoxDrawTree {}
 #end
-
-enum Bruh5 {} // Stop script parsing errors in polymod

@@ -16,7 +16,3 @@ And be civilized y'all, thank you.
 - If you're adding/changing graphics-related code, make sure it works in the following targets: `linux`, `windows`, `android`, `html5` in an Intel/NVIDIA GPU, AMD GPU and Mobile GPU. This is because GPU manufacturers have different shader compilers, so what works in one may not work in another.
 - Do not use AI to code for you. You can use it as means of research and explaining what the code does, but it's always best to experiment and ask other devs about it.
 > Due to the nature of the project, performance is critical if running in a softcoded environment such as HScript, things that may work for haxe will either run poorly or not work at all, so it's better if you test things for yourself rather than asking AI to fix it for you.
-
-## License
-
-FoxLite is free, open source software licensed under the [MIT License](https://github.com/dwdvIl/foxlite/blob/master/LICENSE_MIT)

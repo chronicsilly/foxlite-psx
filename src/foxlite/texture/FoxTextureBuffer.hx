@@ -81,7 +81,7 @@ class FoxTextureBuffer extends FoxTexture {
 		var data:Array<Float> = [];
 		data.resize(length * channels);
 		buffer = TypedArray.Float32Array(data); // Data gets initialized to 0f, no need for a loop
-		bytes = #if !foxlite_polymod cast #end buffer.buffer;
+		bytes = cast buffer.buffer;
 		FoxRenderer.allocationsThisFrame += 2;
 
 		var formatString = switch(channels) {
@@ -142,7 +142,7 @@ class FoxTextureBuffer extends FoxTexture {
 	// TODO: Use an interface instead
 	var bytes:Bytes;
 
-	public inline function setFloat(pos:Int, v:Float):Void {
+	public function setFloat(pos:Int, v:Float):Void {
 		#if (js || !foxlite_polymod)
 		buffer[pos] = v;
 		#else
@@ -150,7 +150,7 @@ class FoxTextureBuffer extends FoxTexture {
 		#end
 	}
 
-	public inline function getFloat(pos:Int):Float {
+	public function getFloat(pos:Int):Float {
 		#if (js || !foxlite_polymod)
 		return buffer[pos];
 		#else
