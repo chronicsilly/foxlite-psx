@@ -15,8 +15,8 @@ class FoxTypedGroup #if !foxlite_polymod <T:FoxBasic> #end extends FoxBasic {
 	
 	public var members:Array<T> = [];
 
-	public final onMemberAdded:FlxTypedSignalImpl<(member:FoxBasic)->Void> = new FlxTypedSignalImpl();
-	public final onMemberRemoved:FlxTypedSignalImpl<(member:FoxBasic)->Void> = new FlxTypedSignalImpl();
+	public final onMemberAdded:FlxTypedSignalImpl<(member:T)->Void> = new FlxTypedSignalImpl();
+	public final onMemberRemoved:FlxTypedSignalImpl<(member:T)->Void> = new FlxTypedSignalImpl();
 
 	public var length(get, never):Int;
 
@@ -66,7 +66,7 @@ class FoxTypedGroup #if !foxlite_polymod <T:FoxBasic> #end extends FoxBasic {
 		}
 		else members.splice(memIdx, 1);
 		FoxRenderer.mustRebuildDrawGroups = true;
-		onMemberRemoved(member);
+		onMemberRemoved.dispatch(member);
 		return member;
 	}
 

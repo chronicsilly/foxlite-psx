@@ -14,7 +14,7 @@ package foxlite.instancing;
 			case "one_by_one": FoxInstanceUpdateMode.ONE_BY_ONE;
 			case "clusters": FoxInstanceUpdateMode.CLUSTERS;
 			case "all": FoxInstanceUpdateMode.ALL;
-			return FoxInstanceUpdateMode.CHUNK;
+			default: FoxInstanceUpdateMode.CHUNK;
 		}
 	}
 
