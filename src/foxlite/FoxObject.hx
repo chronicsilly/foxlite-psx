@@ -56,7 +56,7 @@ class FoxObject extends FoxBasic {
 		super.destroy();
 	}
 
-	private function set_visible(v:Bool):Bool {
+	private override function set_visible(v:Bool):Bool {
 		if(v == this.visible) return v;
 		this.visible = v;
 		FoxRenderer.mustRebuildDrawGroups = true;
