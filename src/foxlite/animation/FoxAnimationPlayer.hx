@@ -30,7 +30,6 @@
 
 package foxlite.animation;
 
-import foxlite.flixel.FlxTypedSignalImpl;
 import Reflect;
 import foxlite.FoxBasic;
 import foxlite.FoxCache;
@@ -38,27 +37,20 @@ import foxlite.animation.FoxAnimation;
 import foxlite.animation.FoxAnimationTrack;
 import foxlite.animation.FoxCallbackTrack;
 import foxlite.animation.FoxLerp;
+import foxlite.flixel.FlxTypedSignalImpl;
 import foxlite.loaders.FoxLoaderUtil;
 import haxe.ds.StringMap;
 import openfl.geom.Matrix3D;
 import openfl.geom.Vector3D;
 import flixel.math.FlxMath;
 
-class TrackData {
-	public var frameIndex:Int = 0;
-	public var prevFrameIndex:Int = -1;
-	public var value:Any;
-
-	public function new(t:Any) {
-		value = t;
-	}
-}
+import foxlite.animation.data.FoxTrackData;
 
 class FoxAnimationPlayer extends FoxBasic {
 
 	public var library:Map<String, FoxAnimation> = new StringMap();
 	public var libraryName:String;
-	public var trackData:Map<String, TrackData> = new StringMap();
+	public var trackData:Map<String, FoxTrackData> = new StringMap();
 	
 	public var playing:Bool = false;
 	public var time:Float = 0;
@@ -125,18 +117,18 @@ class FoxAnimationPlayer extends FoxBasic {
 			timeLerp = FoxAnimationTrack.getEaseWeight(FlxMath.bound(timeLerp, 0, 1), curFrame.ease);
 
 			// Save interpolated value
-			data.value = switch(track.type) {
-				case FoxTrackType.INT: 		 	 Std.int(FlxMath.lerp(v0, v1, timeLerp));
-				case FoxTrackType.BOOL: 		 v0; // Same as Zero
-				case FoxTrackType.ANGLE: 		 FoxLerp.lerpAngle(v0, v1, timeLerp);
-				case FoxTrackType.FLOAT: 		 FlxMath.lerp(v0, v1, timeLerp);
-				case FoxTrackType.VECTOR2: 		 FoxLerp.lerp2D(v0, v1, timeLerp);
-				case FoxTrackType.VECTOR4: 	 	 FoxLerp.lerp4D(v0, v1, timeLerp);
-				case FoxTrackType.MATRIX4:		 FoxLerp.lerpMatrix4(v0, v1, timeLerp);
-				case FoxTrackType.VECTOR3D: 	 FoxLerp.lerp3D(v0, v1, timeLerp);
-				case FoxTrackType.QUATERNION: 	 FoxLerp.lerpQuaternion(v0, v1, timeLerp);
-				case FoxTrackType.EULER_ANGLES:  FoxLerp.lerpAngle3D(v0, v1, timeLerp);
-				default: v0;
+			switch(track.type) {
+				case FoxTrackType.INT: {		 data.value = Std.int(FlxMath.lerp(v0, v1, timeLerp)); };
+				case FoxTrackType.BOOL: {		 data.value = v0; }; // Same as Zero 
+				case FoxTrackType.ANGLE: {		 data.value = FoxLerp.lerpAngle(v0, v1, timeLerp); };
+				case FoxTrackType.FLOAT: {		 data.value = FlxMath.lerp(v0, v1, timeLerp); };
+				case FoxTrackType.VECTOR2: 		 FoxLerp.lerp2DToOutput(v0, v1, timeLerp, data.value);
+				case FoxTrackType.VECTOR4: 	 	 FoxLerp.lerp4DToOutput(v0, v1, timeLerp, data.value);
+				case FoxTrackType.MATRIX4:		 FoxLerp.lerpMatrix4ToOutput(v0, v1, timeLerp, data.value);
+				case FoxTrackType.VECTOR3D: 	 FoxLerp.lerp3DToOutput(v0, v1, timeLerp, data.value);
+				case FoxTrackType.QUATERNION: 	 FoxLerp.lerpQuaternionToOutput(v0, v1, timeLerp, data.value);
+				case FoxTrackType.EULER_ANGLES:  FoxLerp.lerpAngle3DToOutput(v0, v1, timeLerp, data.value);
+				default: { data.value = v0; };
 			}
 		}
 
@@ -164,7 +156,7 @@ class FoxAnimationPlayer extends FoxBasic {
 		library.set(anim.name, anim);
 		// Add to track cache aswell
 		for(track in anim.tracks) {
-			trackData.set(track.name, new TrackData(null));
+			trackData.set(track.name, track.createData());
 		}
 	}
 

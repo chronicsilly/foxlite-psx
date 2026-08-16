@@ -30,6 +30,7 @@
 
 package foxlite.animation;
 
+import lime.math.Vector2;
 import flixel.math.FlxMath;
 import foxlite.FoxCache;
 import foxlite.animation.FoxAnimationTrack;
@@ -76,6 +77,7 @@ class FoxAnimation {
 				 FoxTrackType.QUATERNION, 
 				 FoxTrackType.EULER_ANGLES: (new FoxAnimationTrack(trackName, type):FoxAnimationTrack<Vector3D>);
 			case FoxTrackType.MATRIX4: (new FoxAnimationTrack(trackName, type):FoxAnimationTrack<Matrix3D>);
+			case FoxTrackType.VECTOR2: (new FoxAnimationTrack(trackName, type):FoxAnimationTrack<Vector2>);
 			case FoxTrackType.FUNCTION: new FoxCallbackTrack(trackName, type);
 			default: null;
 		}

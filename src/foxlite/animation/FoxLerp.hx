@@ -46,6 +46,14 @@ class FoxLerp {
 		);
 	}
 
+	public static function lerp2DToOutput(a:Vector2, b:Vector2, w:Float, output:Vector2):Vector2 {
+		output.setTo(
+			FlxMath.lerp(a.x, b.x, w),
+			FlxMath.lerp(a.y, b.y, w)
+		);
+		return output;
+	}
+
 	public static function lerp3D(a:Vector3D, b:Vector3D, w:Float):Vector3D {
 		FoxRenderer.allocationsThisFrame += 1;
 		return new Vector3D(
@@ -53,6 +61,15 @@ class FoxLerp {
 			FlxMath.lerp(a.y, b.y, w),
 			FlxMath.lerp(a.z, b.z, w)
 		);
+	}
+
+	public static function lerp3DToOutput(a:Vector3D, b:Vector3D, w:Float, output:Vector3D):Vector3D {
+		output.setTo(
+			FlxMath.lerp(a.x, b.x, w),
+			FlxMath.lerp(a.y, b.y, w),
+			FlxMath.lerp(a.z, b.z, w)
+		);
+		return output;
 	}
 
 	public static function lerpAngle3D(a:Vector3D, b:Vector3D, w:Float):Vector3D {
@@ -63,6 +80,16 @@ class FoxLerp {
 			FoxLerp.lerpAngle(a.z, b.z, w)
 		);
 	}
+
+	public static function lerpAngle3DToOutput(a:Vector3D, b:Vector3D, w:Float, output:Vector3D):Vector3D {
+		output.setTo(
+			FoxLerp.lerpAngle(a.x, b.x, w),
+			FoxLerp.lerpAngle(a.y, b.y, w),
+			FoxLerp.lerpAngle(a.z, b.z, w)
+		);
+		return output;
+	}
+
 
 	public static function inverseLerp3D(a:Vector3D, b:Vector3D, v:Vector3D):Float {
 		FoxRenderer.allocationsThisFrame += 2;
@@ -82,8 +109,22 @@ class FoxLerp {
 		);
 	}
 
+	public static function lerp4DToOutput(a:Vector3D, b:Vector3D, w:Float, output:Vector3D):Vector3D {
+		output.setTo(
+			FlxMath.lerp(a.x, b.x, w),
+			FlxMath.lerp(a.y, b.y, w),
+			FlxMath.lerp(a.z, b.z, w)
+		);
+		output.w = FlxMath.lerp(a.w, b.w, w);
+		return output;
+	}
+
 	public inline static function lerpQuaternion(a:Vector3D, b:Vector3D, w:Float):Vector3D {
 		return FoxLerp.lerp4D(a, b, w); // TODO: Proper quaternion interpolation
+	}
+
+	public inline static function lerpQuaternionToOutput(a:Vector3D, b:Vector3D, w:Float, output:Vector3D):Vector3D {
+		return FoxLerp.lerp4DToOutput(a, b, w, output); // TODO: Proper quaternion interpolation
 	}
 
 	// Test
@@ -92,5 +133,11 @@ class FoxLerp {
 		var m = new Matrix3D(a.rawData);
 		m.interpolateTo(b, w);
 		return m;
+	}
+
+	public static function lerpMatrix4ToOutput(a:Matrix3D, b:Matrix3D, w:Float, output:Matrix3D):Matrix3D {
+		output.copyRawDataFrom(a.rawData);
+		output.interpolateTo(b, w);
+		return output;
 	}
 }

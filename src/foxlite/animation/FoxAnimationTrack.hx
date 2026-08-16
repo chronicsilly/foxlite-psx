@@ -1,6 +1,7 @@
 package foxlite.animation;
 
 import foxlite.animation.FoxTrackType;
+import foxlite.animation.data.FoxTrackData;
 import flixel.tweens.FlxEase;
 
 class FoxAnimationTrack #if !foxlite_polymod <T> #end {
@@ -57,6 +58,10 @@ class FoxAnimationTrack #if !foxlite_polymod <T> #end {
 			return frames[closestFrame && (time - frames[index].time > frames[f].time - time) ? f : index];
 		}
 		return null;
+	}
+
+	public function createData():FoxTrackData {
+		return new FoxTrackData(type);
 	}
 
 	public static function getEaseWeight(weight:Float, easeType:FoxEaseType):Float {
