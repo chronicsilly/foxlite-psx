@@ -332,6 +332,8 @@ class FoxShader {
 	public function initCache() {
 		if(program == null) return;
 		var glProgram = program.__glProgram;
+
+		program.__glslSamplerNames = [];
 		
 		gl.useProgram(glProgram); 
 		uniformCache.clear();
@@ -348,6 +350,9 @@ class FoxShader {
 				type: info.type,
 				size: info.size
 			});
+
+			program.__glslSamplerNames.push(null);
+			if(info.type == UType.FLOAT_MAT4) program.__glslSamplerNames[a] = name;
 		}
 		
 		attribIdx.position = gl.getAttribLocation(glProgram, "foxlite_Position");

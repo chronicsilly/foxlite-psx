@@ -729,10 +729,6 @@ class FoxRenderer {
 	*/
 	public static function uploadFromGLSLProgram3D(program:Program3D, vertexSource:String, fragmentSource:String) {
 		var gl = context.gl;
-		program.__processGLSLData(vertexSource, "attribute");
-		program.__processGLSLData(vertexSource, "uniform");
-		program.__processGLSLData(fragmentSource, "uniform");
-
 		program.__deleteShaders();
 		try {
 			program.__uploadFromGLSL(vertexSource, fragmentSource);
@@ -769,29 +765,6 @@ class FoxRenderer {
 				getWindow().alert(msg);
 			}
 		}
-
-		// For flushGLTextures
-		var samplerNames = program.__glslSamplerNames;
-		//var attribNames = program.__glslAttribNames;
-		//var attribTypes = program.__glslAttribTypes;
-
-		program.__glslSamplerNames = []; // new Array(); does not work in V-Slice as of 0.8.6 without importing, uhoh
-		//program.__glslAttribNames = new Array();
-		//program.__glslAttribTypes = new Array();
-
-		for (name in samplerNames)
-		{
-			var index:Int = cast gl.getUniformLocation(program.__glProgram, name);
-			if(index == -1) continue; // We don't have this uniform, skip (must do for hashlink)
-			program.__glslSamplerNames[index] = name;
-		}
-
-		/*for (i in 0...attribNames.length)
-		{
-			var index:Int = gl.getAttribLocation(program.__glProgram, attribNames[i]);
-			program.__glslAttribNames[index] = attribNames[i];
-			program.__glslAttribTypes[index] = attribTypes[i];
-		}*/
 	}
 
 	public static function updateVertexBuffer(context:Context3D, buffer:VertexBuffer3D, data:Float32Array, offset:Int=0) {
