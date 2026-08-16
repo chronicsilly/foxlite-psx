@@ -47,8 +47,7 @@ class FoxLoaderUtil {
 	}
 
 	public static #if !foxlite_polymod dynamic #end function shaderIncludeRoot(name:String):String {
-		if(FoxLoaderUtil.PathsClass == null) return 'shaders/$name';
-		return PathsClass.getPath('shaders/$name');
+		return 'shaders/$name';
 	}
 
 	public static function loadJSON(name:String) {
