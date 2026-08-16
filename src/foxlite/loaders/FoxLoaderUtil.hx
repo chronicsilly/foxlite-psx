@@ -3,56 +3,52 @@ package foxlite.loaders;
 import haxe.Json;
 import openfl.utils.Assets;
 
-#if polymod
-import funkin.Paths;
-#end
-
 class FoxLoaderUtil {
+
+	public static var PathsClass:Dynamic = null;
+
+	/**
+		For Friday Night Funkin' Engines, this is a custom path function for custom library paths.
+
+		If `null`, the default assets folder will be used instead.
+	**/
+	public static function initPathClass(?Class:Dynamic) {
+		FoxLoaderUtil.PathsClass = Class;
+		#if foxlite_polymod
+		trace(PathsClass);
+		#end
+	}
 
 	// These are dynamic so you can change them at runtime
 
 	public static #if !foxlite_polymod dynamic #end function jsonPath(name:String):String {
-		#if polymod
-		return Paths.json(name);
-		#else
-		return 'assets/data/$name.json';
-		#end
+		if(FoxLoaderUtil.PathsClass == null) return 'assets/data/$name.json';
+		return PathsClass.getPath('data/$name.json');
 	}
 
 	public static #if !foxlite_polymod dynamic #end function filePath(name:String):String {
-		#if polymod
-		return Paths.file(name);
-		#else
-		return 'assets/$name';
-		#end
+		if(FoxLoaderUtil.PathsClass == null) return 'assets/$name';
+		return PathsClass.getPath('$name');
 	}
 
 	public static #if !foxlite_polymod dynamic #end function imagePath(name:String):String {
-		#if polymod
-		return Paths.image(name);
-		#else
-		return 'assets/images/$name.png';
-		#end
+		if(FoxLoaderUtil.PathsClass == null) return 'assets/images/$name.png';
+		return PathsClass.getPath('images/$name.png');
 	}
 
 	public static #if !foxlite_polymod dynamic #end function shaderVert(name:String):String {
-		#if polymod
-		return Paths.vert(name);
-		#else
-		return 'assets/shaders/$name.vert';
-		#end
+		if(FoxLoaderUtil.PathsClass == null) return 'assets/shaders/$name.vert';
+		return PathsClass.getPath('shaders/$name.vert');
 	}
 
 	public static #if !foxlite_polymod dynamic #end function shaderFrag(name:String):String {
-		#if polymod
-		return Paths.frag(name);
-		#else
-		return 'assets/shaders/$name.frag';
-		#end
+		if(FoxLoaderUtil.PathsClass == null) return 'assets/shaders/$name.frag';
+		return PathsClass.getPath('shaders/$name.frag');
 	}
 
 	public static #if !foxlite_polymod dynamic #end function shaderIncludeRoot(name:String):String {
-		return 'shaders/$name';
+		if(FoxLoaderUtil.PathsClass == null) return 'shaders/$name';
+		return PathsClass.getPath('shaders/$name');
 	}
 
 	public static function loadJSON(name:String) {
