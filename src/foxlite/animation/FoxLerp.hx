@@ -40,7 +40,7 @@ class FoxLerp {
 		Format follows FlxColor's ARGB
 	**/
 	public inline static function lerpColorHex(a:FlxColor, b:FlxColor, w:Float):FlxColor {
-		#if foxlite_polymod
+		#if (foxlite_polymod || cne)
 		return FlxColor.interpolate(a, b, w);
 		#else
 		var x1 = (a >> 16) & 0xFF;
@@ -53,10 +53,10 @@ class FoxLerp {
 		var z2 =  b & 0xFF;
 		var w2 = (b >> 24) & 0xFF;
 
-		x1 += (x2 - x1) * w;
-		y1 += (y2 - y1) * w;
-		z1 += (z2 - z1) * w;
-		w1 += (z2 - z1) * w;
+		x1 += Std.int((x2 - x1) * w);
+		y1 += Std.int((y2 - y1) * w);
+		z1 += Std.int((z2 - z1) * w);
+		w1 += Std.int((w2 - w1) * w);
 		return w1 << 24 | x1 << 16 | y1 << 8 | z1;
 		#end
 	}
