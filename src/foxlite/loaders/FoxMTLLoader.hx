@@ -10,12 +10,11 @@ import openfl.geom.Vector3D;
 
 class FoxMTLLoader {
 	
-	public static final f = "(-?\\d+[e.]?\\d+)"; // Regex int/float token
-	public static final i = "(-?\\d+)"; 	 	 // Regex int token
+	public static final n = "(-?\\d+[e.]?\\d*?)"; // Regex int/float token
 
 	public static final tokenizer = {
 		def:  new EReg('(newmtl|Ns|Ni|illum|d)\\s+(.+)', 'g'),
-		K: 	  new EReg('(K[ased])\\s+$f\\s+$f\\s+$f', 'g'),
+		K: 	  new EReg('(K[ased])\\s+$n\\s+$n\\s+$n', 'g'),
 		map:  new EReg('(map_\\w+).+?(\\S+\\.[a-zA-Z]+)', 'g'),
 		type: new EReg('(#|\\w+).*', 'g')
 	};
