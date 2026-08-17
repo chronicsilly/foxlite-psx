@@ -415,7 +415,7 @@ class FoxLightData {
 		if(shadowLights.length > 0) { // If there's at least one shadow
 			// Caster data
 			shader.setSampler2D('shadowCasterData', shadowCasterData);
-			shader.setFloat('shadowCasterDataSize', 1 / shadowCasterData.getLength());
+			shader.setFloat('shadowCasterDataSize', shadowCasterData.pixelSize.x);
 
 			// Directional lights
 			shader.setSampler2D('shadowtex0', directionalShadowAtlas.depthBuffer);
