@@ -31,6 +31,7 @@ class FoxFramebuffer {
 	public var depthBuffer:FoxTexture = null;
 	public var colorBuffers:Array<FoxTexture> = [];
 	public var hasDepth:Bool = false;
+	public var hasStencil:Bool = false;
 	public var context:Context3D = null;
 
 	public var drawBuffers:Array<Int> = [];
@@ -82,6 +83,7 @@ class FoxFramebuffer {
 		var texID = texture?.glTexture?.__textureID;
 		// Attach with stencil buffer aswell
 		var attachment = withStencil ? gl.DEPTH_STENCIL_ATTACHMENT : gl.DEPTH_ATTACHMENT;
+		@:privateAccess hasStencil = withStencil && StringTools.endsWith(texture.__format.toUpperCase(), "STENCIL8");
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, cast texID, 0);
 		hasDepth = texture != null;
 		glTexture.__optimizeForRenderToTexture = hasDepth; // indicate that we do have depth
@@ -132,7 +134,6 @@ class FoxFramebuffer {
 		stencilBuffer = null;
 		__initTexture();
 		if(hasDepth) {
-			@:privateAccess var hasStencil = StringTools.endsWith(depthBuffer.__format.toUpperCase(), "STENCIL8");
 			setDepthTexture(depthBuffer.resize(newWidth, newHeight), hasStencil);
 		}
 		for(t in 0...textures.length) setColorTexture(t, textures[t]);

@@ -246,13 +246,9 @@ class FoxRenderer {
 	}
 
 	public static function clearDepthStencil() {
-		if(FoxRenderer.__depthTest) GL.depthMask(true);
-		var mask = context.gl.DEPTH_BUFFER_BIT;
-		if(FoxRenderer.__stencilTest) {
-			GL.stencilMask(0xFF);
-			mask |= context.gl.STENCIL_BUFFER_BIT;
-		}
-		GL.clear(mask);
+		GL.depthMask(true);
+		GL.stencilMask(0xFF);
+		GL.clear(context.gl.DEPTH_BUFFER_BIT | context.gl.STENCIL_BUFFER_BIT);
 	}
 
 	public inline static function useShader(shader:FoxShader) {
