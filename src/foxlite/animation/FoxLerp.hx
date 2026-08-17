@@ -1,7 +1,10 @@
 package foxlite.animation;
 
-import foxlite.math.FoxMathUtil;
 import flixel.math.FlxMath;
+#if !foxlite_polymod
+import flixel.util.FlxColor;
+#end
+import foxlite.math.FoxMathUtil;
 import foxlite.renderer.FoxRenderer;
 import lime.math.Vector2;
 import openfl.geom.Matrix3D;
@@ -31,6 +34,31 @@ class FoxLerp {
 		final TAU = FoxMathUtil.TAU;
 		var shortest_angle = ((b - a) % TAU + Math.PI) % TAU - Math.PI;
    		return a + shortest_angle * w;
+	}
+
+	/**
+		Format follows FlxColor's ARGB
+	**/
+	public inline static function lerpColorHex(a:FlxColor, b:FlxColor, w:Float):FlxColor {
+		#if foxlite_polymod
+		return FlxColor.interpolate(a, b, w);
+		#else
+		var x1 = (a >> 16) & 0xFF;
+		var y1 = (a >>  8) & 0xFF;
+		var z1 =  a & 0xFF;
+		var w1 = (a >> 24) & 0xFF;
+
+		var x2 = (b >> 16) & 0xFF;
+		var y2 = (b >>  8) & 0xFF;
+		var z2 =  b & 0xFF;
+		var w2 = (b >> 24) & 0xFF;
+
+		x1 += (x2 - x1) * w;
+		y1 += (y2 - y1) * w;
+		z1 += (z2 - z1) * w;
+		w1 += (z2 - z1) * w;
+		return w1 << 24 | x1 << 16 | y1 << 8 | z1;
+		#end
 	}
 
 	public static function inverseLerp(a:Float, b:Float, v:Float):Float {

@@ -96,7 +96,9 @@ class FoxRenderMetrics extends FlxSpriteGroup {
 		output = StringTools.replace(output, "$7", '${Math.round(gpuFPS)}');
 
 		var version = FoxRenderer.getGLVersion();
-		output = StringTools.replace(output, "$8", '${FoxRenderer.renderContext} ${version}');
+		var ctx = FoxRenderer.renderContext;
+		if(ctx == "") ctx = "(UNINITIALIZED)";
+		output = StringTools.replace(output, "$8", '${ctx} ${version}');
 		output = StringTools.replace(output, "$9", '$extraInfo');
 
 		text.text = output;

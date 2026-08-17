@@ -51,6 +51,7 @@ class FoxRenderer {
 		- OPENGLES: Mobile, ES devices
 	**/
 	public static var renderContext:String = "";
+	public static var glDeviceName:String = "";
 	public static var __blendMode:FoxBlendMode = -1;
 	public static var __depthTest:Bool = true;
 	public static var __stencilTest:Bool = false;
@@ -90,6 +91,7 @@ class FoxRenderer {
 
 	public static function staticInit() {
 		var window = getWindow();
+		var gl = getContext().gl;
 		#if (flash || cairo)
 		var msg = "This platform does not support hardware-accelerated graphics! FoxLite will not work!";
 		window.alert(msg, "Get a GPU");
@@ -98,12 +100,13 @@ class FoxRenderer {
 		#if foxlite_polymod
 		trace(BUILD_NAME, VERSION, renderContext, frameCount, drawCalls, verticesDrawn, stateSwitches, __blendMode, 
 			__depthTest, __shader, __stencilTest, renderMode, debugWireframe, mustRebuildDrawGroups, 
-			renderedInstances, onPreDraw, onPostDraw, __indexBuffer, __scissorTest
+			renderedInstances, onPreDraw, onPostDraw, __indexBuffer, __scissorTest, glDeviceName
 		);
 		#end
 		
 		FoxRenderer.renderContext = '${window.context.type}'.toUpperCase();
-		trace('[FoxLite > FoxRenderer]: lime is ${renderContext}');
+		FoxRenderer.glDeviceName = gl.getParameter(gl.RENDERER);
+		trace('[FoxLite > FoxRenderer]: lime is ${renderContext}:\n    - Shader model: ${GL.getParameter(context.gl.SHADING_LANGUAGE_VERSION)}\n    - Device: $glDeviceName');
 	
 		// Activate extensions
 		var ext;
