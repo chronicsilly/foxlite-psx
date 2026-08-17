@@ -33,14 +33,14 @@ class FoxSpotLight extends FoxBaseLight {
 	function set_angle(v:Float):Float {
 		if(v == this.angle) return v;
 		this.angle = v;
-		FoxMathUtil.perspectiveMatrix(this.projectionMatrix, Math.min(v*Math.PI, 175), 1, 0.05, this.range);
+		FoxMathUtil.perspectiveMatrix(this.projectionMatrix, Math.min(v*2.3, 175), 1, 0.05, this.range);
 		return v;
 	}
 
 	function set_range(v:Float):Float {
 		if(v == this.range) return v;
 		this.range = v;
-		FoxMathUtil.perspectiveMatrix(this.projectionMatrix, Math.min(this.angle*Math.PI, 175), 1, 0.05, v);
+		FoxMathUtil.perspectiveMatrix(this.projectionMatrix, Math.min(this.angle*2.3, 175), 1, 0.05, v);
 		return v;
 	}
 

@@ -3,6 +3,7 @@
 
 package foxlite.texture;
 
+import StringTools;
 import foxlite.polyfill.TypedArray;
 import foxlite.renderer.FoxRenderer;
 import foxlite.texture.FoxTexture;
@@ -130,7 +131,10 @@ class FoxFramebuffer {
 		if(stencilBuffer != null) GL.deleteRenderbuffer(stencilBuffer);
 		stencilBuffer = null;
 		__initTexture();
-		if(hasDepth) setDepthTexture(depthBuffer.resize(newWidth, newHeight));
+		if(hasDepth) {
+			@:privateAccess var hasStencil = StringTools.endsWith(depthBuffer.__format.toUpperCase(), "STENCIL8");
+			setDepthTexture(depthBuffer.resize(newWidth, newHeight), hasStencil);
+		}
 		for(t in 0...textures.length) setColorTexture(t, textures[t]);
 	}
 

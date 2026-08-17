@@ -139,7 +139,7 @@ class FoxTextureBuffer extends FoxTexture {
 	}
 
 	// -------------------------------------------------------
-	// TODO: Use an interface instead
+	// Perhaps use an interface instead
 	var bytes:Bytes;
 
 	public function setFloat(pos:Int, v:Float):Void {

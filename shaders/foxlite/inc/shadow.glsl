@@ -4,7 +4,7 @@
 #define SHADOW_BIAS 0.00015
 
 uniform sampler2D shadowCasterData;
-uniform float shadowCasterPixelSize;
+uniform float shadowCasterDataSize;
 
 uniform sampler2D shadowtex0; // Directional light shadow atlas
 uniform samplerCube shadowtex1; // wip - Point light shadow cubemap
@@ -29,10 +29,10 @@ void setupShadows(vec4 worldPosition) {
 		if(i >= lightCount[LIGHT_DIRECTIONAL]) break;
 		DirLight L = directionalLights[i];
 		if(L.shadowCaster != -1) {
-			mat4 viewProjection = fox_textureBufferMat4(shadowCasterData, L.shadowCaster, shadowCasterPixelSize);
+			mat4 viewProjection = fox_textureBufferMat4(shadowCasterData, L.shadowCaster, shadowCasterDataSize);
 			directionalShadowLightSpace[i] = viewProjection * worldPosition;
 			directionalShadowLightSpace[i].xyz = directionalShadowLightSpace[i].xyz * 0.5 + 0.5;
-			directionalShadowLightSpace[i].z -= max(shadowtex0size.x, shadowtex0size.y)*.333333333;
+			directionalShadowLightSpace[i].z -= SHADOW_BIAS;
 		}
 	}
 
@@ -40,7 +40,7 @@ void setupShadows(vec4 worldPosition) {
 		if(i >= lightCount[LIGHT_POINT]) break;
 		PointLight L = pointLights[i];
 		if(L.shadowCaster != -1) {
-			mat4 viewProjection = fox_textureBufferMat4(shadowCasterData, L.shadowCaster, shadowCasterPixelSize);
+			mat4 viewProjection = fox_textureBufferMat4(shadowCasterData, L.shadowCaster, shadowCasterDataSize);
 			pointShadowLightSpace[i] = viewProjection * worldPosition;
 		}
 	}
@@ -49,7 +49,7 @@ void setupShadows(vec4 worldPosition) {
 		if(i >= lightCount[LIGHT_SPOT]) break;
 		SpotLight L = spotLights[i];
 		if(L.shadowCaster != -1) {
-			mat4 viewProjection = fox_textureBufferMat4(shadowCasterData, L.shadowCaster, shadowCasterPixelSize);
+			mat4 viewProjection = fox_textureBufferMat4(shadowCasterData, L.shadowCaster, shadowCasterDataSize);
 			spotShadowLightSpace[i] = viewProjection * worldPosition;
 		}
 	}
@@ -58,7 +58,7 @@ void setupShadows(vec4 worldPosition) {
 		if(i >= lightCount[LIGHT_AREA]) break;
 		AreaLight L = areaLights[i];
 		if(L.shadowCaster != -1) {
-			mat4 viewProjection = fox_textureBufferMat4(shadowCasterData, L.shadowCaster, shadowCasterPixelSize);
+			mat4 viewProjection = fox_textureBufferMat4(shadowCasterData, L.shadowCaster, shadowCasterDataSize);
 			areaShadowLightSpace[i] = viewProjection * worldPosition;
 		}
 	}
