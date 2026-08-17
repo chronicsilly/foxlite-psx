@@ -88,14 +88,14 @@ vec2 pointLight(vec3 lightPos, float radius, float attenuation, vec3 viewPos, ve
 }
 
 // https://ogldev.org/www/tutorial21/tutorial21.html
-vec2 spotLight(vec3 lightPos, vec3 lightDirection, float radius, float angle, float attenuation, vec3 viewPos, vec3 normal, float shininess) {
+vec2 spotLight(vec3 lightPos, vec3 lightDirection, float range, float angle, float attenuation, vec3 viewPos, vec3 normal, float shininess) {
 	vec3 lightDir = -normalize(lightPos - viewPos);
 	float spotFactor = dot(lightDir, lightDirection);
 
 	// TODO: Add blur factor: when the cone is closer to the source, blur it less
 	spotFactor = step(angle, spotFactor) * clamp((1.0 - (1.0 - spotFactor) * 1.0/(1.0 - angle)) , 0.0, 1.0);
 	// Reuse pointLight function since spot is just a constrained version of it
-	vec2 omni = pointLight(lightPos, radius, attenuation, viewPos, normal, shininess);
+	vec2 omni = pointLight(lightPos, range, attenuation, viewPos, normal, shininess);
 	// Spot blob at surface
 	//omni = mix(omni, omni / dist, 0.25);
 		

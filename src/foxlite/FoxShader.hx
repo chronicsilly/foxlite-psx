@@ -370,7 +370,7 @@ class FoxShader {
 		__uInstancedLocation = uniformCache.get("uInstanced")?.location ?? -1;
 		// Bone data
 		__bonesDataLocation = uniformCache.get("BONESDATA")?.location ?? -1;
-		__bonesDataSizeLocation = uniformCache.get("BONESDATA_PIXEL_SIZE")?.location ?? -1;
+		__bonesDataSizeLocation = uniformCache.get("BONESDATA_TWIDTH")?.location ?? -1;
 
 		__hasLights = uniformCache.exists("lightCount") 
 				   && uniformCache.exists("directionalLights[0].color")

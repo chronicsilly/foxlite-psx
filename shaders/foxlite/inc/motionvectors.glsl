@@ -21,10 +21,10 @@ mat4 prevSkin() {
 	ivec4 index = ivec4(foxlite_BoneIndex);
 	
 	mat4 transform =
-		fox_textureBufferMat4(PREV_BONESDATA, index.x, BONESDATA_PIXEL_SIZE) * foxlite_BoneWeight.x +
-		fox_textureBufferMat4(PREV_BONESDATA, index.y, BONESDATA_PIXEL_SIZE) * foxlite_BoneWeight.y +
-		fox_textureBufferMat4(PREV_BONESDATA, index.z, BONESDATA_PIXEL_SIZE) * foxlite_BoneWeight.z +
-		fox_textureBufferMat4(PREV_BONESDATA, index.w, BONESDATA_PIXEL_SIZE) * foxlite_BoneWeight.w;
+		fox_textureBufferMat4(PREV_BONESDATA, index.x, BONESDATA_TWIDTH) * foxlite_BoneWeight.x +
+		fox_textureBufferMat4(PREV_BONESDATA, index.y, BONESDATA_TWIDTH) * foxlite_BoneWeight.y +
+		fox_textureBufferMat4(PREV_BONESDATA, index.z, BONESDATA_TWIDTH) * foxlite_BoneWeight.z +
+		fox_textureBufferMat4(PREV_BONESDATA, index.w, BONESDATA_TWIDTH) * foxlite_BoneWeight.w;
 
 	return transform;
 }

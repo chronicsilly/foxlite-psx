@@ -55,7 +55,6 @@ class FoxRenderer {
 	public static var __depthTest:Bool = true;
 	public static var __stencilTest:Bool = false;
 	public static var __scissorTest:Bool = false;
-	//public static var __depthWrite:Bool = true; // Handled by Context3D.setDepthTest()
 
 	public static var __indexBuffer:Dynamic = null;
 
@@ -241,9 +240,19 @@ class FoxRenderer {
 		context.__state.renderToTexture = target.glTexture;
 		context.__state.renderToTextureDepthStencil = target.hasDepth;
 		
-		gl.bindFramebuffer(gl.FRAMEBUFFER, target.glTexture?.__glFramebuffer);
+		context.__flushGLFramebuffer();
 		GL.drawBuffers(target.drawBuffers);
 		FoxRenderer.stateSwitches += 1;
+	}
+
+	public static function clearDepthStencil() {
+		if(FoxRenderer.__depthTest) GL.depthMask(true);
+		var mask = context.gl.DEPTH_BUFFER_BIT;
+		if(FoxRenderer.__stencilTest) {
+			GL.stencilMask(0xFF);
+			mask |= context.gl.STENCIL_BUFFER_BIT;
+		}
+		GL.clear(mask);
 	}
 
 	public inline static function useShader(shader:FoxShader) {

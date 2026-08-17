@@ -153,9 +153,7 @@ class FoxRenderPass {
 				context.clear(c[0], c[1], c[2], c[3]);
 			}
 		}
-		else if(clearDepthAndStencil) {
-			GL.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-		}
+		else if(clearDepthAndStencil) FoxRenderer.clearDepthStencil();
 		// Context3D resets the viewport, so we have to set it again
 		GL.viewport(Std.int(region.x), Std.int(region.y), region.width <= 0 ? framebuffer.width : Std.int(region.width), region.height <= 0 ? framebuffer.height : Std.int(region.height));
 		//FoxRenderer.setScissorRect(scissor);
