@@ -54,7 +54,9 @@ uniform ivec4 lightCount; 									//   +1 = 145 vec4s for lights
 															// lightCount: x=directional, y=point, z=spot, w=area
 
 
+#ifndef NO_SHADOW_CODE
 #include "foxlite/inc/shadow.glsl"
+#endif
 
 uniform vec3 ambientLight;
 
@@ -146,7 +148,7 @@ vec3 light(vec3 unlit, vec3 normal, vec3 viewPosition, vec3 lightSpecular, float
 		float shadow = 1.0;
 		if(L.shadowCaster != -1) shadow = shadowDirectional(directionalShadowLightSpace[i], L.shadowRegion);
 		#else
-		const float shadow = 0.0;
+		const float shadow = 1.0;
 		#endif
 		addLight(diffuse, specular, L.color.rgb, shadow * directionalLight(L.direction.xyz, viewPosition, normal, shininess));
 	}
@@ -158,7 +160,7 @@ vec3 light(vec3 unlit, vec3 normal, vec3 viewPosition, vec3 lightSpecular, float
 		float shadow = 1.0;
 		if(L.shadowCaster != -1) shadow = shadowPointCubemap(pointShadowLightSpace[0]);
 		#else
-		const float shadow = 0.0;
+		const float shadow = 1.0;
 		#endif
 		addLight(diffuse, specular, L.color.rgb, shadow * pointLight(L.position.xyz, L.color.w, L.position.w, viewPosition, normal, shininess));
 	}
@@ -170,7 +172,7 @@ vec3 light(vec3 unlit, vec3 normal, vec3 viewPosition, vec3 lightSpecular, float
 		float shadow = 1.0;
 		if(L.shadowCaster != -1) shadow = shadowSpot(spotShadowLightSpace[i], L.shadowRegion);
 		#else
-		const float shadow = 0.0;
+		const float shadow = 1.0;
 		#endif
 		addLight(diffuse, specular, L.color.rgb, shadow * spotLight(L.position.xyz, L.direction.xyz, L.color.w, L.direction.w, L.position.w, viewPosition, normal, shininess));
 	}
@@ -182,7 +184,7 @@ vec3 light(vec3 unlit, vec3 normal, vec3 viewPosition, vec3 lightSpecular, float
 		float shadow = 1.0;
 		if(L.shadowCaster != -1) shadow = shadowArea(areaShadowLightSpace[0]);
 		#else
-		const float shadow = 0.0;
+		const float shadow = 1.0;
 		#endif
 		addLight(diffuse, specular, L.color.rgb, shadow * areaLight(L.position.xyz, L.direction.xyz, L.sdfData, L.color.w, L.position.w, viewPosition, normal, shininess));
 	}
