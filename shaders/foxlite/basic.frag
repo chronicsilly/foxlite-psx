@@ -81,7 +81,7 @@ void main() {
 	#ifdef SKY_RADIANCE
 		albedo *= panoramaSky(skyTexture, dir, SKY_RADIANCE_LEVEL);
 	#endif
-		albedo = mix(albedo, skyColor, clamp(metallic, 0, 1));
+		albedo = mix(albedo, skyColor, clamp(metallic, 0.0, 1.0));
 	#else
 		albedo.rgb *= 1.0 - metallic;
 	#endif

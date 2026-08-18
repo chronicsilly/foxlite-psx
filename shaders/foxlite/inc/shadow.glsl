@@ -74,12 +74,35 @@ float sampleShadow(sampler2D tex, vec2 coord, float Z) {
 float sampleShadowCustom(sampler2D tex, vec2 coord, float Z, vec2 S);
 
 // Based on https://www.shadertoy.com/view/lsfGWn
+float sampleShadowPoisson5(sampler2D tex, vec2 coord, float Z, vec2 S) {
+	float pDepth = 0.0;
+	float a = interleavedGradientNoise(ScreenCoord) * 6.28;
+	vec2 sc = vec2(sin(a),cos(a));
+	vec4 B = vec4(sc.y, sc.x, -sc.x, sc.y);
+	S *= 2.0;
+
+	// Unrolled for OpenGL ES 2
+	const float NUM_TAPS = 5.0;
+	vec2 ofs, texcoord;
+	ofs = vec2(-0.8350818852979401, -0.4826388224290488); ofs = vec2( dot(ofs,B.xy), dot(ofs,B.zw) ) * S; texcoord = coord + ofs;
+	pDepth += step(texture2D(tex, texcoord).r, Z);
+	ofs = vec2(0.24593728246082208, 0.9588613067368342); ofs = vec2( dot(ofs,B.xy), dot(ofs,B.zw) ) * S; texcoord = coord + ofs;
+	pDepth += step(texture2D(tex, texcoord).r, Z);
+	ofs = vec2(0.7796384216727746, -0.6037360528260651); ofs = vec2( dot(ofs,B.xy), dot(ofs,B.zw) ) * S; texcoord = coord + ofs;
+	pDepth += step(texture2D(tex, texcoord).r, Z);
+	ofs = vec2(-0.6437966602266678, 0.692457694761556); ofs = vec2( dot(ofs,B.xy), dot(ofs,B.zw) ) * S; texcoord = coord + ofs;
+	pDepth += step(texture2D(tex, texcoord).r, Z);
+	ofs = vec2(0.45504401297974184, -0.3128321923487644); ofs = vec2( dot(ofs,B.xy), dot(ofs,B.zw) ) * S; texcoord = coord + ofs;
+	pDepth += step(texture2D(tex, texcoord).r, Z);
+	return pDepth / NUM_TAPS;
+}
+
 float sampleShadowPoisson18(sampler2D tex, vec2 coord, float Z, vec2 S) {
 	float pDepth = 0.0;
 	float a = interleavedGradientNoise(ScreenCoord) * 6.28;
 	vec2 sc = vec2(sin(a),cos(a));
 	vec4 B = vec4(sc.y, sc.x, -sc.x, sc.y);
-	S *= 2.5;
+	S *= 1.5;
 
 	// Unrolled for OpenGL ES 2
 	const float NUM_TAPS = 18.0;
@@ -134,8 +157,10 @@ float shadowDirectional(in vec4 projCoords, const vec4 rect) {
 		shadow -= sampleShadow(shadowtex0, coord, projCoords.z);
 		#elif defined(SHADOW_FILTER_CUSTOM)
 		shadow -= sampleShadowCustom(shadowtex0, coord, projCoords.z, shadowtex0size);
+		#elif defined(SHADOW_FILTER_LQ)
+		shadow -= sampleShadowPoisson5(shadowtex0, coord, projCoords.z, shadowtex0size);
 		#else
-		shadow -= sampleShadowPoisson18(shadowtex0, coord, projCoords.z, shadowtex0size*0.6);
+		shadow -= sampleShadowPoisson18(shadowtex0, coord, projCoords.z, shadowtex0size);
 		#endif
 	}
 	return shadow;
@@ -154,6 +179,8 @@ float shadowSpot(in vec4 S, const vec4 rect) {
 		shadow -= sampleShadow(shadowtex2, coord, projCoords.z);
 		#elif defined(SHADOW_FILTER_CUSTOM)
 		shadow -= sampleShadowCustom(shadowtex2, coord, projCoords.z, shadowtex2size);
+		#elif defined(SHADOW_FILTER_LQ)
+		shadow -= sampleShadowPoisson5(shadowtex2, coord, projCoords.z, shadowtex2size);
 		#else
 		shadow -= sampleShadowPoisson18(shadowtex2, coord, projCoords.z, shadowtex2size);
 		#endif

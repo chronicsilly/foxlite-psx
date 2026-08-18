@@ -144,13 +144,14 @@ vec3 light(vec3 unlit, vec3 normal, vec3 viewPosition, vec3 lightSpecular, float
 	for(int i = 0; i < MAX_DIRECTIONAL_LIGHTS; ++i) {
 		if(i >= lightCount[LIGHT_DIRECTIONAL]) break;
 		DirLight L = directionalLights[i];
+		vec2 levels = directionalLight(L.direction.xyz, viewPosition, normal, shininess);
 		#ifdef SHADOW_GLSL
 		float shadow = 1.0;
-		if(L.shadowCaster != -1) shadow = shadowDirectional(directionalShadowLightSpace[i], L.shadowRegion);
+		if(L.shadowCaster != -1 && levels.s != 0.0) shadow = shadowDirectional(directionalShadowLightSpace[i], L.shadowRegion);
 		#else
 		const float shadow = 1.0;
 		#endif
-		addLight(diffuse, specular, L.color.rgb, shadow * directionalLight(L.direction.xyz, viewPosition, normal, shininess));
+		addLight(diffuse, specular, L.color.rgb, shadow * levels);
 	}
 
 	for(int i = 0; i < MAX_POINT_LIGHTS; ++i) {
@@ -168,13 +169,14 @@ vec3 light(vec3 unlit, vec3 normal, vec3 viewPosition, vec3 lightSpecular, float
 	for(int i = 0; i < MAX_SPOT_LIGHTS; ++i) {
 		if(i >= lightCount[LIGHT_SPOT]) break;
 		SpotLight L = spotLights[i];
+		vec2 levels = spotLight(L.position.xyz, L.direction.xyz, L.color.w, L.direction.w, L.position.w, viewPosition, normal, shininess);
 		#ifdef SHADOW_GLSL
 		float shadow = 1.0;
-		if(L.shadowCaster != -1) shadow = shadowSpot(spotShadowLightSpace[i], L.shadowRegion);
+		if(L.shadowCaster != -1 && levels.s != 0.0) shadow = shadowSpot(spotShadowLightSpace[i], L.shadowRegion);
 		#else
 		const float shadow = 1.0;
 		#endif
-		addLight(diffuse, specular, L.color.rgb, shadow * spotLight(L.position.xyz, L.direction.xyz, L.color.w, L.direction.w, L.position.w, viewPosition, normal, shininess));
+		addLight(diffuse, specular, L.color.rgb, shadow * levels);
 	}
 
 	for(int i = 0; i < MAX_AREA_LIGHTS; ++i) {
