@@ -40,4 +40,4 @@ jobs:
           source-directory: 'pages'
           destination-github-username: 'dwdvIl'
           destination-repository-name: 'foxlite-api-docs'
-        target-branch: 'master'
+          target-branch: 'master'
