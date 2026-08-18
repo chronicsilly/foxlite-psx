@@ -1,0 +1,14 @@
+--xml docs/doc.xml
+-D doc-gen
+--class-path src
+--cpp docs/.bin
+--library flixel
+--library openfl
+--library lime
+--macro "foxlite.macro.HScriptCompatMacro.run()"
+--define FLX_NO_DEBUG
+--define FLX_NO_KEYBOARD
+--define FLX_NO_MOUSE
+--define FLX_NO_TOUCH
+--define FLX_STANDARD_ASSETS_DIRECTORY
+foxlite
