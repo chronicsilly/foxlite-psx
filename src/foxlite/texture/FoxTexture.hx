@@ -1,5 +1,6 @@
 package foxlite.texture;
 
+import lime.utils.ArrayBufferView;
 import foxlite.FoxCache;
 import foxlite.loaders.FoxLoaderUtil;
 import foxlite.renderer.FoxRenderer;
@@ -110,8 +111,7 @@ class FoxTexture {
 		var tex = FoxRenderer.getContext().createTexture(data.width, data.height, format, false);
 		tex.uploadFromBitmapData(data, 0, mipmaps);
 
-		var foxTex = new FoxTexture();
-		foxTex.glTexture = tex;
+		var foxTex = FoxTexture.wrapGL(tex);
 		if(params != null) {
 			foxTex.wrapMode = params.wrapMode ?? FoxWrapMode.CLAMP;
 			foxTex.filter = params.filter ?? FoxTextureFilter.LINEAR;
@@ -129,18 +129,38 @@ class FoxTexture {
 			return null;
 		}
 
-		var data = Assets.getBitmapData(path);
+		var data = Assets.getBitmapData(path, false);
 		if(data == null) {
 			trace('[Foxlite > FoxTexture]: Could not load image: ${path} (BitmapData error.)');
 			return null;
 		}
+
+		var foxTex:FoxTexture;
+
+		if(!data.readable) { // Already uploaded to GPU
+			foxTex = FoxTexture.wrap(data);
+		}
+		else {
+			var tex = FoxRenderer.getContext().createTexture(data.width, data.height, format, false);
+			tex.__uploadFromImage(data.image);
+			data.dispose(); // Cleanup in CPU
+			foxTex = FoxTexture.wrapGL(tex);
+		}
+
+		if(params != null) {
+			foxTex.wrapMode = params.wrapMode ?? FoxWrapMode.CLAMP;
+			foxTex.filter = params.filter ?? FoxTextureFilter.LINEAR;
+			foxTex.mipFilter = params.mipFilter ?? FoxMipFilter.MIPNONE;
+		}
 		
-		var foxTex = FoxTexture.fromBitmapData(data, format, mipmaps, params);
 		foxTex.assetsKey = name;
 		trace("[FoxLite > FoxTexture]: Add texture to cache: " + name);
 		FoxCache.textures().set(name, foxTex);
-		data.dispose(); // Cleanup in CPU
 		return foxTex;
+	}
+
+	public static function fromBuffer(data:ArrayBufferView, mipmaps:Bool=false, format:String="rgba", type:String="unsigned_byte", ?params:{?wrapMode:FoxWrapMode, ?filter:FoxTextureFilter, ?mipFilter:FoxMipFilter}) {
+		
 	}
 
 	// TODO: DXT and ASTC texture support
