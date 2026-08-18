@@ -35,7 +35,7 @@ jobs:
       - name: Pushing changes to pages repository
         uses: cpina/github-action-push-to-another-repository@main
         env:
-          API_TOKEN_GITHUB: ${{ secrets.PAGES_DEPLOY_TOKEN }}
+          API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
         with:
           source-directory: 'pages'
           destination-github-username: 'dwdvIl'
