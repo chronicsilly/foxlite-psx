@@ -52,6 +52,7 @@ class FoxRenderer {
 		- WEBGL: Browsers
 		- OPENGLES: Mobile, ES devices
 	**/
+	public static var initialized:Bool = false;
 	public static var renderContext:String = "";
 	public static var glDeviceName:String = "";
 	public static var __blendMode:FoxBlendMode = -1;
@@ -99,9 +100,15 @@ class FoxRenderer {
 	/**
 		Missing material placeholder.
 	**/
-	public static final MISSING_MATERIAL:FoxMaterial = new FoxMaterial();
+	public static var MISSING_MATERIAL:FoxMaterial = new FoxMaterial();
+
+	/**
+		Missing shader placeholder.
+	**/
+	public static var MISSING_SHADER:FoxShader;
 
 	public static function staticInit() {
+		if(FoxRenderer.initialized) return;
 		var window = getWindow();
 		var gl = getContext().gl;
 		#if (flash || cairo)
@@ -112,7 +119,8 @@ class FoxRenderer {
 		#if foxlite_polymod
 		trace(BUILD_NAME, VERSION, renderContext, frameCount, drawCalls, verticesDrawn, stateSwitches, __blendMode, 
 			__depthTest, __shader, __stencilTest, renderMode, debugWireframe, mustRebuildDrawGroups, 
-			renderedInstances, onPreDraw, onPostDraw, __indexBuffer, __scissorTest, glDeviceName, MISSING_TEXTURE, MISSING_MATERIAL
+			renderedInstances, onPreDraw, onPostDraw, __indexBuffer, __scissorTest, glDeviceName, MISSING_TEXTURE, 
+			MISSING_MATERIAL, MISSING_SHADER, initialized
 		);
 		#end
 		
@@ -147,7 +155,7 @@ class FoxRenderer {
 		MISSING_MATERIAL.textures.set("bitmap", MISSING_TEXTURE);
 		
 		// Super bare minimum shader
-		MISSING_MATERIAL.shader = FoxShader.fromSources("
+		MISSING_SHADER = FoxShader.fromSources("
 		attribute vec4 foxlite_Position;
 		attribute vec2 foxlite_TexCoord;
 
@@ -177,6 +185,8 @@ class FoxRenderer {
 			gl_FragColor = texture2D(bitmap, foxlite_TexCoordv);
 		}
 		");
+		MISSING_MATERIAL.shader = MISSING_SHADER;
+		FoxRenderer.initialized = true;
 	}
 
 	/**

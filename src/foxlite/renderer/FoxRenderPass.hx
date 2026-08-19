@@ -161,7 +161,7 @@ class FoxRenderPass {
 		for(g in groups) {
 			for(data in drawGroups[g]) { // in-order
 				var mat = material ?? data.material;
-				var matShader = shader ?? mat.shader;
+				var matShader = shader ?? mat.shader ?? FoxRenderer.MISSING_SHADER;
 
 				if(matShader == null) {
 					continue; // Please assign a shader...
@@ -215,7 +215,7 @@ class FoxRenderPass {
 				var shadowModels = data.models.filter(f -> f.castShadows);
 				if(shadowModels.length == 0) continue;
 
-				var matShader = shader ?? mat.shader;
+				var matShader = shader ?? mat.shader ?? FoxRenderer.MISSING_SHADER;
 
 				if(matShader == null) {
 					continue; // Please assign a shader...
