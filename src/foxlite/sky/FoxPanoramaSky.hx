@@ -18,15 +18,12 @@ class FoxPanoramaSky extends FoxModel {
 		super();
 		name = "FoxPanoramaSky";
 		if(material == null) {
-			material = FoxMaterial.create(FoxShader.fromAsset(FoxShader.SKY), tex != null ? ["skyTexture" => tex] : null);
-			material.params.set("skyOffset", offset);
+			material = FoxMaterial.createSky(tex);
 		}
 		else if(tex != null) material.textures.set("skyTexture", tex);
-		material.depthTest = false; 
-		material.blendMode = FoxBlendMode.NONE;
-		material.depthWrite = false;
-		material.renderPriority = -1000; // Render before anything
+		material.params.set("skyOffset", offset);
 
+		castShadows = false; // Do not render in shadowmaps
 		var quad = new FoxQuadMesh(2, 2, material); // Origin is at 0,0
 		addMesh(quad);
 	}

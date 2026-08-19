@@ -9,6 +9,10 @@ import foxlite.lights.FoxDirectionalLight;
 import foxlite.lights.FoxLightType;
 import foxlite.lights.FoxPointLight;
 import foxlite.lights.FoxSpotLight;
+import foxlite.lights.packed.PackedDirectionalLight;
+import foxlite.lights.packed.PackedPointLight;
+import foxlite.lights.packed.PackedSpotLight;
+import foxlite.lights.packed.PackedAreaLight;
 import foxlite.polyfill.VectorFactory;
 import foxlite.renderer.FoxRenderer;
 import foxlite.texture.FoxFramebuffer;
@@ -16,43 +20,6 @@ import foxlite.texture.FoxTextureFilter;
 import haxe.ds.BalancedTree;
 import openfl.Vector;
 import openfl.geom.Vector3D;
-
-class PackedDirectionalLight {
-	public var color:Vector3D = new Vector3D();
-	public var direction:Vector3D = new Vector3D();
-	public var shadowRegion:Vector3D; // Pointer to the light's shadowAtlasUV
-	public var casterIndex:Int = -1;
-
-	public function new() {}
-}
-
-class PackedPointLight {
-	public var color:Vector3D = new Vector3D();
-	public var position:Vector3D = new Vector3D();
-	public var casterIndex:Int = -1;
-
-	public function new() {}
-}
-
-class PackedSpotLight {
-	public var color:Vector3D = new Vector3D();
-	public var position:Vector3D = new Vector3D();
-	public var direction:Vector3D = new Vector3D();
-	public var shadowRegion:Vector3D; // Pointer to the light's shadowAtlasUV
-	public var casterIndex:Int = -1;
-
-	public function new() {}
-}
-
-class PackedAreaLight {
-	public var color:Vector3D = new Vector3D();
-	public var position:Vector3D = new Vector3D();
-	public var direction:Vector3D = new Vector3D();
-	public var sdfData:Vector3D = new Vector3D();
-	public var casterIndex:Int = -1;
-
-	public function new() {}
-}
 
 class FoxLightData {
 
@@ -144,7 +111,7 @@ class FoxLightData {
 		In short, this is the 'Shadow texture size' for each light, but
 		the bigger it is, the less shadows you can have.
 	**/
-	public var spotLightShadowMapSize(default, set):Int = 1024;
+	public var spotLightShadowMapSize(default, set):Int = 512;
 	
 	/**
 		Calculated tiles for point lights.

@@ -95,7 +95,7 @@ class FoxMesh {
 		@param data The data array
 		@param offset The index of the buffer where to start writing `data`
 	**/
-	public function updateBuffer(type:Int, data:Array<Float>, offset:Int=0) {
+	public function updateBuffer(type:FoxMeshBufferType, data:Array<Float>, offset:Int=0) {
 		var gl = context.gl;
 		offset *= 4; // Offset is actually in bytes
 		var buffer = getBufferByType(type);
@@ -138,7 +138,7 @@ class FoxMesh {
 
 		This method is faster than the other ones, but needs more setup.
 	**/
-	public function updateBufferRaw(type:Int, data:ArrayBufferView, offset:Int=0) {
+	public function updateBufferRaw(type:FoxMeshBufferType, data:ArrayBufferView, offset:Int=0) {
 		var gl = context.gl;
 		if(type == FoxMeshBufferType.INDICES) {
 			context.__bindGLElementArrayBuffer(indexBuffer.__id);

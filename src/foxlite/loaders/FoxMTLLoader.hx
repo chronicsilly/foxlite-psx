@@ -1,5 +1,6 @@
 package foxlite.loaders;
 
+import StringTools;
 import EReg;
 import foxlite.FoxShader;
 import foxlite.loaders.FoxLoaderUtil;
@@ -10,9 +11,9 @@ import openfl.geom.Vector3D;
 
 class FoxMTLLoader {
 	
-	public static final n = "(-?\\d+[e.]?\\d*?)"; // Regex int/float token
+	@:dox(hide) public static final n = "(-?\\d+[e.]?\\d*?)"; // Regex int/float token
 
-	public static final tokenizer = {
+	@:dox(hide) public static final tokenizer = {
 		def:  new EReg('(newmtl|Ns|Ni|illum|d)\\s+(.+)', 'g'),
 		K: 	  new EReg('(K[ased])\\s+$n\\s+$n\\s+$n', 'g'),
 		map:  new EReg('(map_\\w+).+?(\\S+\\.[a-zA-Z]+)', 'g'),
@@ -55,7 +56,7 @@ class FoxMTLLoader {
 					if(curMat != null) curMat.shader = FoxShader.fromAsset(customShaderPath ?? FoxShader.BASIC, matShaderFlags);
 					
 					curMat = new FoxMaterial();
-					curMat.name = tk.matched(2);
+					curMat.name = StringTools.trim(tk.matched(2));
 					curMat.assetsKey = name;
 					materials.set(curMat.name, curMat);
 					matShaderFlags = ["SOLID"].concat(extraShaderFlags);

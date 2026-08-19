@@ -10,6 +10,11 @@ import foxlite.mesh.FoxQuadFace;
 class FoxQuadMesh extends FoxMesh {
 	public function new(width:Float, height:Float, material_:FoxMaterial=null, face:FoxQuadFace=2, ?usage:Int) {
 		super();
+		material = material_;
+		build(width, height, face, usage);
+	}
+
+	public function build(width:Float, height:Float, face:FoxQuadFace, ?usage:Int) {
 		var w2 = width / 2;
 		var h2 = height / 2;
 
@@ -70,6 +75,6 @@ class FoxQuadMesh extends FoxMesh {
 		];
 
 		if(usage != null) bufferUsage = usage;
-		setArrays(vertices, uvtData, indices, material_, normals);
+		setArrays(vertices, uvtData, indices, material, normals);
 	}
 }

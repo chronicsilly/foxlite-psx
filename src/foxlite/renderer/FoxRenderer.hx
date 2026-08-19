@@ -1,5 +1,6 @@
 package foxlite.renderer;
 
+import foxlite.polyfill.TypedArray;
 import EReg;
 import Reflect;
 import StringTools;
@@ -17,6 +18,7 @@ import foxlite.system.Int32BufferCache;
 import foxlite.texture.FoxCubemapSide;
 import foxlite.texture.FoxFramebuffer;
 import foxlite.texture.FoxTexture;
+import foxlite.texture.FoxTextureFilter;
 import haxe.ds.StringMap;
 import lime.graphics.opengl.GL;
 import lime.utils.DataPointer;
@@ -36,7 +38,7 @@ import lime.utils.DataPointer;
 class FoxRenderer {
 
 	public static final BUILD_NAME = "Preview";
-	public static final VERSION = "1.0.0";
+	public static final VERSION = "1.0.1";
 
 	public static var frameCount:Int = 0;
 	public static var drawCalls:Int = 0;
@@ -89,6 +91,16 @@ class FoxRenderer {
 	public static final onPreDraw:FlxTypedSignalImpl<()->Void> = new FlxTypedSignalImpl();
 	public static final onPostDraw:FlxTypedSignalImpl<()->Void> = new FlxTypedSignalImpl();
 
+	/**
+		Missing texture placeholder.
+	**/
+	public static var MISSING_TEXTURE:FoxTexture;
+
+	/**
+		Missing material placeholder.
+	**/
+	public static final MISSING_MATERIAL:FoxMaterial = new FoxMaterial();
+
 	public static function staticInit() {
 		var window = getWindow();
 		var gl = getContext().gl;
@@ -100,7 +112,7 @@ class FoxRenderer {
 		#if foxlite_polymod
 		trace(BUILD_NAME, VERSION, renderContext, frameCount, drawCalls, verticesDrawn, stateSwitches, __blendMode, 
 			__depthTest, __shader, __stencilTest, renderMode, debugWireframe, mustRebuildDrawGroups, 
-			renderedInstances, onPreDraw, onPostDraw, __indexBuffer, __scissorTest, glDeviceName
+			renderedInstances, onPreDraw, onPostDraw, __indexBuffer, __scissorTest, glDeviceName, MISSING_TEXTURE, MISSING_MATERIAL
 		);
 		#end
 		
@@ -120,6 +132,51 @@ class FoxRenderer {
   		??	  GL.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
 
 		trace('[FoxLite > FoxRenderer]: Texture Anisotropy ${ext == null ?  "not" : "is"} supported.');
+
+		// Initialize missing texture
+		MISSING_TEXTURE = FoxTexture.create(2, 2, "rgb");
+		MISSING_TEXTURE.filter = FoxTextureFilter.NEAREST;
+
+		// Upload some data
+		context.__bindGLTexture2D(MISSING_TEXTURE.glTexture.__textureID);
+		GL.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 2, 2, gl.RGBA, gl.UNSIGNED_BYTE, 
+			TypedArray.UInt8Array([255, 0, 255, 255,  0, 0, 0, 255,  0, 0, 0, 255,  255, 0, 255, 255])
+		);
+
+		MISSING_MATERIAL.name = "Missing material";
+		MISSING_MATERIAL.textures.set("bitmap", MISSING_TEXTURE);
+		
+		// Super bare minimum shader
+		MISSING_MATERIAL.shader = FoxShader.fromSources("
+		attribute vec4 foxlite_Position;
+		attribute vec2 foxlite_TexCoord;
+
+		uniform mat4 model;
+		uniform mat4 view;
+		uniform mat4 projection;
+
+		varying vec2 foxlite_TexCoordv;
+
+		void main(void) {
+			foxlite_TexCoordv = foxlite_TexCoord;
+			gl_Position = projection * view * model * vec4(foxlite_Position.xyz, 1.0);
+		}", "
+		#ifdef GL_ES
+		#ifdef GL_FRAGMENT_PRECISION_HIGH
+		precision highp float;
+		#else
+		precision mediump float;
+		#endif
+		#endif
+
+		uniform sampler2D bitmap;
+
+		varying vec2 foxlite_TexCoordv;
+
+		void main(void) {
+			gl_FragColor = texture2D(bitmap, foxlite_TexCoordv);
+		}
+		");
 	}
 
 	/**
@@ -294,6 +351,9 @@ class FoxRenderer {
 		for(t in textureInput) {
 			var tex = t.value;
 			
+			// Missing texture check
+			if(tex?.glTexture == null) tex = FoxRenderer.MISSING_TEXTURE;
+
 			context.setTextureAt(sampler, tex.glTexture);
 			context.setSamplerStateAt(sampler, cast tex.wrapMode, cast tex.filter, cast tex.mipFilter);
 			GL.uniform1i(cast t.location, sampler);

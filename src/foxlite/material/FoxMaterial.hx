@@ -149,6 +149,48 @@ class FoxMaterial {
 		if(params != null) for(k=>v in params) material.params.set(k,v);
 		return material;
 	}
+
+	/**
+		Short and more straightforward version of `create()`
+	**/
+	public inline static function createCustom(shaderPath:String, ?shaderFlags:Array<String>, ?textures:Map<String, FoxTexture>, ?params:Map<String, Dynamic>):FoxMaterial {
+		return FoxMaterial.create(FoxShader.fromAsset(shaderPath, shaderFlags), textures, params);
+	}
+
+	/**
+		Creates a material with foxlite's basic ubershader by default
+	**/
+	public inline static function createBasic(?shaderFlags:Array<String>, ?textures:Map<String, FoxTexture>, ?params:Map<String, Dynamic>):FoxMaterial {
+		return FoxMaterial.create(FoxShader.fromAsset(FoxShader.BASIC, shaderFlags), textures, params);
+	}
+
+	/**
+		Creates a material with foxlite's minimal shader by default
+
+		The minimal shader handles very basic 3D rendering, and does not have any lights
+	**/
+	public inline static function createMinimal(?shaderFlags:Array<String>, ?textures:Map<String, FoxTexture>, ?params:Map<String, Dynamic>):FoxMaterial {
+		return FoxMaterial.create(FoxShader.fromAsset(FoxShader.MINIMAL, shaderFlags), textures, params);
+	}
+
+	/**
+		Creates a material with foxlite's sky shader by default
+	**/
+	public inline static function createSky(texture:FoxTexture):FoxMaterial {
+		return FoxMaterial.createSkyCustom(FoxShader.SKY, texture);
+	}
+
+	/**
+		Creates a material with a custom sky shader, this also accepts custom shader parameters
+	**/
+	public static function createSkyCustom(shaderPath:String, texture:FoxTexture, ?params:Map<String, Dynamic>):FoxMaterial {
+		var mat = FoxMaterial.create(FoxShader.fromAsset(shaderPath), texture != null ? ["skyTexture" => texture] : null, params);
+		mat.depthTest = false; 
+		mat.blendMode = FoxBlendMode.NONE;
+		mat.depthWrite = false;
+		mat.renderPriority = -1000; // Render before anything
+		return mat;
+	}
 	
 	/**
 		Loads a material from a Foxlite's custom JSON format

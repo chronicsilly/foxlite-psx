@@ -7,6 +7,11 @@ import openfl.geom.Vector3D;
 
 class FoxAreaLight extends FoxPointLight {
 
+	/**
+		The internal data for the light, mostly shape parameters set via this class functions.
+	**/
+	public var sdfData:Vector3D = new Vector3D();
+
 	public var shape(get, never):FoxAreaLightShape;
 	var __sdfRange:Float = 0;
 

@@ -42,7 +42,7 @@ import lime.utils.DataPointer;
 #end
 
 // Uniform constant types for switch statement
-#if !foxlite_polymod enum abstract #else class #end UType #if !foxlite_polymod (Int) from Int to Int #end {
+@:dox(hide) #if !foxlite_polymod enum abstract #else class #end UType #if !foxlite_polymod (Int) from Int to Int #end {
 	public inline static final FLOAT = 0x1406;
 	public inline static final FLOAT_VEC2 = 0x8B50;
 	public inline static final FLOAT_VEC3 = 0x8B51;

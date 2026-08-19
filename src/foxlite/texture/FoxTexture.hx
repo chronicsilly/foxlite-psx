@@ -1,6 +1,6 @@
 package foxlite.texture;
 
-import lime.utils.ArrayBufferView;
+import lime.graphics.opengl.GL;
 import foxlite.FoxCache;
 import foxlite.loaders.FoxLoaderUtil;
 import foxlite.renderer.FoxRenderer;
@@ -12,6 +12,7 @@ import openfl.display.BitmapData;
 import openfl.display3D.Context3D;
 import openfl.display3D.Context3DTextureFormat;
 import openfl.display3D.textures.TextureBase;
+import openfl.display3D.textures.RectangleTexture;
 
 class FoxTexture {
 	public var context:Context3D = null;
@@ -157,10 +158,6 @@ class FoxTexture {
 		trace("[FoxLite > FoxTexture]: Add texture to cache: " + name);
 		FoxCache.textures().set(name, foxTex);
 		return foxTex;
-	}
-
-	public static function fromBuffer(data:ArrayBufferView, mipmaps:Bool=false, format:String="rgba", type:String="unsigned_byte", ?params:{?wrapMode:FoxWrapMode, ?filter:FoxTextureFilter, ?mipFilter:FoxMipFilter}) {
-		
 	}
 
 	// TODO: DXT and ASTC texture support

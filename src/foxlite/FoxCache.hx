@@ -8,12 +8,12 @@ import foxlite.mesh.FoxMesh;
 import foxlite.texture.FoxTexture;
 
 #if !foxlite_polymod
-typedef FoxTextureCollection = Map<String, FoxTexture>;
-typedef FoxShaderCollection = Map<String, FoxShader>;
-typedef FoxShaderDefinesCollection = Map<String, String>;
-typedef FoxMaterialCollection = Map<String, Map<String, FoxMaterial>>;
-typedef FoxMeshCollection = Map<String, Array<FoxMesh>>;
-typedef FoxAnimationCollection = Map<String, Map<String, FoxAnimation>>;
+@dox(hide) typedef FoxTextureCollection = Map<String, FoxTexture>;
+@dox(hide) typedef FoxShaderCollection = Map<String, FoxShader>;
+@dox(hide) typedef FoxShaderDefinesCollection = Map<String, String>;
+@dox(hide) typedef FoxMaterialCollection = Map<String, Map<String, FoxMaterial>>;
+@dox(hide) typedef FoxMeshCollection = Map<String, Array<FoxMesh>>;
+@dox(hide) typedef FoxAnimationCollection = Map<String, Map<String, FoxAnimation>>;
 #end
 
 class FoxCache {

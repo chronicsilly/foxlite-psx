@@ -37,6 +37,7 @@ class FoxFlxSprite extends FoxModel {
 
 	// Shortcuts
 	public var material(get, set):FoxMaterial;
+	public var texture(get, set):FoxTexture;
 	public var shader(get, set):FoxShader;
 
 	public function new(target:FlxSprite, ?material_:FoxMaterial, ?spritePixelSize:Float) {
@@ -171,6 +172,15 @@ class FoxFlxSprite extends FoxModel {
 
 	function set_material(v:FoxMaterial):FoxMaterial {
 		meshes[0].material = v;
+		return v;
+	}
+
+	function get_texture():FoxTexture {
+		return this.material?.textures?.get("bitmap");
+	}
+
+	function set_texture(v:FoxTexture):FoxTexture {
+		this.material?.textures?.set("bitmap", v);
 		return v;
 	}
 

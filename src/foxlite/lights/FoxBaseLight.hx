@@ -11,11 +11,6 @@ class FoxBaseLight extends FoxObject {
 	public var color:Vector3D = new Vector3D(1, 1, 1);
 	public var energy:Float = 1;
 	public var direction:Vector3D = new Vector3D(0, 0, -1); // Cache light direction
-
-	/**
-		Extra data used for SDFs, but can be used to pass extra values to the shader
-	**/
-	public var sdfData:Vector3D = new Vector3D();
 	
 	// For shadow calculations
 

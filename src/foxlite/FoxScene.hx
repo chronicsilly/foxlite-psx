@@ -293,9 +293,12 @@ class FoxScene extends FoxExtendableSprite {
 			var cam = foxCameras.pop();
 			cam.destroy();
 		}
-		var memberList = [];
-		for(member in members.keys()) memberList.push(member);
-		while(memberList.length > 0) removeByName(memberList.pop());
+		members.clear();
+		while(sortedMembers.length > 0) {
+			var member = sortedMembers.pop();
+			member.__destroyed = true;
+			member.destroy();
+		}
 		disposeBuffers();
 		super.destroy();
 	}

@@ -1,5 +1,6 @@
 package foxlite.loaders;
 
+import foxlite.renderer.FoxRenderer;
 import StringTools;
 import foxlite.FoxCache;
 import foxlite.loaders.FoxLoaderUtil;
@@ -14,15 +15,14 @@ class FoxOBJLoader {
 
 		Note: You can assign the OBJ's meshes directly to a FoxModel and add it to the scene by doing this:
 		```haxe
-		var obj = FoxOBJLoader.load("data/my model.obj");
 		var model = new FoxModel();
-		model.meshes = obj.meshes;
+		model.loadOBJ("data/my model.obj");
 		scene.add(model);
 		```
 
 		@param name The OBJ asset path
 		@param extraShaderFlags (Optional) A String array containing additional flags you want to use for all the material shaders
-		@param customShaderPath (Optional) The path to a custom shader if you need it. The default is Foxlite's basic_lighting
+		@param customShaderPath (Optional) The path to a custom shader if you need it. The default is foxlite/basic
 
 		@returns An Object containing an Array of meshes (with materials applied) and a Map containing the materials from the MTL file (if it exists).
 	**/
@@ -72,9 +72,33 @@ class FoxOBJLoader {
 
 		var curMesh:FoxMesh = null;
 		var meshes:Array<FoxMesh> = [];
+		var groupBuildStage:Int = -1;
 
 		var materials:Map<String, FoxMaterial> = new StringMap();
 		var matPath:String = null; // But it's just a theory
+
+		function finishMesh() {
+			curMesh?.setArrays(vertices, uvtData, indices, null, normals);
+			if(curMesh != null && curMesh.material == null) curMesh.material = FoxRenderer.MISSING_MATERIAL; // What happened to our material...
+					
+			curMesh = new FoxMesh();
+			curMesh.assetsKey = name;
+			meshes.push(curMesh);
+
+			// Clear previous work
+			vertices.resize(0); verticesRaw.resize(0);
+			uvtData.resize(0); uvtDataRaw.resize(0);
+			normals.resize(0); normalsRaw.resize(0);
+			indices.resize(0);
+			colors.resize(0); colorsRaw.resize(0);
+			uniqueIDs.clear();
+			curIndex = 0;
+
+			vertexOffset = vertexCount;
+			textureOffset = textureCount;
+			normalOffset = normalCount;
+			colorOffset = colorCount;
+		}
 
 		FoxLoaderUtil.forEachLine(obj, line -> {
 			var data = StringTools.trim(line).split(' ');
@@ -88,29 +112,30 @@ class FoxOBJLoader {
 					curMesh.material = materials?.get(data.join(' ')); // Join spaces since names can have them
 				};
 				case 'o': { // New object
-
-					// Finish pending mesh
-					curMesh?.setArrays(vertices, uvtData, indices, null, normals);
-					
-					curMesh = new FoxMesh();
-					curMesh.assetsKey = name;
-					meshes.push(curMesh);
-
-					// Clear previous work
-					vertices.resize(0); verticesRaw.resize(0);
-					uvtData.resize(0); uvtDataRaw.resize(0);
-					normals.resize(0); normalsRaw.resize(0);
-					indices.resize(0);
-					colors.resize(0); colorsRaw.resize(0);
-					uniqueIDs.clear();
-					curIndex = 0;
-
-					vertexOffset = vertexCount;
-					textureOffset = textureCount;
-					normalOffset = normalCount;
-					colorOffset = colorCount;
+					finishMesh();
+					groupBuildStage = 0;
+				};
+				case 'g': { // Group
+					// In this case we want to process triangles until the end, then we finish the object
+					if(groupBuildStage == 1) {
+						groupBuildStage = 2;
+					}			
 				};
 				case 'v': { // Vertex
+					if(groupBuildStage == -1) {
+						// Model builder started without a mesh!
+						// We are probably loading a grouped mesh, defer build
+						curMesh = new FoxMesh();
+						curMesh.assetsKey = name;
+						meshes.push(curMesh);
+						groupBuildStage = 1;
+					}
+					else if(groupBuildStage == 2) {
+						// We finished building faces
+						finishMesh();
+						groupBuildStage = 1;
+					}
+
 					verticesRaw.push(Std.parseFloat(data[0]));
 					verticesRaw.push(Std.parseFloat(data[1]));
 					verticesRaw.push(Std.parseFloat(data[2]));
@@ -182,6 +207,7 @@ class FoxOBJLoader {
 		// EOF reached
 		// Finish pending mesh
 		curMesh?.setArrays(vertices, uvtData, indices, null, normals, colors);
+		if(curMesh != null && curMesh.material == null) curMesh.material = FoxRenderer.MISSING_MATERIAL; // What happened to our material...
 
 		FoxCache.meshes().set(name, meshes);
 
