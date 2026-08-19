@@ -8,6 +8,10 @@ import foxlite.renderer.FoxRenderer;
 import foxlite.funkin.PolymodUtils;
 #end
 
+#if !foxlite_polymod
+typedef FoxGroup = FoxTypedGroup<FoxBasic>;
+#end
+
 /**
 	A very simple group implementation.
 **/
