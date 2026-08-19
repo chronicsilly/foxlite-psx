@@ -2,6 +2,7 @@ package foxlite;
 
 import foxlite.FoxLayer;
 import foxlite.FoxObject;
+import foxlite.FoxShader;
 import foxlite.loaders.FoxJSONLoader;
 import foxlite.loaders.FoxOBJLoader;
 import foxlite.material.FoxMaterial;
@@ -102,7 +103,7 @@ class FoxModel extends FoxObject {
 
 	public override function pushDrawData(scene:FoxScene) {
 		for(mesh in meshes) {
-			var mat = materialOverride ?? mesh.material;
+			var mat = materialOverride ?? mesh.material ?? FoxRenderer.MISSING_MATERIAL;
 			if(mat != null) scene.addToDrawGroups(mat, mesh, groups, this);
 		}
 		// For overlay, add another node
@@ -112,8 +113,8 @@ class FoxModel extends FoxObject {
 	}
 
 	// Just a proxy to make things easier
-	public function renderMesh(mesh:FoxMesh) {
-		if(mesh.indexBuffer != null) FoxRenderer.drawMesh(context, mesh);
+	public function renderMesh(mesh:FoxMesh, shader:FoxShader) {
+		if(mesh.indexBuffer != null) FoxRenderer.drawMesh(context, mesh, shader);
 	}
 
 	public function isInstanced() {

@@ -1,6 +1,7 @@
 package foxlite;
 
 import foxlite.FoxModel;
+import foxlite.FoxShader;
 import foxlite.instancing.FoxInstanceData;
 import foxlite.instancing.FoxInstanceUpdateMode;
 import foxlite.mesh.FoxMesh;
@@ -173,8 +174,8 @@ class FoxInstancedModel extends FoxModel {
 		}
 	}
 
-	public override function renderMesh(mesh:FoxMesh) {
-		if(instanceCount > 0) FoxRenderer.drawMeshInstanced(context, mesh, instanceCount, instanceData);
+	public override function renderMesh(mesh:FoxMesh, shader:FoxShader) {
+		if(instanceCount > 0) FoxRenderer.drawMeshInstanced(context, mesh, shader, instanceCount, instanceData);
 	}
 
 	public override function isInstanced() {

@@ -380,7 +380,7 @@ class FoxRenderer {
 		to the render state afterwards.
 	**/
 	public static function useMaterial(context:Context3D, material:FoxMaterial):Int {
-		var shader = material.shader;
+		var shader = material.shader ?? FoxRenderer.MISSING_SHADER;
 		var gl = context.gl;
 		
 		FoxRenderer.useShader(shader);
@@ -457,7 +457,7 @@ class FoxRenderer {
 	}
 
 	public static function useMaterialForShadow(context:Context3D, material:FoxMaterial):Int {
-		var shader = material.shader.shadow;
+		var shader = material.shader?.shadow ?? FoxRenderer.MISSING_SHADER.shadow;
 		var gl = context.gl;
 		
 		FoxRenderer.useShader(shader);
@@ -513,11 +513,11 @@ class FoxRenderer {
 	/**
 		Renders a mesh, simple as that! Render pipeline must be set up for this.
 	**/
-	public static function drawMesh(context:Context3D, mesh:FoxMesh) {
+	public static function drawMesh(context:Context3D, mesh:FoxMesh, shader:FoxShader) {
 		@:privateAccess var elements:Int = mesh.indexBuffer.__numIndices; // How many vertices we are drawing
 		if(elements == 0) return;
 		var gl = context.gl;
-		var attrib = mesh.material.shader.attribIdx;
+		var attrib = shader.attribIdx;
 
 		// Attributes
 		context.setVertexBufferAt(attrib.position, mesh.vertexBuffer, 0, cast 3);
@@ -551,11 +551,11 @@ class FoxRenderer {
 
 		__Note 2:__ Instancing operations only works in OpenGL 3.0+
 	**/
-	public static function drawMeshInstanced(context:Context3D, mesh:FoxMesh, count:Int, instanceData:FoxInstanceData) {
+	public static function drawMeshInstanced(context:Context3D, mesh:FoxMesh, shader:FoxShader, count:Int, instanceData:FoxInstanceData) {
 		@:privateAccess var elements:Int = mesh.indexBuffer.__numIndices; // How many vertices we are drawing
 		if(elements == 0) return;
 		var gl = context.gl;
-		var attrib = mesh.material.shader.attribIdx;
+		var attrib = shader.attribIdx;
 
 		// Attributes
 		context.setVertexBufferAt(attrib.position, mesh.vertexBuffer, 0, cast 3);

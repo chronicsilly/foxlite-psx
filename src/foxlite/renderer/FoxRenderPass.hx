@@ -160,7 +160,7 @@ class FoxRenderPass {
 
 		for(g in groups) {
 			for(data in drawGroups[g]) { // in-order
-				var mat = material ?? data.material;
+				var mat = material ?? data.material ?? FoxRenderer.MISSING_MATERIAL;
 				var matShader = shader ?? mat.shader ?? FoxRenderer.MISSING_SHADER;
 
 				if(matShader == null) {
@@ -208,7 +208,7 @@ class FoxRenderPass {
 
 		for(g in groups) {
 			for(data in drawGroups[g]) {
-				var mat = data.material;
+				var mat = data.material ?? FoxRenderer.MISSING_MATERIAL;
 				if(!mat.depthTest) continue; // Skip non-depth tested meshes
 
 				// Filter by models that can cast shadows, skip if none
@@ -295,7 +295,7 @@ class FoxRenderPass {
 					GL.uniform1i(cast instloc, model.isInstanced() ? 1 : 0);
 				}
 			}
-			model.renderMesh(mesh);
+			model.renderMesh(mesh, _shader);
 		}
 	}
 
