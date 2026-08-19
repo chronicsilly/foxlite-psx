@@ -41,6 +41,27 @@ class FoxObject extends FoxBasic {
 		FoxRenderer.allocationsThisFrame += 8;
 	}
 
+	public inline function setPosition(x:Float=0.0, y:Float=0.0, z:Float=0.0) {
+		return position.setTo(x, y, z);
+	}
+
+	public inline function setRotation(x:Float=0.0, y:Float=0.0, z:Float=0.0) {
+		return rotation.setTo(x, y, z);
+	}
+
+	/**
+		Same as `setRotation()` but for angle degrees.
+	**/
+	public inline function setAngle(x:Float=0.0, y:Float=0.0, z:Float=0.0) {
+		angleX = x;
+		angleY = y;
+		angleZ = z;
+	}
+
+	public inline function setScale(x:Float=1.0, y:Float=1.0, z:Float=1.0) {
+		return scale.setTo(x, y, z);
+	}
+
 	public override function update(dt) {
 		super.update(dt);
 		// Calculations must happen for parent every time
