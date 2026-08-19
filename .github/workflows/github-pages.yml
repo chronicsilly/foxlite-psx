@@ -1,0 +1,45 @@
+# TESTING
+# Edit of https://github.com/MAJigsaw77/hxvlc/blob/main/.github/workflows/github-pages.yml
+name: Github-Pages
+on: workflow_dispatch
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: 4.3.7
+
+      - name: Installing Haxe Libraries
+        run: |
+          haxelib install lime --quiet
+          haxelib install openfl --quiet
+          haxelib install flixel --quiet
+          haxelib install dox --quiet
+          haxelib dev foxlite .
+
+      - name: Creating Documentation Site
+        run: chmod +x docs/docs.sh && docs/docs.sh
+
+      - name: Pushing changes to pages repository
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.PAGES_TOKEN }}
+        with:
+          source-directory: 'pages'
+          destination-github-username: 'dwdvIl'
+          destination-repository-name: 'foxlite-api-docs'
+          target-branch: 'master'
+          user-email: 'actions@github.com'
+          user-name: 'GitHub Actions'
