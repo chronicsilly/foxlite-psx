@@ -1,6 +1,6 @@
 package foxlite.funkin;
 
-#if foxlite_polymod
+#if polymod
 import funkin.modding.base.ScriptedFlxSprite;
 class FoxExtendableSprite extends ScriptedFlxSprite {}
 #elseif cne
