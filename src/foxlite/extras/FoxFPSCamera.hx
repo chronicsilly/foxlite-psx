@@ -108,8 +108,6 @@ class FoxFPSCamera extends FoxCamera {
 			velocity.z = FlxMath.lerp(velocity.z, inputDir.y * moveSpeed, ddt);
 
 			position.incrementBy(velocity);
-
-			__updateMatrices = true;
 		}
 
 		super.update(dt);
