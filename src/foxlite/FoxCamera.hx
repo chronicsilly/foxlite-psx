@@ -25,7 +25,7 @@ class FoxCamera extends FoxObject {
 	public var bgColor = 0x00000000;
 	public var __aspect:Float = 1; // Target aspect
 	//public var __destroyed:Bool = false;
-	public var __updateMatrices:Bool = true;
+	public var __updateProjection:Bool = true;
 
 	/**
 		Model visibility layers	
@@ -81,7 +81,7 @@ class FoxCamera extends FoxObject {
 		// Create from transform so other influences can affect the camera
 		FoxMathUtil.viewMatrixFromTransform(viewMatrix, transform);
 
-		if(__updateMatrices) {
+		if(__updateProjection) {
 			__aspect = scene != null ? scene.__width / scene.__height : 1;
 			__aspect *= aspect;
 			
@@ -92,16 +92,19 @@ class FoxCamera extends FoxObject {
 				FoxMathUtil.orthogonalMatrix(projectionMatrix, fov, __aspect, near, far);
 			}
 			
-			// Do operations in-place
-			__invProjectionMatrix.copyRawDataFrom(projectionMatrix.rawData);//.copyFrom(projectionMatrix); 
-			__invProjectionMatrix.invert();
-
-			__invViewMatrix.copyRawDataFrom(viewMatrix.rawData);
-			__invViewMatrix.invert();
-			__invViewMatrix.transpose();
-
-			__updateMatrices = false;
+			__updateProjection = false;
 		}
+
+		// Always update view matrices, this takes a bit more hscript operations per frame
+		// But fixes lights not updating accordingly
+
+		// Do operations in-place
+		__invProjectionMatrix.copyRawDataFrom(projectionMatrix.rawData);//.copyFrom(projectionMatrix); 
+		__invProjectionMatrix.invert();
+
+		__invViewMatrix.copyRawDataFrom(viewMatrix.rawData);
+		__invViewMatrix.invert();
+		__invViewMatrix.transpose();
 
 		frustumCone.setFromCamera(this);
 
@@ -188,31 +191,31 @@ class FoxCamera extends FoxObject {
 
 	private function set_fov(v:Float) {
 		this.fov = v;
-		__updateMatrices = true;
+		__updateProjection = true;
 		return v;
 	}
 
 	private function set_aspect(v:Float) {
 		this.aspect = v;
-		__updateMatrices = true;
+		__updateProjection = true;
 		return v;
 	}
 
 	private function set_far(v:Float) {
 		this.far = v;
-		__updateMatrices = true;
+		__updateProjection = true;
 		return v;
 	}
 
 	private function set_near(v:Float) {
 		this.near = v;
-		__updateMatrices = true;
+		__updateProjection = true;
 		return v;
 	}
 
 	private function set_orthogonal(v:Bool) {
 		this.orthogonal = v;
-		__updateMatrices = true;
+		__updateProjection = true;
 		return v;
 	}
 }
