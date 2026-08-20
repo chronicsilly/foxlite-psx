@@ -159,7 +159,9 @@ class FoxRenderPass {
 		//FoxRenderer.setScissorRect(scissor);
 
 		for(g in groups) {
-			for(data in drawGroups[g]) { // in-order
+			var tree = drawGroups[g];
+			if(tree == null) continue;
+			for(data in tree) { // in-order
 				var mat = material ?? data.material ?? FoxRenderer.MISSING_MATERIAL;
 				var matShader = shader ?? mat.shader ?? FoxRenderer.MISSING_SHADER;
 
