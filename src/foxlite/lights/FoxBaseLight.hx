@@ -1,5 +1,6 @@
 package foxlite.lights;
 
+import flixel.util.FlxColor;
 import foxlite.FoxObject;
 import foxlite.math.FoxMathUtil;
 import foxlite.renderer.FoxRenderer;
@@ -77,6 +78,14 @@ class FoxBaseLight extends FoxObject {
 		super.update(dt);
 		FoxMathUtil.directionOfToOutput(transform, direction);
 		direction.negate();
+	}
+
+	/**
+		Set the light's color from a `FlxColor`.
+	**/
+	public function setFlxColor(c:FlxColor) {
+		color.setTo(c.redFloat, c.greenFloat, c.blueFloat);
+		color.w = c.alphaFloat;
 	}
 
 	public function setToLightData(camera:FoxCamera) {}
