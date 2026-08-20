@@ -39,6 +39,8 @@ class FoxCamera extends FoxObject {
 		 Any custom pass you want for this camera, add them here.
 
 		 By default, there's one pass that will render everything in group 0 on the "default" render target.
+
+		 __Warning!__ If you create two cameras, make sure to change the output or else it'll overwrite the previous camera render!
 	**/
 	public var passes:Array<FoxRenderPass> = [new FoxRenderPass([0], "default")];
 	

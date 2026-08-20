@@ -268,6 +268,7 @@ class FoxScene extends FoxExtendableSprite {
 	public function addToDrawGroups(material:FoxMaterial, mesh:FoxMesh, groups:Array<Int>, member:FoxModel) {
 		for(g in groups) {
 			var tree = drawGroups[g];
+			if(tree == null) continue;
 
 			// If node exists, get it
 			// otherwise add it to the tree
