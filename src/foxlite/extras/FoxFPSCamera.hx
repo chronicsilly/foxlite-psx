@@ -9,10 +9,27 @@ import openfl.geom.Vector3D;
 
 class FoxFPSCamera extends FoxCamera {
 
-	public var enableYMovement:Bool = true; // Floating
+	/**
+		If enabled, the camera can go up or down depending on the view angle.
+	**/
+	public var enableYMovement:Bool = true;
+
+	/**
+		If `true`, keyboard inputs wil be used.
+
+		Otherwise, you'll need to supply a direction vector via `inputDir`.
+
+		__Note:__ If both keyboard and `inputDir` are active, the keyboard input will take priority. Useful for debugging.
+	**/
+	public var enableKeyboardInput:Bool = true;
+	
+	/**
+		If disabled, all keyboard, `inputDir` and click+drag inputs will not be processed.
+	**/
 	public var enableControls:Bool = true;
+
 	public var sensitivity:Float = 0.002; // Look sensitivity
-	public var speed:Float = 7.0;
+	public var speed:Float = 5.0;
 
 	public var velocity:Vector3D = new Vector3D();
 	public var targetAngle:Vector3D = new Vector3D();
@@ -28,7 +45,15 @@ class FoxFPSCamera extends FoxCamera {
 	public var strafeRight:String = "D";
 	public var strafeLeft:String = "A";
 	public var run:String = "SHIFT";
+
+	/**
+		Custom input movement for the camera, set:
+		- x: `-1...1` to strafe left and right
+		- y: `-1...1` to move forwards or backwards
+	**/
 	public var inputDir:Vector2 = new Vector2();
+	
+	var __input:Vector2 = new Vector2();
 
 	// Temp pos for touchscreen
 	#if !FLX_NO_TOUCH
@@ -43,9 +68,12 @@ class FoxFPSCamera extends FoxCamera {
 
 	public override function update(dt:Float) {
 		if(enableControls) {
-			
-			inputDir.x = pressed(strafeRight) - pressed(strafeLeft);
-			inputDir.y = pressed(backwards) - pressed(forwards);
+
+			var kX = pressed(strafeRight) - pressed(strafeLeft);
+			var kY = pressed(backwards) - pressed(forwards);
+
+			if(kX == 0 && kY == 0) __input.setTo(inputDir.x, inputDir.y);
+			else __input.setTo(kX, kY);
 
 			var moveSpeed:Float = speed * (pressed(run) + 1) * dt;
 			var ddt:Float = Math.min(dt * 60 * smoothFactor, 1);
@@ -94,18 +122,18 @@ class FoxFPSCamera extends FoxCamera {
 
 			if(enableYMovement) {
 				var dirY = Math.sin(rotation.x);
-				velocity.y = FlxMath.lerp(velocity.y, dirY * -inputDir.y * moveSpeed, ddt);
-				inputDir.y *= 1.0 - Math.abs(dirY);
+				velocity.y = FlxMath.lerp(velocity.y, dirY * -__input.y * moveSpeed, ddt);
+				__input.y *= 1.0 - Math.abs(dirY);
 			}
 
 			// Rotate input based on Y rotation
-			var x = inputDir.x;
-			var y = inputDir.y;
-			inputDir.x = x*cos - y*sin;
-			inputDir.y = x*sin + y*cos;
+			var x = __input.x;
+			var y = __input.y;
+			__input.x = x*cos - y*sin;
+			__input.y = x*sin + y*cos;
 
-			velocity.x = FlxMath.lerp(velocity.x, inputDir.x * moveSpeed, ddt);
-			velocity.z = FlxMath.lerp(velocity.z, inputDir.y * moveSpeed, ddt);
+			velocity.x = FlxMath.lerp(velocity.x, __input.x * moveSpeed, ddt);
+			velocity.z = FlxMath.lerp(velocity.z, __input.y * moveSpeed, ddt);
 
 			position.incrementBy(velocity);
 		}
@@ -117,7 +145,8 @@ class FoxFPSCamera extends FoxCamera {
 		#if FLX_NO_KEYBOARD
 		return 0;
 		#else
-		return Reflect.getProperty(FlxG.keys.pressed, key) ? 1 : 0;
+		if(enableKeyboardInput) return Reflect.getProperty(FlxG.keys.pressed, key) ? 1 : 0;
+		return 0;
 		#end
 	}
 }
