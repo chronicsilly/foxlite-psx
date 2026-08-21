@@ -147,7 +147,8 @@ class FoxRenderer {
 
 		// Upload some data
 		context.__bindGLTexture2D(MISSING_TEXTURE.glTexture.__textureID);
-		GL.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 2, 2, gl.RGBA, gl.UNSIGNED_BYTE, 
+
+		#if lime_webgl GL.texSubImage2DWEBGL #else GL.texSubImage2D #end (gl.TEXTURE_2D, 0, 0, 0, 2, 2, gl.RGBA, gl.UNSIGNED_BYTE, 
 			TypedArray.UInt8Array([255, 0, 255, 255,  0, 0, 0, 255,  0, 0, 0, 255,  255, 0, 255, 255])
 		);
 
