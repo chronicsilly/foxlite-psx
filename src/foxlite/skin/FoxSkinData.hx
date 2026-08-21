@@ -62,6 +62,6 @@ class FoxSkinData {
 	}
 
 	public inline static function fromJSON(name:String):FoxSkinData {
-		return FoxJSONLoader.loadArmature(name);
+		return FoxJSONLoader.loadSkinData(name);
 	}
 }
