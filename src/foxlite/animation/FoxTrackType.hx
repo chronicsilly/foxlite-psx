@@ -20,6 +20,7 @@ package foxlite.animation;
 	@:from public static function fromString(type:String):FoxTrackType {
 		type = type.toLowerCase();
 		return switch(type) {
+			case "float": FoxTrackType.FLOAT;
 			case "int": FoxTrackType.INT;
 			case "angle": FoxTrackType.ANGLE;
 			case "vector3d": FoxTrackType.VECTOR3D;
@@ -32,12 +33,13 @@ package foxlite.animation;
 			case "function": FoxTrackType.FUNCTION;
 			case "degrees": FoxTrackType.DEGREES;
 			case "color": FoxTrackType.COLOR;
-			default: FoxTrackType.FLOAT;
+			default: -1;
 		}
 	}
 
 	@:to public static function toString(type:FoxTrackType):String {
 		return switch(type) {
+			case FoxTrackType.FLOAT: "float";
 			case FoxTrackType.INT: "int";
 			case FoxTrackType.ANGLE: "angle";
 			case FoxTrackType.VECTOR3D: "vector3d";
@@ -50,7 +52,7 @@ package foxlite.animation;
 			case FoxTrackType.FUNCTION: "function";
 			case FoxTrackType.DEGREES: "degrees";
 			case FoxTrackType.COLOR: "color";
-			default: "float";
+			default: "";
 		}
 	}
 }
