@@ -37,12 +37,18 @@ class FoxAnimationLinker extends FoxBasic {
 		The only exception to this is tracks of type `Matrix3D`, they will recieve the matrix object instead.
 
 		__Note:__ For non-functions, make sure the property type and the track type are equal, else the link will not work.
+
+		@returns The index of the link in the track
 	**/
-	public function link(trackName:String, object:Dynamic, property:String) {
+	public function link(trackName:String, object:Dynamic, property:String):Int {
 		var data:Array<FoxTrackLinkData> = linkData.get(trackName);
 		
-		if(data == null) linkData.set(trackName, [new FoxTrackLinkData(object, property)]);
-		else data.push(new FoxTrackLinkData(object, property));
+		if(data == null) {
+			linkData.set(trackName, [new FoxTrackLinkData(object, property)]);
+			return 0;
+		}
+		data.push(new FoxTrackLinkData(object, property));
+		return data.length-1;
 	}
 
 	/**
@@ -60,6 +66,16 @@ class FoxAnimationLinker extends FoxBasic {
 			}
 		}
 		if(toRemove != null) data.remove(toRemove);
+	}
+
+	/**
+		Removes a link from an animation track by its index
+	**/
+	public function unlinkByIndex(trackName:String, index:Int) {
+		var data = linkData.get(trackName);
+		if(data == null) return;
+
+		if(index >= 0 && index < data.length) data?.splice(index, 1);
 	}
 
 	/**

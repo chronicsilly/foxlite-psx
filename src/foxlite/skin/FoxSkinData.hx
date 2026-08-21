@@ -1,5 +1,6 @@
 package foxlite.skin;
 
+import foxlite.loaders.FoxJSONLoader;
 import foxlite.texture.FoxTextureBuffer;
 import foxlite.FoxObject;
 import foxlite.polyfill.TypedArray;
@@ -60,26 +61,7 @@ class FoxSkinData {
 		boneData.updateGPU();
 	}
 
-	public static function loadJSON(name:String):FoxSkinData {
-		if(!Assets.exists(name)) return null;
-		var data:Array<Dynamic> = Json.parse(Assets.getText(name));
-		var skin = new FoxSkinData();
-		skin.assetsKey = name;
-
-		for(bd in data) {
-			var rest = new Matrix3D(VectorFactory.Float(bd.rest));
-			var bone = new FoxBone(rest);
-			bone.name = bd.name;
-			
-			if(bd.pose != null) {
-				var pose = bd.pose;
-				if(Std.isOfType(pose?.position, Array)) bone.position.setTo(bd.pose.position[0], bd.pose.position[1], bd.pose.position[2]);
-				if(Std.isOfType(pose?.rotation, Array)) bone.rotation.setTo(bd.pose.rotation[0], bd.pose.rotation[1], bd.pose.rotation[2]);
-				if(Std.isOfType(pose?.scale, Array)) bone.scale.setTo(bd.pose.scale[0], bd.pose.scale[1], bd.pose.scale[2]);
-			}
-			skin.addBone(bone, bd.parent);
-		}
-
-		return skin;
+	public inline static function fromJSON(name:String):FoxSkinData {
+		return FoxJSONLoader.loadArmature(name);
 	}
 }

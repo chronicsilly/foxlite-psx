@@ -162,7 +162,7 @@ class FoxModel extends FoxObject {
 		Loads a FoxLite JSON model
 	**/
 	public function loadJSON(name:String) {
-		var data = FoxJSONLoader.load(name);
+		var data = FoxJSONLoader.loadModel(name);
 		if(data == null) return null;
 		this.meshes = data.meshes;
 		return data;
