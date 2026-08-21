@@ -65,12 +65,14 @@ class FoxFunkinSprite extends FoxFlxSprite {
 		var ox = useMatrixOffsets ? w - _matrix.tx * pixelSize : 0;
 		var oy = useMatrixOffsets ? -(h - _matrix.ty * pixelSize) : 0;
 
-		mesh.updateBuffer(FoxMeshBufferType.UVS, [
-			0, 0,
-			1, 0,
-			1, 1,
-			0, 1
-		]);
+		if(!__defaultUVs) {
+			uvsRaw[0] = 0; uvsRaw[1] = 0;
+			uvsRaw[2] = 1; uvsRaw[3] = 0;
+			uvsRaw[4] = 1; uvsRaw[5] = 1;
+			uvsRaw[6] = 0; uvsRaw[7] = 1;
+			mesh.updateBufferRaw(FoxMeshBufferType.UVS, uvsRaw);
+			__defaultUVs = true;
+		}
 		
 		var fX = flipX ? -1 : 1;
 		var fY = flipY ? -1 : 1;
@@ -79,16 +81,14 @@ class FoxFunkinSprite extends FoxFlxSprite {
 		var f0Y = ( h+oy) * fY;
 		var f1Y = (-h+oy) * fY;
 
-		var vertices:Array<Float> = [
-			f0X, f0Y, 0,
-			f1X, f0Y, 0,
-			f1X, f1Y, 0,
-			f0X, f1Y, 0
-		];
-		mesh.updateBuffer(FoxMeshBufferType.VERTICES, vertices);
+		verticesRaw[0] = f0X; verticesRaw[1] = f0Y; verticesRaw[2] = 0;
+		verticesRaw[3] = f1X; verticesRaw[4] = f0Y; verticesRaw[5] = 0;
+		verticesRaw[6] = f1X; verticesRaw[7] = f1Y; verticesRaw[8] = 0;
+		verticesRaw[9] = f0X; verticesRaw[10] = f1Y; verticesRaw[11] = 0;
+		mesh.updateBufferRaw(FoxMeshBufferType.VERTICES, verticesRaw);
 
 		if(__recalculateBounds) {
-			mesh.calculateBounds(vertices); // For frustum culling
+			mesh.calculateBounds(verticesRaw); // For frustum culling
 			__recalculateBounds = false;
 		}
 	}

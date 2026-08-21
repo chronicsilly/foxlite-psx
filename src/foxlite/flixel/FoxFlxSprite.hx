@@ -91,25 +91,19 @@ class FoxFlxSprite extends FoxModel {
 
 			// No idea if whis will work in polymod hscript
 			if(!__defaultUVs) {
-				uvsRaw[0] = 0;
-				uvsRaw[1] = 0;
-				uvsRaw[2] = 1;
-				uvsRaw[3] = 0;
-				uvsRaw[4] = 1;
-				uvsRaw[5] = 1;
-				uvsRaw[6] = 0;
-				uvsRaw[7] = 1;
+				uvsRaw[0] = 0; uvsRaw[1] = 0;
+				uvsRaw[2] = 1; uvsRaw[3] = 0;
+				uvsRaw[4] = 1; uvsRaw[5] = 1;
+				uvsRaw[6] = 0; uvsRaw[7] = 1;
 				mesh.updateBufferRaw(FoxMeshBufferType.UVS, uvsRaw);
 				__defaultUVs = true;
 			}
 
-			vertices = [
-				-w,  h, 0,
-				 w,  h, 0,
-				 w, -h, 0,
-				-w, -h, 0
-			];
-			mesh.updateBuffer(FoxMeshBufferType.VERTICES, vertices);
+			verticesRaw[0] = -w; verticesRaw[1] =  h; verticesRaw[2] = 0;
+			verticesRaw[3] =  w; verticesRaw[4] =  h; verticesRaw[5] = 0;
+			verticesRaw[6] =  w; verticesRaw[7] = -h; verticesRaw[8] = 0;
+			verticesRaw[9] = -w; verticesRaw[10] = -h; verticesRaw[11] = 0;
+			mesh.updateBufferRaw(FoxMeshBufferType.VERTICES, verticesRaw);
 		}
 		else {
 			var width = sprite.pixels.width;
@@ -122,12 +116,11 @@ class FoxFlxSprite extends FoxModel {
 			var vh = (frame.y + frame.height) / height;
 			__defaultUVs = false;
 
-			mesh.updateBuffer(FoxMeshBufferType.UVS, [
-				u,  v,
-				uw, v,
-				uw, vh,
-				u, vh
-			]);
+			uvsRaw[0] = u;  uvsRaw[1] = v;
+			uvsRaw[2] = uw; uvsRaw[3] = v;
+			uvsRaw[4] = uw; uvsRaw[5] = vh;
+			uvsRaw[6] = u;  uvsRaw[7] = vh;
+			mesh.updateBufferRaw(FoxMeshBufferType.UVS, uvsRaw);
 			
 			var ps = pixelSize * 0.5;
 			u = offset.x * ps;
@@ -135,17 +128,14 @@ class FoxFlxSprite extends FoxModel {
 			uw = frame.width * ps;
 			vh = frame.height * ps;
 
-			vertices = [
-				-uw + u,  vh + v, 0,
-				 uw + u,  vh + v, 0,
-				 uw + u, -vh + v, 0,
-				-uw + u, -vh + v, 0
-			];
-
-			mesh.updateBuffer(FoxMeshBufferType.VERTICES, vertices);
+			verticesRaw[0] = -uw + u; verticesRaw[1] =  vh + v; verticesRaw[2] = 0;
+			verticesRaw[3] =  uw + u; verticesRaw[4] =  vh + v; verticesRaw[5] = 0;
+			verticesRaw[6] =  uw + u; verticesRaw[7] = -vh + v; verticesRaw[8] = 0;
+			verticesRaw[9] = -uw + u; verticesRaw[10] = -vh + v; verticesRaw[11] = 0;
+			mesh.updateBufferRaw(FoxMeshBufferType.VERTICES, verticesRaw);
 		}
 		if(__recalculateBounds) {
-			mesh.calculateBounds(vertices); // For frustum culling
+			mesh.calculateBounds(verticesRaw); // For frustum culling
 			__recalculateBounds = false;
 		}
 	}
@@ -179,6 +169,8 @@ class FoxFlxSprite extends FoxModel {
 
 	public override function destroy() {
 		__prevBitmap = null;
+		verticesRaw = null;
+		uvsRaw = null;
 		super.destroy();
 	}
 

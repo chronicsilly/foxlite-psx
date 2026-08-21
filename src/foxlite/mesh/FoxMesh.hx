@@ -16,6 +16,7 @@ import openfl.geom.Vector3D;
 import lime.graphics.opengl.GL;
 import lime.utils.DataPointer;
 #end
+import lime.utils.Float32Array;
 
 class FoxMesh {
 
@@ -383,7 +384,7 @@ class FoxMesh {
 	/*
 	* Calculates the bounding box for this mesh, for frusutm culling
 	*/
-	public function calculateBounds(vertices:Array<Float>):BoundingBox {
+	public function calculateBounds(vertices:Dynamic):BoundingBox {
 		FoxRenderer.allocationsThisFrame += 3;
 		if(bounds == null) bounds = new BoundingBox();
 
