@@ -157,6 +157,10 @@ class FoxLightData {
 		var maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) ?? 4096;
 		shadowMapMaxWidth = maxTexSize;
 		shadowMapMaxHeight = maxTexSize;
+		FoxRenderer.allocationsThisFrame += (
+			FoxLightData.MAX_DIRECTIONAL_LIGHTS + FoxLightData.MAX_POINT_LIGHTS +
+			FoxLightData.MAX_SPOT_LIGHTS + FoxLightData.MAX_AREA_LIGHTS
+		) + 5;
 	}
 
 	public static function staticInit() {

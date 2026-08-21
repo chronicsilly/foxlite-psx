@@ -17,9 +17,9 @@ import openfl.display3D.textures.RectangleTexture;
 class FoxTexture {
 	public var context:Context3D = null;
 
-	public var wrapMode:FoxWrapMode = FoxWrapMode.CLAMP;
-	public var filter:FoxTextureFilter = FoxTextureFilter.LINEAR;
-	public var mipFilter:FoxMipFilter = FoxMipFilter.MIPNONE;
+	public var wrapMode:FoxWrapMode;
+	public var filter:FoxTextureFilter;
+	public var mipFilter:FoxMipFilter;
 	public var glTexture:TextureBase; // Fix C++ black textures via downcast
 	public var assetsKey:String;
 
@@ -39,9 +39,12 @@ class FoxTexture {
 	private var __format:String = null;
 	private var __type:String = null;
 
-	public function new() {
+	public function new(wrapMode:FoxWrapMode=#if !foxlite_polymod FoxWrapMode.CLAMP #else 0 #end, filter:FoxTextureFilter=#if !foxlite_polymod FoxTextureFilter.LINEAR #else 4 #end, mipFilter:FoxMipFilter=#if !foxlite_polymod FoxMipFilter.MIPNONE #else 2 #end) {
 		FoxRenderer.allocationsThisFrame += 1;
 		context = FoxRenderer.getContext();
+		this.wrapMode = wrapMode;
+		this.filter = filter;
+		this.mipFilter = mipFilter;
 	}
 
 	public function asBitmapData():BitmapData {

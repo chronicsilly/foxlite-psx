@@ -1,5 +1,6 @@
 package foxlite.lights;
 
+import flixel.util.FlxColor;
 import foxlite.FoxCamera;
 import foxlite.lights.FoxBaseLight;
 import foxlite.lights.FoxLightType;
@@ -9,7 +10,7 @@ import openfl.geom.Vector3D;
 
 class FoxPointLight extends FoxBaseLight {
 
-	public var attenuation:Float = 1;
+	public var attenuation:Float;
 	public var range(default, set):Float;
 
 	function set_range(v:Float):Float {
@@ -19,8 +20,10 @@ class FoxPointLight extends FoxBaseLight {
 		return v;
 	}
 
-	public function new() {
-		super();
+	public function new(x:Float=0, y:Float=0, z:Float=0, color:FlxColor=0xFFFFFFFF, energy:Float=1, range:Float=5, attenuation:Float=1, shadow:Bool=false) {
+		super(x, y, z, color, energy, shadow);
+		this.range = range;
+		this.attenuation = attenuation;
 		name = "FoxPointLight";
 		range = 5;
 	}

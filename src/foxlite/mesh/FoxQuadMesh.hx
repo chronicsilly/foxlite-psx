@@ -8,7 +8,7 @@ import foxlite.mesh.FoxQuadFace;
 	Helper to create a simple quad facing an orientation
 **/
 class FoxQuadMesh extends FoxMesh {
-	public function new(width:Float, height:Float, material_:FoxMaterial=null, face:FoxQuadFace=2, ?usage:Int) {
+	public function new(width:Float, height:Float, material_:FoxMaterial=null, face:FoxQuadFace=#if !foxlite_polymod FoxQuadFace.Z #else 2 #end, ?usage:Int) {
 		super();
 		material = material_;
 		build(width, height, face, usage);

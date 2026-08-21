@@ -13,8 +13,8 @@ import openfl.display3D.Context3D;
 
 class FoxModel extends FoxObject {
 
-	public var layers:FoxLayer = 0x1;
-	public var frustumCulling:Bool = true;
+	public var layers:FoxLayer;
+	public var frustumCulling:Bool;
 
 	public var context:Context3D;
 
@@ -95,8 +95,11 @@ class FoxModel extends FoxObject {
 	**/
 	public var castColoredShadows:Bool = false;
 
-	public function new():Void {
-		super();
+	public function new(x:Float=0, y:Float=0, z:Float=0, layers:FoxLayer=0x1, ?groups:Array<Int>, culling:Bool=true):Void {
+		super(x, y, z);
+		this.layers = layers;
+		if(groups != null) this.groups = groups;
+		frustumCulling = culling;
 		context = FoxRenderer.getContext();
 		name = "FoxModel";
 	}

@@ -56,8 +56,9 @@ class FoxMesh {
 	public var context:Context3D = null;
 	public var __isCopy:Bool = false;
 
-	public function new():Void {
+	public function new(?mat:FoxMaterial):Void {
 		context = FoxRenderer.getContext();
+		this.material = mat;
 		FoxRenderer.allocationsThisFrame += 1;
 	}
 

@@ -1,5 +1,6 @@
 package foxlite.lights;
 
+import foxlite.color.FoxColorUtil;
 import flixel.util.FlxColor;
 import foxlite.FoxObject;
 import foxlite.math.FoxMathUtil;
@@ -10,7 +11,22 @@ import openfl.geom.Vector3D;
 class FoxBaseLight extends FoxObject {
 
 	public var color:Vector3D = new Vector3D(1, 1, 1);
-	public var energy:Float = 1;
+	
+	/**
+		The light color as a `FlxCOlor`
+	**/
+	public var colorHex(get, set):FlxColor;
+
+	function get_colorHex():FlxColor {
+		return FoxColorUtil.toFlxColor(this.color);
+	}
+
+	function set_colorHex(v:FlxColor):FlxColor {
+		FoxColorUtil.fromFlxColor(v, this.color);
+		return v;
+	}
+
+	public var energy:Float;
 	public var direction:Vector3D = new Vector3D(0, 0, -1); // Cache light direction
 	
 	// For shadow calculations
@@ -21,7 +37,7 @@ class FoxBaseLight extends FoxObject {
 		__Note:__ If this is set to true, a new texture will be created for this light,
 		this is its shadow map, and it's currently a fixed resolution of 1024x1024
 	**/
-	public var shadow:Bool = false;
+	public var shadow:Bool;
 
 	/**
 		Temporary value to store the region of the shadowmap for this light.
@@ -64,8 +80,11 @@ class FoxBaseLight extends FoxObject {
 	**/
 	public var viewProjection:Matrix3D = new Matrix3D();
 
-	public function new() {
-		super();
+	public function new(x:Float=0, y:Float=0, z:Float=0, color:FlxColor=0xFFFFFFFF, energy:Float=1, shadow:Bool=false) {
+		super(x, y, z);
+		this.energy = energy;
+		this.shadow = shadow;
+		FoxColorUtil.fromFlxColor(color, this.color);
 		name = "FoxBaseLight";
 		FoxRenderer.allocationsThisFrame += 9;
 	}
@@ -78,14 +97,6 @@ class FoxBaseLight extends FoxObject {
 		super.update(dt);
 		FoxMathUtil.directionOfToOutput(transform, direction);
 		direction.negate();
-	}
-
-	/**
-		Set the light's color from a `FlxColor`.
-	**/
-	public function setFlxColor(c:FlxColor) {
-		color.setTo(c.redFloat, c.greenFloat, c.blueFloat);
-		color.w = c.alphaFloat;
 	}
 
 	public function setToLightData(camera:FoxCamera) {}

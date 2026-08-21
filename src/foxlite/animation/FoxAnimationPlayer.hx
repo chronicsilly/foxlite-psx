@@ -38,7 +38,6 @@ import foxlite.animation.FoxAnimationLinker;
 import foxlite.animation.FoxCallbackTrack;
 import foxlite.animation.FoxLerp;
 import foxlite.flixel.FlxTypedSignalImpl;
-import foxlite.loaders.FoxLoaderUtil;
 import haxe.ds.StringMap;
 import openfl.geom.Matrix3D;
 import openfl.geom.Vector3D;
@@ -64,8 +63,9 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 	public var onFinish:FlxTypedSignalImpl<()->Void> = new FlxTypedSignalImpl();
 	public var onUpdate:FlxTypedSignalImpl<()->Void> = new FlxTypedSignalImpl();
 
-	public function new() {
+	public function new(?library:Map<String, FoxAnimation>) {
 		super();
+		if(library != null) for(anim in library) addAnimation(anim);
 		name = "FoxAnimationPlayer";
 	}
 

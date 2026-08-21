@@ -54,19 +54,19 @@ class FoxAnimation {
 
 	public var duration(default, set):Float = 0;
 	public var loop:Bool = false;
-	public var name:String;
+	public var name #if !foxlite_polymod (default, null) #end:String;
 	public var assetsKey:String;
 
 	function set_duration(v:Float):Float {
 		return this.duration = Math.max(v, 0);
 	}
 
-	public function new(animationName:String="FoxAnimation"):Void {
+	public function new(animationName:String):Void {
 		name = animationName;
 		FoxRenderer.allocationsThisFrame += 3;
 	}
 
-	public function addTrack(trackName:String, type:FoxTrackType=0):Any {
+	public function addTrack(trackName:String, type:FoxTrackType=#if !foxlite_polymod FoxTrackType.FLOAT #else 0 #end):Any {
 		// This weird syntax is to avoid an even weirder syntax for polymod compatibility
 		var track:Any = switch(type) {
 			case FoxTrackType.ANGLE,

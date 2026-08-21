@@ -12,7 +12,7 @@ class FoxObject extends FoxBasic {
 		If set, will adapt parent transform. Make sure the parent has a higher priority so it updates in order
 	**/
 	public var parent:FoxObject; 
-	public var position:Vector3D = new Vector3D();
+	public var position:Vector3D; // Moved to constructor
 	public var rotation:Vector3D = new Vector3D();
 	public var scale:Vector3D = new Vector3D(1, 1, 1);
 
@@ -35,30 +35,31 @@ class FoxObject extends FoxBasic {
 	public var globalRotation(get, null):Vector3D = new Vector3D(); 
 	public var globalScale(get, null):Vector3D = new Vector3D(); 
 
-	public function new() {
+	public function new(x:Float=0, y:Float=0, z:Float=0) {
 		super();
+		position = new Vector3D(x, y, z);
 		name = "FoxObject";
 		FoxRenderer.allocationsThisFrame += 8;
 	}
 
-	public inline function setPosition(x:Float=0.0, y:Float=0.0, z:Float=0.0) {
+	public inline function setPosition(x:Float=0, y:Float=0, z:Float=0) {
 		return position.setTo(x, y, z);
 	}
 
-	public inline function setRotation(x:Float=0.0, y:Float=0.0, z:Float=0.0) {
+	public inline function setRotation(x:Float=0, y:Float=0, z:Float=0) {
 		return rotation.setTo(x, y, z);
 	}
 
 	/**
 		Same as `setRotation()` but for angle degrees.
 	**/
-	public inline function setAngle(x:Float=0.0, y:Float=0.0, z:Float=0.0) {
+	public inline function setAngle(x:Float=0, y:Float=0, z:Float=0) {
 		angleX = x;
 		angleY = y;
 		angleZ = z;
 	}
 
-	public inline function setScale(x:Float=1.0, y:Float=1.0, z:Float=1.0) {
+	public inline function setScale(x:Float=1, y:Float=1, z:Float=1) {
 		return scale.setTo(x, y, z);
 	}
 

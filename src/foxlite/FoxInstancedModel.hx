@@ -1,5 +1,6 @@
 package foxlite;
 
+import foxlite.FoxLayer;
 import foxlite.FoxModel;
 import foxlite.FoxShader;
 import foxlite.instancing.FoxInstanceData;
@@ -58,8 +59,9 @@ class FoxInstancedModel extends FoxModel {
 	**/
 	public var updateMode:FoxInstanceUpdateMode = FoxInstanceUpdateMode.ONE_BY_ONE;
 
-	public function new() {
-		super();
+	public function new(numInstances:Int=0, x:Float=0, y:Float=0, z:Float=0, layers:FoxLayer=0x1, ?groups:Array<Int>, culling:Bool=true) {
+		super(x, y, z, layers, groups, culling);
+		instanceCount = numInstances;
 	}
 
 	private function set_instanceCount(v:Int):Int {

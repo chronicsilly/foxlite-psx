@@ -9,7 +9,7 @@ class FoxStencilAction {
 	/**
 		The reference value for this stencil action
 	**/
-	public var value:Int = 0;
+	public var value:Int;
 
 	/**
 		If true, configures the action to only read the stencil value
@@ -29,42 +29,46 @@ class FoxStencilAction {
 	**/
 	public var write(get, set):Bool;
 
-	public var readMask:Int = 0x0;
-	public var writeMask:Int = 0xFF;
+	public var readMask:Int;
+	public var writeMask:Int;
 
 	/**
 		The face of the triangle where operations will take place.
 	**/
-	public var triangleFace:FoxTriangleFace = FoxTriangleFace.FRONT_AND_BACK;
+	public var triangleFace:FoxTriangleFace;
 
 	/**
 		Determines if the action should pass or fail depending on the outcome of this
 		comparison between `value` and the stencil counter
 	**/
-	public var compareMode:FoxStencilCompareMode = FoxStencilCompareMode.ALWAYS;
+	public var compareMode:FoxStencilCompareMode;
 
 	/**
 		Updates the stencil counter if the action passed in both the stencil buffer and depth buffer
 	**/
-	public var actionOnBothPass:FoxStencilActionType = FoxStencilActionType.KEEP;
+	public var actionOnBothPass:FoxStencilActionType;
 
 	/**
 		Updates the stencil counter if the action failed on the depth buffer
 	**/
-	public var actionOnDepthFail:FoxStencilActionType = FoxStencilActionType.KEEP;
+	public var actionOnDepthFail:FoxStencilActionType;
 
 	/**
 		Updates the stencil counter if the action passed on the depth buffer, but failed in the stencil buffer
 	**/
-	public var actionOnFail:FoxStencilActionType = FoxStencilActionType.KEEP;
+	public var actionOnFail:FoxStencilActionType;
 
 	// Cached ids for the renderer
 	public var referenceValueId:Int = 0;
 	public var actionId:Int = 0;
 
-	public function new() {}
+	public function new(refValue:Int=0, readMask:Int=0x0, writeMask:Int=0xFF, compare:FoxStencilCompareMode=FoxStencilCompareMode.ALWAYS, onFail:FoxStencilActionType=#if !foxlite_polymod FoxStencilActionType.KEEP #else 5 #end, onDepthFail:FoxStencilActionType=#if !foxlite_polymod FoxStencilActionType.KEEP #else 5 #end, onBothPass:FoxStencilActionType=#if !foxlite_polymod FoxStencilActionType.KEEP #else 5 #end, face:FoxTriangleFace=#if !foxlite_polymod FoxTriangleFace.FRONT_AND_BACK #else 2 #end) {
+		value = refValue;
+		setMask(face, readMask, writeMask);
+		setActions(compare, onFail, onDepthFail, onBothPass);
+	}
 
-	public function setMask(face:FoxTriangleFace=2, read:Int=0xFF, write:Int=0xFF) {
+	public function setMask(face:FoxTriangleFace=#if !foxlite_polymod FoxTriangleFace.FRONT_AND_BACK #else 2 #end, read:Int=0xFF, write:Int=0xFF) {
 		triangleFace = face;
 		readMask = read;
 		writeMask = write;
@@ -75,7 +79,7 @@ class FoxStencilAction {
 	/**
 		Sets the operations for this stencil action: fail, zfail, zpass
 	**/
-	public function setActions(compare:FoxStencilCompareMode=0, onFail:FoxStencilActionType=5, onDepthFail:FoxStencilActionType=5, onBothPass:FoxStencilActionType=5) {
+	public function setActions(compare:FoxStencilCompareMode=#if !foxlite_polymod FoxStencilCompareMode.ALWAYS #else 0 #end, onFail:FoxStencilActionType=#if !foxlite_polymod FoxStencilActionType.KEEP #else 5 #end, onDepthFail:FoxStencilActionType=#if !foxlite_polymod FoxStencilActionType.KEEP #else 5 #end, onBothPass:FoxStencilActionType=#if !foxlite_polymod FoxStencilActionType.KEEP #else 5 #end) {
 		compareMode = compare;
 		actionOnFail = onFail;
 		actionOnDepthFail = onDepthFail;

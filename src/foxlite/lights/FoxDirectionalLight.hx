@@ -1,5 +1,6 @@
 package foxlite.lights;
 
+import flixel.util.FlxColor;
 import foxlite.FoxCamera;
 import foxlite.lights.FoxBaseLight;
 import foxlite.lights.FoxLightType;
@@ -11,12 +12,12 @@ class FoxDirectionalLight extends FoxBaseLight {
 	/**
 		The distance in world units that the shadow will cover.
 	**/
-	public var shadowDistance(default, set):Float = 0;
+	public var shadowDistance(default, set):Float;
 
-	public function new() {
-		super();
+	public function new(x:Float=0, y:Float=0, z:Float=0, color:FlxColor=0xFFFFFFFF, energy:Float=1, shadow:Bool=false, _shadowDistance:Float=100) {
+		super(x, y, z, color, energy, shadow);
 		name = "FoxDirectionalLight";
-		shadowDistance = 100;
+		shadowDistance = _shadowDistance;
 	}
 
 	public override function getType():FoxLightType {

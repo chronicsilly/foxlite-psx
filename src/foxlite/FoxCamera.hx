@@ -1,5 +1,6 @@
 package foxlite;
 
+import flixel.util.FlxColor;
 import foxlite.FoxLayer;
 import foxlite.animation.FoxLerp;
 import foxlite.culling.FrustumCone;
@@ -69,8 +70,10 @@ class FoxCamera extends FoxObject {
 	**/
 	public var lightData:FoxLightData = new FoxLightData();
 
-	public function new() {
+	public function new(_bgColor:FlxColor=0xFFFFFFFF, ortho:Bool=false) {
 		super();
+		bgColor = _bgColor;
+		orthogonal = ortho;
 		name = "FoxCamera";
 		passes[0].useCameraColor = true;
 	}

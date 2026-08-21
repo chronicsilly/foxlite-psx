@@ -14,8 +14,9 @@ class FoxArmature extends FoxObjectGroup {
 	**/
 	public var skin(default, set):FoxSkinData = null;
 
-	public function new() {
+	public function new(?_skin:FoxSkinData) {
 		super();
+		this.skin = _skin;
 		name = "FoxArmature";
 	}
 

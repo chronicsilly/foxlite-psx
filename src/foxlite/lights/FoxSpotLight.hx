@@ -1,5 +1,6 @@
 package foxlite.lights;
 
+import flixel.util.FlxColor;
 import foxlite.FoxCamera;
 import foxlite.lights.FoxBaseLight;
 import foxlite.lights.FoxLightType;
@@ -10,16 +11,14 @@ import openfl.geom.Vector3D;
 class FoxSpotLight extends FoxBaseLight {
 
 	public var angle(default, set):Float;
-	public var attenuation:Float = 1;
+	public var attenuation:Float;
 	public var range(default, set):Float;
 
-	/**
-		The blur of the spot light at the edges. 0 means hard-cut light.
-	**/
-	public var blur:Float = 1;
-
-	public function new() {
-		super();
+	public function new(x:Float=0, y:Float=0, z:Float=0, color:FlxColor=0xFFFFFFFF, energy:Float=1, range:Float=5, attenuation:Float=1, angle:Float=45, shadow:Bool=false) {
+		super(x, y, z, color, energy, shadow);
+		this.range = range;
+		this.attenuation = attenuation;
+		this.angle = angle;
 		name = "FoxSpotLight";
 
 		angle = 45;

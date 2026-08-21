@@ -22,8 +22,10 @@ import foxlite.material.FoxMaterial;
 import foxlite.material.FoxTriangleFace;
 import foxlite.mesh.FoxMeshBufferType;
 import foxlite.mesh.FoxQuadMesh;
+import foxlite.polyfill.TypedArray;
 import foxlite.texture.FoxTexture;
 import lime.graphics.opengl.GL;
+import lime.utils.Float32Array;
 import openfl.display.BitmapData;
 
 class FoxFlxSprite extends FoxModel {
@@ -39,6 +41,11 @@ class FoxFlxSprite extends FoxModel {
 	public var material(get, set):FoxMaterial;
 	public var texture(get, set):FoxTexture;
 	public var shader(get, set):FoxShader;
+
+	// Raw buffers for performance
+	public var verticesRaw:Float32Array = TypedArray.Float32Array([0,0,0, 0,0,0, 0,0,0, 0,0,0]);
+	public var uvsRaw:Float32Array = TypedArray.Float32Array([0,0, 1,0, 1,1, 0,1]);
+	var __defaultUVs:Bool = false;
 
 	public function new(target:FlxSprite, ?material_:FoxMaterial, ?spritePixelSize:Float) {
 		super();
@@ -81,12 +88,20 @@ class FoxFlxSprite extends FoxModel {
 		if(sprite.frame == null) { // No frame
 			var w = sprite.width / 2 * pixelSize;
 			var h = sprite.height / 2 * pixelSize;
-			mesh.updateBuffer(FoxMeshBufferType.UVS, [
-				0, 0,
-				1, 0,
-				1, 1,
-				0, 1
-			]);
+
+			// No idea if whis will work in polymod hscript
+			if(!__defaultUVs) {
+				uvsRaw[0] = 0;
+				uvsRaw[1] = 0;
+				uvsRaw[2] = 1;
+				uvsRaw[3] = 0;
+				uvsRaw[4] = 1;
+				uvsRaw[5] = 1;
+				uvsRaw[6] = 0;
+				uvsRaw[7] = 1;
+				mesh.updateBufferRaw(FoxMeshBufferType.UVS, uvsRaw);
+				__defaultUVs = true;
+			}
 
 			vertices = [
 				-w,  h, 0,
@@ -105,6 +120,7 @@ class FoxFlxSprite extends FoxModel {
 			var v = frame.y / height;
 			var uw = (frame.x + frame.width) / width;
 			var vh = (frame.y + frame.height) / height;
+			__defaultUVs = false;
 
 			mesh.updateBuffer(FoxMeshBufferType.UVS, [
 				u,  v,
