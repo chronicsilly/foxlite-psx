@@ -50,7 +50,7 @@ class FoxLoaderUtil {
 		return 'shaders/$name';
 	}
 
-	public static function loadJSON(name:String) {
+	public static function loadJSON(name:String):Dynamic {
 		var path = jsonPath(name);
 		if(!Assets.exists(path)) return null;
 		return Json.parse(Assets.getText(path));
