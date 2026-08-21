@@ -1,5 +1,6 @@
 package foxlite.renderer;
 
+import flixel.FlxG;
 import foxlite.polyfill.TypedArray;
 import EReg;
 import Reflect;
@@ -188,6 +189,9 @@ class FoxRenderer {
 		");
 		MISSING_MATERIAL.shader = MISSING_SHADER;
 		FoxRenderer.initialized = true;
+		
+		if(!FlxG.signals.preStateSwitch.has(FoxCache.cleanup)) 
+			FlxG.signals.preStateSwitch.add(FoxCache.cleanup);
 	}
 
 	/**

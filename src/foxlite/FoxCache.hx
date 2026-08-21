@@ -25,6 +25,11 @@ class FoxCache {
 	public var _meshes:FoxMeshCollection = new StringMap();
 	public var _animationLibs:FoxAnimationCollection = new StringMap();
 
+	/**
+		If enabled, will free resources on flixel's preStateSwitch signal
+	**/
+	public var freeResourcesOnStateSwitch:Bool = true;
+
 	public static final instance = new FoxCache();
 
 	public function new() {}
@@ -73,5 +78,9 @@ class FoxCache {
 		_materialLibs.clear();
 		_meshes.clear();
 		_animationLibs.clear();
+	}
+
+	public static function cleanup() {
+		if(FoxCache.instance.freeResourcesOnStateSwitch) FoxCache.instance.freeResources();
 	}
 }
