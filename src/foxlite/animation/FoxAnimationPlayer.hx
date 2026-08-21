@@ -31,10 +31,10 @@
 package foxlite.animation;
 
 import Reflect;
-import foxlite.FoxBasic;
 import foxlite.FoxCache;
 import foxlite.animation.FoxAnimation;
 import foxlite.animation.FoxAnimationTrack;
+import foxlite.animation.FoxAnimationLinker;
 import foxlite.animation.FoxCallbackTrack;
 import foxlite.animation.FoxLerp;
 import foxlite.flixel.FlxTypedSignalImpl;
@@ -46,11 +46,9 @@ import flixel.math.FlxMath;
 
 import foxlite.animation.data.FoxTrackData;
 
-class FoxAnimationPlayer extends FoxBasic {
+class FoxAnimationPlayer extends FoxAnimationLinker {
 
 	public var library:Map<String, FoxAnimation> = new StringMap();
-	public var libraryName:String;
-	public var trackData:Map<String, FoxTrackData> = new StringMap();
 	
 	public var playing:Bool = false;
 	public var time:Float = 0;
@@ -72,18 +70,19 @@ class FoxAnimationPlayer extends FoxBasic {
 	}
 
 	public override function update(dt:Float) {
-		super.update(dt);
 		if(curAnim == null || !playing) return;
 		
 		time = curAnim.loop ? FlxMath.mod(time, curAnim.duration) : FlxMath.bound(time, 0, curAnim.duration);
 		var tDir = reverse ? -1 : 1;
+
+		var curData:Map<String, FoxTrackData> = trackData.get(curAnim.name);
 
 		for(trackName=>track in curAnim.tracks) {
 			var frames = track.frames;
 			var len = frames.length - 1;
 			if(len == -1) continue;
 
-			var data = trackData.get(trackName);
+			var data:FoxTrackData = curData.get(trackName);
 
 			if(__reset) data.frameIndex = reverse ? len : 0;
 			if(__playFrame) data.prevFrameIndex = -1;
@@ -118,16 +117,18 @@ class FoxAnimationPlayer extends FoxBasic {
 
 			// Save interpolated value
 			switch(track.type) {
-				case FoxTrackType.INT: {		 data.value = Std.int(FlxMath.lerp(v0, v1, timeLerp)); };
-				case FoxTrackType.BOOL: {		 data.value = v0; }; // Same as Zero 
-				case FoxTrackType.ANGLE: {		 data.value = FoxLerp.lerpAngle(v0, v1, timeLerp); };
-				case FoxTrackType.FLOAT: {		 data.value = FlxMath.lerp(v0, v1, timeLerp); };
-				case FoxTrackType.VECTOR2: 		 FoxLerp.lerp2DToOutput(v0, v1, timeLerp, data.value);
-				case FoxTrackType.VECTOR4: 	 	 FoxLerp.lerp4DToOutput(v0, v1, timeLerp, data.value);
-				case FoxTrackType.MATRIX4:		 FoxLerp.lerpMatrix4ToOutput(v0, v1, timeLerp, data.value);
-				case FoxTrackType.VECTOR3D: 	 FoxLerp.lerp3DToOutput(v0, v1, timeLerp, data.value);
-				case FoxTrackType.QUATERNION: 	 FoxLerp.lerpQuaternionToOutput(v0, v1, timeLerp, data.value);
-				case FoxTrackType.EULER_ANGLES:  FoxLerp.lerpAngle3DToOutput(v0, v1, timeLerp, data.value);
+				case FoxTrackType.INT:{			data.value = Std.int(FlxMath.lerp(v0, v1, timeLerp)); };
+				case FoxTrackType.BOOL:{		data.value = v0; }; // Same as Zero 
+				case FoxTrackType.ANGLE:{		data.value = FoxLerp.lerpAngle(v0, v1, timeLerp); };
+				case FoxTrackType.FLOAT:{		data.value = FlxMath.lerp(v0, v1, timeLerp); };
+				case FoxTrackType.COLOR:{		data.value = FoxLerp.lerpColorHex(v0, v1, timeLerp); };
+				case FoxTrackType.DEGREES:{		data.value = FoxLerp.lerpAngleDegrees(v0, v1, timeLerp); };
+				case FoxTrackType.VECTOR2: 		FoxLerp.lerp2DToOutput(v0, v1, timeLerp, data.value);
+				case FoxTrackType.VECTOR4: 	 	FoxLerp.lerp4DToOutput(v0, v1, timeLerp, data.value);
+				case FoxTrackType.MATRIX4:		FoxLerp.lerpMatrix4ToOutput(v0, v1, timeLerp, data.value);
+				case FoxTrackType.VECTOR3D: 	FoxLerp.lerp3DToOutput(v0, v1, timeLerp, data.value);
+				case FoxTrackType.QUATERNION: 	FoxLerp.lerpQuaternionToOutput(v0, v1, timeLerp, data.value);
+				case FoxTrackType.EULER_ANGLES: FoxLerp.lerpAngle3DToOutput(v0, v1, timeLerp, data.value);
 				default: { data.value = v0; };
 			}
 		}
@@ -150,14 +151,12 @@ class FoxAnimationPlayer extends FoxBasic {
 			onUpdate.dispatch();
 		}
 		__playFrame = false;
+		super.update(dt);
 	}
 
-	public function addAnimation(anim:FoxAnimation) {
+	public override function addAnimation(anim:FoxAnimation) {
+		super.addAnimation(anim);
 		library.set(anim.name, anim);
-		// Add to track cache aswell
-		for(track in anim.tracks) {
-			trackData.set(track.name, track.createData());
-		}
 	}
 
 	public function removeAnimation(name:String) {
@@ -168,12 +167,19 @@ class FoxAnimationPlayer extends FoxBasic {
 		return library.get(name);
 	}
 
+	/**
+		Gets the interpolated track value from a currently active animation.
+
+		__Warning!__ Can be null if no animation is playing.
+	**/
 	public function getTrackValue(name:String):Any {
-		return trackData.get(name)?.value;
+		if(curAnim == null) return null;
+		return trackData.get(curAnim.name)?.get(name)?.value;
 	}
 
 	public function play(name:String, ?from:Float, ?reversed:Bool) {
 		curAnim = library.get(name);
+		animSelector = name;
 		if(from != null) time = from;
 		if(reversed != null) reverse = reversed;
 		playing = true;
@@ -188,18 +194,21 @@ class FoxAnimationPlayer extends FoxBasic {
 
 		This method is a fine-tuned version of the seek, it sweeps across frames in advance so
 		the actual update happens immediately.
+
+		@param forceUpdate Forces the animation to update right away (values will interpolate and functions may be called)
 	**/
-	public function seek(seekTime:Float) {
+	public function seek(seekTime:Float, forceUpdate:Bool=false) {
 		if(curAnim == null) return;
 		time = FlxMath.bound(seekTime, 0, curAnim.duration);
 
+		var curData:Map<String, FoxTrackData> = trackData.get(curAnim.name);
 		var tDir = reverse ? -1 : 1;
 		for(trackName => track in curAnim.tracks) {
 			var frames = track.frames;
 			var len = frames.length-1;
 			if(len == -1) continue;
 			
-			var data = trackData.get(trackName);
+			var data:FoxTrackData = curData.get(trackName);
 			
 			var seeking:Bool = true;
 			while(seeking) {
@@ -216,6 +225,7 @@ class FoxAnimationPlayer extends FoxBasic {
 				}
 			}
 		}
+		if(forceUpdate) update(0);
 	}
 
 	public function stop() {
@@ -243,7 +253,6 @@ class FoxAnimationPlayer extends FoxBasic {
 		library = null;
 		curAnim = null;
 		playing = false;
-		trackData.clear();
 		super.destroy();
 	}
 }

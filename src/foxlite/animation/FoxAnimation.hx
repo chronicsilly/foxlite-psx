@@ -32,6 +32,7 @@ package foxlite.animation;
 
 import lime.math.Vector2;
 import flixel.math.FlxMath;
+import flixel.util.FlxColor;
 import foxlite.FoxCache;
 import foxlite.animation.FoxAnimationTrack;
 import foxlite.animation.FoxCallbackTrack;
@@ -68,10 +69,12 @@ class FoxAnimation {
 	public function addTrack(trackName:String, type:FoxTrackType=0):Any {
 		// This weird syntax is to avoid an even weirder syntax for polymod compatibility
 		var track:Any = switch(type) {
-			case FoxTrackType.ANGLE, 
+			case FoxTrackType.ANGLE,
+				 FoxTrackType.DEGREES,
 				 FoxTrackType.FLOAT: (new FoxAnimationTrack(trackName, type):FoxAnimationTrack<Float>);
-			case FoxTrackType.BOOL: (new FoxAnimationTrack(trackName, type):FoxAnimationTrack<Bool>);
-			case FoxTrackType.INT: (new FoxAnimationTrack(trackName, type):FoxAnimationTrack<Int>);
+			case FoxTrackType.BOOL:  (new FoxAnimationTrack(trackName, type):FoxAnimationTrack<Bool>);
+			case FoxTrackType.INT:	 (new FoxAnimationTrack(trackName, type):FoxAnimationTrack<Int>);
+			case FoxTrackType.COLOR: (new FoxAnimationTrack(trackName, type):FoxAnimationTrack<FlxColor>);
 			case FoxTrackType.VECTOR3D, 
 				 FoxTrackType.VECTOR4, 
 				 FoxTrackType.QUATERNION, 

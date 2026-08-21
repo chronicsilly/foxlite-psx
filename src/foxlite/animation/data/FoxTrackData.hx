@@ -9,13 +9,16 @@ class FoxTrackData {
 	public var frameIndex:Int = 0;
 	public var prevFrameIndex:Int = -1;
 	public var value:Any;
+	public var type #if !foxlite_polymod (default, null) #end :FoxTrackType;
 
-	public function new(type:FoxTrackType) {
-		value = switch(type) {
-			case FoxTrackType.ANGLE, 
+	public function new(_type:FoxTrackType) {
+		value = switch(_type) {
+			case FoxTrackType.ANGLE,
+				 FoxTrackType.DEGREES,
 				 FoxTrackType.FLOAT: 		0.0;
 			case FoxTrackType.BOOL: 		false;
-			case FoxTrackType.INT: 			0;
+			case FoxTrackType.INT, 			
+				 FoxTrackType.COLOR:		0;
 			case FoxTrackType.VECTOR3D, 
 				 FoxTrackType.VECTOR4, 
 				 FoxTrackType.QUATERNION, 
@@ -24,5 +27,6 @@ class FoxTrackData {
 			case FoxTrackType.VECTOR2:		new Vector2();
 			default: null;
 		}
+		type = _type;
 	}
 }

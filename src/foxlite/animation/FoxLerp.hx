@@ -36,6 +36,11 @@ class FoxLerp {
    		return a + shortest_angle * w;
 	}
 
+	public static function lerpAngleDegrees(a:Float, b:Float, w:Float):Float {
+		var shortest_angle = ((b - a) % 360 + 180) % 360 - 180;
+   		return a + shortest_angle * w;
+	}
+
 	/**
 		Format follows FlxColor's ARGB
 	**/

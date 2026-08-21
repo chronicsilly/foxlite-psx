@@ -14,6 +14,8 @@ package foxlite.animation;
 	public inline static final VECTOR2 = 8;
 	public inline static final MATRIX4 = 9;
 	public inline static final FUNCTION = 10;
+	public inline static final DEGREES = 11;
+	public inline static final COLOR = 12;
 
 	@:from public static function fromString(type:String):FoxTrackType {
 		type = type.toLowerCase();
@@ -28,6 +30,8 @@ package foxlite.animation;
 			case "vector2": FoxTrackType.VECTOR2;
 			case "matrix4": FoxTrackType.MATRIX4;
 			case "function": FoxTrackType.FUNCTION;
+			case "degrees": FoxTrackType.DEGREES;
+			case "color": FoxTrackType.COLOR;
 			default: FoxTrackType.FLOAT;
 		}
 	}
@@ -44,6 +48,8 @@ package foxlite.animation;
 			case FoxTrackType.VECTOR2: "vector2";
 			case FoxTrackType.MATRIX4: "matrix4";
 			case FoxTrackType.FUNCTION: "function";
+			case FoxTrackType.DEGREES: "degrees";
+			case FoxTrackType.COLOR: "color";
 			default: "float";
 		}
 	}
