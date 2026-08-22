@@ -3,6 +3,7 @@ package foxlite.extras;
 import Reflect;
 import flixel.FlxG;
 import flixel.math.FlxMath;
+import flixel.util.FlxColor;
 import foxlite.FoxCamera;
 import lime.math.Vector2;
 import openfl.geom.Vector3D;
@@ -61,9 +62,8 @@ class FoxFPSCamera extends FoxCamera {
 	public var touchLastY:Int = 0;
 	#end
 
-	// Default: W S D A
-	public function new() {
-		super();
+	public function new(x:Float=0, y:Float=0, z:Float=0, bgColor:FlxColor=0x0, ortho:Bool=false) {
+		super(x, y, z, bgColor, ortho);
 	}
 
 	public override function update(dt:Float) {

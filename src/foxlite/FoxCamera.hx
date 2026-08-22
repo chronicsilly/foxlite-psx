@@ -70,8 +70,8 @@ class FoxCamera extends FoxObject {
 	**/
 	public var lightData:FoxLightData = new FoxLightData();
 
-	public function new(_bgColor:FlxColor=0xFFFFFFFF, ortho:Bool=false) {
-		super();
+	public function new(x:Float=0, y:Float=0, z:Float=0, _bgColor:FlxColor=0x0, ortho:Bool=false) {
+		super(x, y, z);
 		bgColor = _bgColor;
 		orthogonal = ortho;
 		name = "FoxCamera";
