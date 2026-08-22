@@ -41,7 +41,7 @@ class FoxMaterial {
 	public var depthTest:Bool = true;
 	public var depthFunc:FoxDepthCompareMode = FoxDepthCompareMode.LESS;
 	public var depthWrite:Bool = true;
-	public var culling:FoxTriangleFace = FoxTriangleFace.NONE;
+	public var culling:FoxTriangleFace = FoxTriangleFace.BACK;
 	public var shadowCulling:FoxTriangleFace = FoxTriangleFace.FRONT;
 	public var blendMode:FoxBlendMode = FoxBlendMode.NONE;
 	public var alphaScissor:Float = 0; // Pixels with alpha below this threshold will be discarded
