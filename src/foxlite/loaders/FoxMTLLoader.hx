@@ -5,6 +5,7 @@ import EReg;
 import foxlite.FoxShader;
 import foxlite.loaders.FoxLoaderUtil;
 import foxlite.material.FoxMaterial;
+import foxlite.material.FoxTriangleFace;
 import foxlite.texture.FoxTexture;
 import haxe.ds.StringMap;
 import openfl.geom.Vector3D;
@@ -56,6 +57,7 @@ class FoxMTLLoader {
 					if(curMat != null) curMat.shader = FoxShader.fromAsset(customShaderPath ?? FoxShader.BASIC, matShaderFlags);
 					
 					curMat = new FoxMaterial();
+					curMat.culling = FoxTriangleFace.BACK;
 					curMat.name = StringTools.trim(tk.matched(2));
 					curMat.assetsKey = name;
 					materials.set(curMat.name, curMat);
