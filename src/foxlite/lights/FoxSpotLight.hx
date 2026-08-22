@@ -10,9 +10,9 @@ import openfl.geom.Vector3D;
 
 class FoxSpotLight extends FoxBaseLight {
 
-	public var angle(default, set):Float;
-	public var attenuation:Float;
-	public var range(default, set):Float;
+	public var angle(default, set):Float = 45;
+	public var attenuation:Float = 1;
+	public var range(default, set):Float = 5;
 
 	public function new(x:Float=0, y:Float=0, z:Float=0, color:FlxColor=0xFFFFFFFF, energy:Float=1, range:Float=5, attenuation:Float=1, angle:Float=45, shadow:Bool=false) {
 		super(x, y, z, color, energy, shadow);
