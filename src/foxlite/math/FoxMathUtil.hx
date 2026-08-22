@@ -22,6 +22,7 @@ class FoxMathUtil {
 	**/
 	public static final __tempVector = new Vector3D();
 	public static final __tempVector2 = new Vector3D();
+	public static final __tempVector3 = new Vector3D();
 
 	/**
 		Cached Identity values so no allocation happens when calling openfl's `Matrix3D.identity()`
@@ -37,7 +38,7 @@ class FoxMathUtil {
 
 	public static function staticInit() {
 		#if foxlite_polymod
-		trace(degToRad, radToDeg, RIGHT, UP, FORWARD, ZERO, ONE, TAU, PI_2, __tempVector, __tempVector2, MATRIX_IDENTITY);
+		trace(degToRad, radToDeg, RIGHT, UP, FORWARD, ZERO, ONE, TAU, PI_2, __tempVector, __tempVector2, __tempVector3 MATRIX_IDENTITY);
 		#end
 	}
 

@@ -1,5 +1,6 @@
 package foxlite.mesh;
 
+import foxlite.math.FoxMathUtil;
 import flixel.math.FlxMath;
 import foxlite.culling.BoundingBox;
 import foxlite.material.FoxMaterial;
@@ -385,18 +386,22 @@ class FoxMesh {
 	* Calculates the bounding box for this mesh, for frusutm culling
 	*/
 	public function calculateBounds(vertices:Dynamic):BoundingBox {
-		FoxRenderer.allocationsThisFrame += 3;
-		if(bounds == null) bounds = new BoundingBox();
+		if(bounds == null) {
+			bounds = new BoundingBox();
+			FoxRenderer.allocationsThisFrame += 1;
+		}
 
-		var point:Vector3D = new Vector3D();
-		var min:Vector3D = new Vector3D();
-		var max:Vector3D = new Vector3D();
+		var point:Vector3D = FoxMathUtil.__tempVector;
+		var min:Vector3D = FoxMathUtil.__tempVector2;
+		var max:Vector3D = FoxMathUtil.__tempVector3;
 
-		FoxRenderer.allocationsThisFrame += 3;
-
+		var isArray:Bool = Std.isOfType(vertices, Array);
 		var i:Int = 0;
 		while(i < vertices.length) {
-			point.setTo(vertices[i], vertices[i+1], vertices[i+2]);
+			if(isArray) 
+				point.setTo((vertices:Array<Float>)[i], (vertices:Array<Float>)[i+1], (vertices:Array<Float>)[i+2]);
+			else
+				point.setTo((vertices:Float32Array)[i], (vertices:Float32Array)[i+1], (vertices:Float32Array)[i+2]);
 
 			min.x = Math.min(min.x, point.x);
 			min.y = Math.min(min.y, point.y);

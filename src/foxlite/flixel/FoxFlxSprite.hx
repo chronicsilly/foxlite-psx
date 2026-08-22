@@ -15,6 +15,7 @@
 
 package foxlite.flixel;
 
+import flixel.math.FlxRect;
 import flixel.FlxSprite;
 import foxlite.FoxModel;
 import foxlite.material.FoxBlendMode;
@@ -34,6 +35,7 @@ class FoxFlxSprite extends FoxModel {
 	public var pixelSize:Float = 0.01; // Size of the pixels in the world
 
 	var __prevFrame:String = "null";
+	var __prevRect:FlxRect;
 	var __prevBitmap:BitmapData = null;
 	var __recalculateBounds:Bool = true;
 
@@ -68,7 +70,7 @@ class FoxFlxSprite extends FoxModel {
 		material_.blendMode = FoxBlendMode.MIX; 
 		material_.alphaScissor = 0.05; // Cutout invisible pixels
 
-		var mesh = new FoxQuadMesh(target.width * pixelSize, target.height * pixelSize, material_, 2, GL.DYNAMIC_DRAW);
+		var mesh = new FoxQuadMesh(target.width * pixelSize, target.height * pixelSize, material_, 2, context.gl.DYNAMIC_DRAW);
 		addMesh(mesh);
 		//calculateMesh(); // Calculate on 1st frame instead
 	}
@@ -149,9 +151,11 @@ class FoxFlxSprite extends FoxModel {
 			calculateMesh();
 		}
 		else { // UV Animated sprite
-			if(__prevFrame != sprite.frame.name) {
+			var r = sprite.frame.frame;
+			if(__prevFrame != sprite.frame.name || (r != null && __prevRect != null && !r.equals(__prevRect))) {
 				calculateMesh();
 				__prevFrame = sprite.frame.name;
+				__prevRect = r;
 			}
 		}
 		checkBitmap();
