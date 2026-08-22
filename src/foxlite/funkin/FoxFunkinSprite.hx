@@ -81,10 +81,10 @@ class FoxFunkinSprite extends FoxFlxSprite {
 		var f0Y = ( h+oy) * fY;
 		var f1Y = (-h+oy) * fY;
 
-		verticesRaw[0] = f0X; verticesRaw[1] = f0Y; verticesRaw[2] = 0;
-		verticesRaw[3] = f1X; verticesRaw[4] = f0Y; verticesRaw[5] = 0;
-		verticesRaw[6] = f1X; verticesRaw[7] = f1Y; verticesRaw[8] = 0;
-		verticesRaw[9] = f0X; verticesRaw[10] = f1Y; verticesRaw[11] = 0;
+		verticesRaw[0] = f0X; verticesRaw[1] = f0Y; //verticesRaw[2] = 0;
+		verticesRaw[3] = f1X; verticesRaw[4] = f0Y; //verticesRaw[5] = 0;
+		verticesRaw[6] = f1X; verticesRaw[7] = f1Y; //verticesRaw[8] = 0;
+		verticesRaw[9] = f0X; verticesRaw[10] = f1Y; //verticesRaw[11] = 0;
 		mesh.updateBufferRaw(FoxMeshBufferType.VERTICES, verticesRaw);
 
 		if(__recalculateBounds) {

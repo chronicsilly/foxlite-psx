@@ -99,10 +99,10 @@ class FoxFlxSprite extends FoxModel {
 				__defaultUVs = true;
 			}
 
-			verticesRaw[0] = -w; verticesRaw[1] =  h; verticesRaw[2] = 0;
-			verticesRaw[3] =  w; verticesRaw[4] =  h; verticesRaw[5] = 0;
-			verticesRaw[6] =  w; verticesRaw[7] = -h; verticesRaw[8] = 0;
-			verticesRaw[9] = -w; verticesRaw[10] = -h; verticesRaw[11] = 0;
+			verticesRaw[0] = -w; verticesRaw[1] =  h; //verticesRaw[2] = 0;
+			verticesRaw[3] =  w; verticesRaw[4] =  h; //verticesRaw[5] = 0;
+			verticesRaw[6] =  w; verticesRaw[7] = -h; //verticesRaw[8] = 0;
+			verticesRaw[9] = -w; verticesRaw[10] = -h; //verticesRaw[11] = 0;
 			mesh.updateBufferRaw(FoxMeshBufferType.VERTICES, verticesRaw);
 		}
 		else {
@@ -128,10 +128,10 @@ class FoxFlxSprite extends FoxModel {
 			uw = frame.width * ps;
 			vh = frame.height * ps;
 
-			verticesRaw[0] = -uw + u; verticesRaw[1] =  vh + v; verticesRaw[2] = 0;
-			verticesRaw[3] =  uw + u; verticesRaw[4] =  vh + v; verticesRaw[5] = 0;
-			verticesRaw[6] =  uw + u; verticesRaw[7] = -vh + v; verticesRaw[8] = 0;
-			verticesRaw[9] = -uw + u; verticesRaw[10] = -vh + v; verticesRaw[11] = 0;
+			verticesRaw[0] = -uw + u; verticesRaw[1] =  vh + v; //verticesRaw[2] = 0;
+			verticesRaw[3] =  uw + u; verticesRaw[4] =  vh + v; //verticesRaw[5] = 0;
+			verticesRaw[6] =  uw + u; verticesRaw[7] = -vh + v; //verticesRaw[8] = 0;
+			verticesRaw[9] = -uw + u; verticesRaw[10] = -vh + v; //verticesRaw[11] = 0;
 			mesh.updateBufferRaw(FoxMeshBufferType.VERTICES, verticesRaw);
 		}
 		if(__recalculateBounds) {
