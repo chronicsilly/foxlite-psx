@@ -1,6 +1,7 @@
 package foxlite.material;
 
 import Reflect;
+import haxe.ds.StringMap;
 import foxlite.FoxShader;
 import foxlite.loaders.FoxMTLLoader;
 import foxlite.material.FoxBlendMode;
@@ -10,7 +11,7 @@ import foxlite.loaders.FoxJSONLoader;
 import foxlite.renderer.FoxRenderer;
 import foxlite.stencil.FoxStencilAction;
 import foxlite.texture.FoxTexture;
-import haxe.ds.StringMap;
+import flixel.util.FlxColor;
 import lime.math.Vector2;
 import lime.math.Vector4;
 import openfl.geom.Matrix3D;
@@ -77,6 +78,89 @@ class FoxMaterial {
 		params.set("uvScale", [1, 1]);
 		params.set("uScattering", 0.0);
 		shader = shader_;
+	}
+
+	// Basic functions
+	// These cover color, lighting and reflection related params
+
+	/**
+		Sets the material tint color, acts like `colorMultipliers`
+	**/
+	public function setColor(color:FlxColor) {
+		var c:Array<Float> = params.get("color");
+		c[0] = color.redFloat;
+		c[1] = color.greenFloat;
+		c[2] = color.blueFloat;
+		c[3] = color.alphaFloat;
+	}
+
+	public function setColorFromVector(color:Vector3D) {
+		var c:Array<Float> = params.get("color");
+		c[0] = color.x; c[1] = color.y; c[2] = color.z; c[3] = color.w;
+	}
+
+	/**
+		Sets the material emissive color, this is the light emitted from the model, acts like `colorOffsets`
+	**/
+	public function setEmissiveColor(emissive:FlxColor) {
+		var c:Array<Float> = params.get("uEmissive");
+		if(c == null) {
+			c = [emissive.redFloat, emissive.greenFloat, emissive.blueFloat];
+			params.set("uEmissive", c);
+		}
+		else {
+			c[0] = emissive.redFloat;
+			c[1] = emissive.greenFloat;
+			c[2] = emissive.blueFloat;
+		}
+	}
+
+	public function setEmissiveColorFromVector(emissive:Vector3D) {
+		var c:Array<Float> = params.get("uEmissive");
+		if(c == null) {
+			c = [emissive.x, emissive.y, emissive.z];
+			params.set("uEmissive", c);
+		}
+		else {
+			c[0] = emissive.x;
+			c[1] = emissive.y;
+			c[2] = emissive.z;
+		}
+	}
+
+	/**
+		Sets the material roughness factor, this controls how blurry the reflections are
+	**/
+	public function setRoughness(roughness:Float=0) {
+		params.set("uRoughness", roughness);
+	}
+
+	/**
+		Sets the material metallic factor, this controls how reflective it is
+	**/
+	public function setMetallic(metallic:Float=0) {
+		params.set("uMetallic", metallic);
+	}
+
+	/**
+		Sets the material subsurface-scattering factor, this controls how much light passes trough it
+	**/
+	public function setScattering(scattering:Float=0) {
+		params.set("uScattering", scattering);
+	}
+
+	/**
+		Sets the material specular levels, this controls how strongly light bounces off it. It can "reflect" a custom color
+	**/
+	public function setSpecularLevels(red:Float=0, green:Float=0, blue:Float=0) {
+		var s:Array<Float> = params.get("uSpecular");
+		if(s == null) {
+			s = [red, green, blue];
+			params.set("uSpecular", s);
+		}
+		else {
+			s[0] = red; s[1] = green; s[2] = blue;
+		}
 	}
 
 	/**
