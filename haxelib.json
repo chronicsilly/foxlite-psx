@@ -8,7 +8,5 @@
 	"classPath": "src/",
 	"releasenote": "",
 	"contributors": ["dwdvIl", "Kuru-Bot"],
-	"dependencies": {
-		"flixel": ""
-	}
+	"dependencies": {}
 }

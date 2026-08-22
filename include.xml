@@ -2,6 +2,7 @@
 <project xmlns="http://lime.software/project/1.0.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://lime.software/project/1.0.4 http://lime.software/xsd/project-1.0.4.xsd">
 
+	<haxedef name="foxlite" />
 	<haxeflag name="--macro" value="foxlite.macro.HScriptCompatMacro.run()" />
 
 	<!-- Include default foxlite shaders for easy debugging/modding -->
