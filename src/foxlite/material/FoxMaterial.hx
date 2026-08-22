@@ -1,5 +1,6 @@
 package foxlite.material;
 
+import foxlite.loaders.FoxJSONLoader;
 import Reflect;
 import foxlite.FoxShader;
 import foxlite.loaders.FoxLoaderUtil;
@@ -197,94 +198,14 @@ class FoxMaterial {
 
 		@returns A Map containing material entries from the JSON, or a single FoxMaterial if specified with `"path/to/mat:<material name>"`
 	**/
-	public static function fromJSON(name:String):Any { // Map<String, FoxMaterial> or FoxMaterial
-
+	public static function fromJSON(name:String):Any {
 		var extra = name.split(":"); // You can do materials/matfile:MyMaterial to pick a specific one from the library
 		var matNameFile = extra[1];
 		name = extra[0];
 
-		if(FoxCache.materialLibs().exists(name)) {
-			var collection = FoxCache.materialLibs().get(name);
-			if(matNameFile == "") return collection;
-			return collection.get(matNameFile);
-		}
+		var materials = FoxJSONLoader.loadMaterialLibrary(name);
 
-		var data = FoxLoaderUtil.loadJSON(name);
-		if(data == null) return null;
-
-		var materials:Map<String, FoxMaterial> = new StringMap();
-		materials.clear();
-
-		for(matName in Reflect.fields(data)) {
-			var mat:Dynamic = Reflect.field(data, matName);
-
-			// Create material
-			var material = new FoxMaterial();
-			material.name = matName;
-			material.assetsKey = name;
-			if(Std.isOfType(mat.blendMode, String)) material.blendMode = FoxBlendMode.fromString(mat.blendMode);
-			if(Std.isOfType(mat.alphaScissor, Bool)) material.alphaScissor = mat.alphaScissor;
-			if(Std.isOfType(mat.depthWrite, Bool)) material.depthWrite = mat.depthWrite;
-			if(Std.isOfType(mat.renderPriority, Int)) material.renderPriority = mat.renderPriority;
-			if(mat.wireframe == true) material.renderMode = 0x0001; // GL.LINES
-			if(Std.isOfType(mat.lineWidth, Int) || Std.isOfType(mat.lineWidth, Float)) material.lineWidth = mat.lineWidth;
-
-			if(mat.params != null) {
-				for(p in Reflect.fields(mat.params)) {
-					material.params.set(p, Reflect.field(mat.params, p));
-				}
-			}
-		
-			// Load shader
-			if(Std.isOfType(mat.shader, String)) {
-				material.shader = FoxShader.fromAsset(mat.shader, mat.shaderFlags);
-			}
-			
-			// Load textures
-			if(mat.textures != null) {
-				for(samplerName in Reflect.fields(mat.textures)) {
-					var tex = Reflect.field(mat.textures, samplerName);
-					if(tex == null) continue;
-					// TODO: add more formats maybe?
-					var mipFilter = Std.isOfType(tex.mipFilter, String) ? FoxMipFilter.fromString(tex.mipFilter) : FoxMipFilter.MIPNONE;
-					var texture = FoxTexture.fromImage(FoxLoaderUtil.imagePath(tex.name), mipFilter != FoxMipFilter.MIPNONE, null, {
-						wrapMode: Std.isOfType(tex.wrapMode, String) ? FoxWrapMode.fromString(tex.wrapMode) : FoxWrapMode.CLAMP,
-						mipFilter: mipFilter,
-						filter: Std.isOfType(tex.filter, String) ? FoxTextureFilter.fromString(tex.filter) : FoxTextureFilter.LINEAR
-					});
-					material.textures.set(samplerName, texture);
-				}
-			}
-			
-			if(Std.isOfType(mat.depthTest, Bool)) material.depthTest = mat.depthTest;
-
-			if(Std.isOfType(mat.depthFunc, String)) material.depthFunc = FoxDepthCompareMode.fromString(mat.depthFunc);
-			if(Std.isOfType(mat.culling, String)) material.culling = FoxTriangleFace.fromString(mat.culling);
-			if(Std.isOfType(mat.shadowCulling, String)) material.shadowCulling = FoxTriangleFace.fromString(mat.shadowCulling);
-
-			if(mat.stencil != null) {
-				var stencil = new FoxStencilAction();
-				var sd:Dynamic = mat.stencil;
-				if(Std.isOfType(sd.value, Int) || Std.isOfType(sd.value, Float)) stencil.value = Std.int(sd.value);
-				if(Std.isOfType(sd.read, Bool)) stencil.read = sd.read;
-				if(Std.isOfType(sd.write, Bool)) stencil.write = sd.write;
-				if(Std.isOfType(sd.readMask, String)) stencil.readMask = Std.parseInt(sd.readMask);
-				if(Std.isOfType(sd.writeMask, String)) stencil.writeMask = Std.parseInt(sd.writeMask);
-				if(Std.isOfType(sd.triangleFace, String)) stencil.triangleFace = FoxTriangleFace.fromString(sd.triangleFace);
-				if(Std.isOfType(sd.actionOnBothPass, String)) stencil.actionOnBothPass = FoxStencilActionType.fromString(sd.actionOnBothPass);
-				if(Std.isOfType(sd.actionOnDepthFail, String)) stencil.actionOnDepthFail = FoxStencilActionType.fromString(sd.actionOnDepthFail);
-				if(Std.isOfType(sd.actionOnFail, String)) stencil.actionOnFail = FoxStencilActionType.fromString(sd.actionOnFail);
-				material.stencil = stencil;
-			}
-
-			//FoxCachematerials.set(matName, material);
-			materials.set(matName, material);
-			trace("[FoxLite > FoxMaterial]: Add material: " + matName);
-		}
-		// TODO: Do this for FoxMaterial separatedly too, this is for the Collection
-		FoxCache.materialLibs().set(name, materials);
-
-		return matNameFile == "" ? materials : materials.get(matNameFile);
+		return matNameFile == null ? materials : materials.get(matNameFile);
 	}
 
 	/**
