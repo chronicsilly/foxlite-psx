@@ -109,10 +109,9 @@ class FoxMathUtil {
 		// it just messes up our rotations, we need YXZ order to preserve Z rotation:
 		var rot = rotEuler.clone();
 		rot.scaleBy(radToDeg);
-		matTRS.appendRotation(rot.z, FORWARD);
-		matTRS.appendRotation(rot.y, UP);
-		matTRS.appendRotation(rot.x, RIGHT);
-		
+		if(rot.z != 0) matTRS.appendRotation(rot.z, FORWARD);
+		if(rot.y != 0) matTRS.appendRotation(rot.y, UP);
+		if(rot.x != 0) matTRS.appendRotation(rot.x, RIGHT);
 
 		matTRS.appendTranslation(pos.x, pos.y, pos.z);
 		FoxRenderer.allocationsThisFrame += 4;
@@ -130,9 +129,9 @@ class FoxMathUtil {
 		// it just messes up our rotations, we need YXZ order to preserve Z rotation:
 		var rot = rotEuler.clone();
 		rot.scaleBy(-radToDeg);
-		matRT.appendRotation(rot.y, UP);
-		matRT.appendRotation(rot.x, RIGHT);
-		matRT.appendRotation(rot.z, FORWARD);
+		if(rot.y != 0) matRT.appendRotation(rot.y, UP);
+		if(rot.x != 0) matRT.appendRotation(rot.x, RIGHT);
+		if(rot.z != 0) matRT.appendRotation(rot.z, FORWARD);
 		FoxRenderer.allocationsThisFrame += 4;
 
 		return matRT;
@@ -149,9 +148,9 @@ class FoxMathUtil {
 		var rot = eulerFromMatrix(transform, __tempVector, scaleFromMatrix(transform, __tempVector2));
 		rot.scaleBy(-radToDeg);
 		
-		output.appendRotation(rot.z, FORWARD);
-		output.appendRotation(rot.y, UP);
-		output.appendRotation(rot.x, RIGHT);
+		if(rot.z != 0) output.appendRotation(rot.z, FORWARD);
+		if(rot.y != 0) output.appendRotation(rot.y, UP);
+		if(rot.x != 0) output.appendRotation(rot.x, RIGHT);
 		FoxRenderer.allocationsThisFrame += 3;
 		return output;
 	}
