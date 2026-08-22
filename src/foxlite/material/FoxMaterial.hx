@@ -1,23 +1,18 @@
 package foxlite.material;
 
-import foxlite.loaders.FoxJSONLoader;
 import Reflect;
 import foxlite.FoxShader;
-import foxlite.loaders.FoxLoaderUtil;
 import foxlite.loaders.FoxMTLLoader;
 import foxlite.material.FoxBlendMode;
 import foxlite.material.FoxDepthCompareMode;
 import foxlite.material.FoxTriangleFace;
+import foxlite.loaders.FoxJSONLoader;
 import foxlite.renderer.FoxRenderer;
 import foxlite.stencil.FoxStencilAction;
-import foxlite.texture.FoxMipFilter;
-import foxlite.texture.FoxTextureFilter;
-import foxlite.texture.FoxWrapMode;
 import foxlite.texture.FoxTexture;
 import haxe.ds.StringMap;
 import lime.math.Vector2;
 import lime.math.Vector4;
-import openfl.display3D.Context3DMipFilter;
 import openfl.geom.Matrix3D;
 import openfl.geom.Vector3D;
 
