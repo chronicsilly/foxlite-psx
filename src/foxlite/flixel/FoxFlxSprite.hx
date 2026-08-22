@@ -21,6 +21,7 @@ import foxlite.FoxModel;
 import foxlite.material.FoxBlendMode;
 import foxlite.material.FoxMaterial;
 import foxlite.material.FoxTriangleFace;
+import foxlite.math.FoxMathUtil;
 import foxlite.mesh.FoxMeshBufferType;
 import foxlite.mesh.FoxQuadMesh;
 import foxlite.polyfill.TypedArray;
@@ -33,6 +34,13 @@ class FoxFlxSprite extends FoxModel {
 
 	public var sprite:FlxSprite = null;
 	public var pixelSize:Float = 0.01; // Size of the pixels in the world
+	
+	/**
+		If enabled, the 3D sprite will adopt the color tint and color offsets
+
+		__Note:__ This alters the material parameters
+	**/
+	public var useColorTransform:Bool = false;
 
 	var __prevFrame:String = "null";
 	var __prevRect:FlxRect;
@@ -168,6 +176,14 @@ class FoxFlxSprite extends FoxModel {
 			material.textures.get("bitmap")?.take(sprite.pixels);
 			__prevBitmap = sprite.pixels;
 			__recalculateBounds = true;
+		}
+
+		if(useColorTransform) {
+			var tmp = FoxMathUtil.__tempVector;
+			var c = sprite.colorTransform;
+			tmp.setTo(c.redOffset, c.greenOffset, c.blueOffset);
+			material.setColor(sprite.color);
+			material.setEmissiveColorFromVector(tmp);
 		}
 	}
 
