@@ -63,7 +63,11 @@ class FoxObject extends FoxBasic {
 		Sets the object's angle degrees from a Vector3D
 	**/
 	public inline function setAngleFromVector(angles:Vector3D) {
+<<<<<<< HEAD
 		setAngle(angles.x, angles.y, angles.z);
+=======
+		setAngle(euler.x, euler.y, euler.z);
+>>>>>>> 2d0c594c2f23b4f03bf5cc1633396a3de20e1574
 	}
 
 	/**
