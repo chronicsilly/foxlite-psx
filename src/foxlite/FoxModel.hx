@@ -169,6 +169,14 @@ class FoxModel extends FoxObject {
 	}
 
 	/**
+		Shortcut to assign a material to a mesh by index
+	**/
+	public function setMaterial(meshIdx:Int, mat:FoxMaterial) {
+		var m:FoxMesh = meshes[meshIdx];
+		if(m != null) m.material = mat;
+	}
+
+	/**
 		Loads a FoxLite JSON model
 	**/
 	public function loadJSON(name:String) {
