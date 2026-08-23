@@ -19,26 +19,32 @@
 
 package foxlite;
 
-#if !foxlite_polymod enum abstract #else class #end FoxLayer #if !foxlite_polymod (Int) from Int to Int #end {
+#if !foxlite_polymod abstract #else class #end FoxLayer #if !foxlite_polymod (Int) from Int to Int #end {
 
 	public inline static final ALL:Int = 0xFFFFFFFF; // precomputed hash for get([0...31])
 
-	// Calculates layer hash based on array of <layer number>
+	/**
+		Calculates layer hash based on array of <layer number>
+	**/
 	public static function get(layers:Array<Int>):FoxLayer {
-		var layer = 0;
-		for(l in layers) layer |= Std.int(Math.pow(2, l));
+		var layer:FoxLayer = 0;
+		for(l in layers) layer |= 1 << l;
 		return layer;
 	}
 
 	public inline static function layer(layer:Int):FoxLayer {
-		return Std.int(Math.pow(2, layer));
+		return 1<<layer;
 	}
 
-	// Calculates layer hash based on a string sequence of 1 and 0
-	public static function getFromRadix2String(layers:String):FoxLayer {
-		var layer = [];
-		for(i in 0...layers.length) if(layers.charAt(i) == '1') layer.push(i);
-		return FoxLayer.get(layer);
+	/**
+		Calculates layer hash based on a string sequence of 1s and 0s,
+		from right to left.
+	*/
+	public static function fromRadix2String(layers:String):FoxLayer {
+		var layer:FoxLayer = 0;
+		var len:Int = layers.length;
+		for(i in 0...len) if(layers.charAt(i) == '1') layer |= 1 << (len-i-1);
+		return layer;
 	}
 
 	// Adds layers to A
