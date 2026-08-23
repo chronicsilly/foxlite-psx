@@ -85,24 +85,30 @@ class FoxMaterial {
 
 	/**
 		Sets the material tint color, acts like `colorMultipliers`
+
+		@returns the current material, useful for chaining calls, if you're into that
 	**/
-	public function setColor(color:FlxColor) {
+	public function setColor(color:FlxColor):FoxMaterial {
 		var c:Array<Float> = params.get("color");
 		c[0] = color.redFloat;
 		c[1] = color.greenFloat;
 		c[2] = color.blueFloat;
 		c[3] = color.alphaFloat;
+		return this;
 	}
 
-	public function setColorFromVector(color:Vector3D) {
+	public function setColorFromVector(color:Vector3D):FoxMaterial {
 		var c:Array<Float> = params.get("color");
 		c[0] = color.x; c[1] = color.y; c[2] = color.z; c[3] = color.w;
+		return this;
 	}
 
 	/**
 		Sets the material emissive color, this is the light emitted from the model, acts like `colorOffsets`
+
+		@returns the current material, useful for chaining calls, if you're into that
 	**/
-	public function setEmissiveColor(emissive:FlxColor) {
+	public function setEmissiveColor(emissive:FlxColor):FoxMaterial {
 		var c:Array<Float> = params.get("uEmissive");
 		if(c == null) {
 			c = [emissive.redFloat, emissive.greenFloat, emissive.blueFloat];
@@ -113,9 +119,10 @@ class FoxMaterial {
 			c[1] = emissive.greenFloat;
 			c[2] = emissive.blueFloat;
 		}
+		return this;
 	}
 
-	public function setEmissiveColorFromVector(emissive:Vector3D) {
+	public function setEmissiveColorFromVector(emissive:Vector3D):FoxMaterial {
 		var c:Array<Float> = params.get("uEmissive");
 		if(c == null) {
 			c = [emissive.x, emissive.y, emissive.z];
@@ -126,33 +133,37 @@ class FoxMaterial {
 			c[1] = emissive.y;
 			c[2] = emissive.z;
 		}
+		return this;
 	}
 
 	/**
 		Sets the material roughness factor, this controls how blurry the reflections are
 	**/
-	public function setRoughness(roughness:Float=0) {
+	public function setRoughness(roughness:Float=0):FoxMaterial {
 		params.set("uRoughness", roughness);
+		return this;
 	}
 
 	/**
 		Sets the material metallic factor, this controls how reflective it is
 	**/
-	public function setMetallic(metallic:Float=0) {
+	public function setMetallic(metallic:Float=0):FoxMaterial {
 		params.set("uMetallic", metallic);
+		return this;
 	}
 
 	/**
 		Sets the material subsurface-scattering factor, this controls how much light passes trough it
 	**/
-	public function setScattering(scattering:Float=0) {
+	public function setScattering(scattering:Float=0):FoxMaterial {
 		params.set("uScattering", scattering);
+		return this;
 	}
 
 	/**
 		Sets the material specular levels, this controls how strongly light bounces off it. It can "reflect" a custom color
 	**/
-	public function setSpecularLevels(red:Float=0, green:Float=0, blue:Float=0) {
+	public function setSpecularLevels(red:Float=0, green:Float=0, blue:Float=0):FoxMaterial {
 		var s:Array<Float> = params.get("uSpecular");
 		if(s == null) {
 			s = [red, green, blue];
@@ -161,6 +172,7 @@ class FoxMaterial {
 		else {
 			s[0] = red; s[1] = green; s[2] = blue;
 		}
+		return this;
 	}
 
 	/**
