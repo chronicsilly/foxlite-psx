@@ -59,6 +59,28 @@ class FoxObject extends FoxBasic {
 		angleZ = z;
 	}
 
+	/**
+		Sets the object's angle degrees from a Vector3D
+	**/
+	public inline function setAngleFromVector(angles:Vector3D) {
+		setAngle(euler.x, euler.y, euler.z);
+	}
+
+	/**
+		Gets the object's `rotation` as degrees, as a Vector3D
+
+		@param output (Optional) the output vector to store the angles without allocating a new one
+		@returns a Vector3D containing angleX, angleY and angleZ
+	**/
+	public function getAngle(?output:Vector3D):Vector3D {
+		if(output == null) {
+			FoxRenderer.allocationsThisFrame += 1;
+			return new Vector3D(angleX, angleY, angleZ);
+		}
+		output.setTo(angleX, angleY, angleZ);
+		return output;
+	}
+
 	public inline function setScale(x:Float=1, y:Float=1, z:Float=1) {
 		return scale.setTo(x, y, z);
 	}
