@@ -61,6 +61,24 @@ class FoxSkinData {
 		boneData.updateGPU();
 	}
 
+	/**
+		Copies this skin data (bones and transforms) to a new instance
+
+		Note that `bonesData` (the texture buffer) will be allocated on its own based on
+		the current bones array in the next frame.
+		If you need to, you can allocate it right away by calling `update(0)`
+	**/
+	public function copy():FoxSkinData {
+		var data = new FoxSkinData();
+		data.root.copyComponentsFrom(root);
+		for(bone in bones) {
+			var newBone = new FoxBone(bone.rest.clone());
+			newBone.copyComponentsFrom(bone);
+			data.addBone(newBone, bone.parentIndex);
+		}
+		return data;
+	}
+
 	public inline static function fromJSON(name:String):FoxSkinData {
 		return FoxJSONLoader.loadSkinData(name);
 	}
