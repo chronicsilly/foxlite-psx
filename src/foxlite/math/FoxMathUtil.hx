@@ -102,7 +102,10 @@ class FoxMathUtil {
 	// My brain hurts
 	public static function transformMatrix(matTRS:Matrix3D, pos:Vector3D, rotEuler:Vector3D, scale:Vector3D):Matrix3D {
 		matTRS.copyRawDataFrom(MATRIX_IDENTITY); // identity()
-		matTRS.appendScale(scale.x, scale.y, scale.z);
+		if(!scale.equals(FoxMathUtil.ONE)) {
+			matTRS.appendScale(scale.x, scale.y, scale.z); // It's actually 2 new allocs, bruh openfl
+			FoxRenderer.allocationsThisFrame += 2;
+		}
 
 		// These methods are so incredibly wasteful in memory, since they create more Matrix3D's
 		// but we have to use them because doing them in HScript will be slow af
@@ -115,7 +118,7 @@ class FoxMathUtil {
 		if(rot.x != 0) matTRS.appendRotation(rot.x, RIGHT);
 
 		matTRS.appendTranslation(pos.x, pos.y, pos.z);
-		FoxRenderer.allocationsThisFrame += 4;
+		FoxRenderer.allocationsThisFrame += 3;
 
 		return matTRS;
 	}
