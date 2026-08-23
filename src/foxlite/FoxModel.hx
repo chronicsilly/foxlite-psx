@@ -162,6 +162,13 @@ class FoxModel extends FoxObject {
 	}
 
 	/**
+		Shortcut to get a material from a mesh by index
+	**/
+	public function getMaterial(meshIdx:Int):FoxMaterial {
+		return meshes[meshIdx]?.material;
+	}
+
+	/**
 		Loads a FoxLite JSON model
 	**/
 	public function loadJSON(name:String) {

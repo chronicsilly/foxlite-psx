@@ -160,7 +160,7 @@ class FoxOBJLoader {
 					textureCount += 1;
 				}
 				case 'f': { // Face
-					for(d in data) { // Quads not supported yet
+					for(d in data) {
 						var fmt = d.split('/');
 
 						// Write vertices
@@ -200,6 +200,18 @@ class FoxOBJLoader {
 						uniqueIDs.set(d, curIndex);
 						curIndex += 1;
 					}
+				}
+				if(data.length == 4) { // If we're working with quads we need to triangulate
+					// Quad is wound clockwise, so does our triangles
+					// We create 2 additional indices:
+					// 0,1,2,3 -> 0,1,2,0,2,3
+					var len:Int = indices.length;
+					var i3:Int = len-1;
+					var v3:Int = indices[i3];
+
+					indices[i3] = indices[len-4];
+					indices.push(indices[len-2]);
+					indices.push(v3);
 				}
 			}
 		});
