@@ -85,6 +85,16 @@ class FoxObject extends FoxBasic {
 		return scale.setTo(x, y, z);
 	}
 
+	/**
+		Copies `position`, `rotation` and `scale` from another FoxObject,
+		so the other object's components doesn't affect this one when changing them
+	**/
+	public function copyComponentsFrom(object:FoxObject) {
+		position.copyFrom(object.position);
+		rotation.copyFrom(object.rotation);
+		scale.copyFrom(object.scale);
+	}
+
 	public override function update(dt) {
 		super.update(dt);
 		// Calculations must happen for parent every time
