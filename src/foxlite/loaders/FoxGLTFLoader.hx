@@ -15,6 +15,7 @@ class FoxGLTFLoader {
 
 	public static function load(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String):{meshes:Array<FoxMesh>, materials:Map<String, FoxMaterial>, ?skinData:Map<String, FoxSkinData>, ?animations:Map<String, FoxAnimation>} {
 		
+
 		return null;
 	}
 }
