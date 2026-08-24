@@ -79,7 +79,7 @@ float sampleShadowPoisson5(sampler2D tex, vec2 coord, float Z, vec2 S) {
 	float a = interleavedGradientNoise(ScreenCoord) * 6.28;
 	vec2 sc = vec2(sin(a),cos(a));
 	vec4 B = vec4(sc.y, sc.x, -sc.x, sc.y);
-	S *= 2.0;
+	S *= 1.5;
 
 	// Unrolled for OpenGL ES 2
 	const float NUM_TAPS = 5.0;

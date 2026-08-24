@@ -79,7 +79,11 @@ uniform mat4 invView;			// inverse camera transform (position, rotation)
 uniform mat4 projection; 		// Camera projection (fov, aspectRatio, clipping)
 uniform mat4 invProjection;     // Inverse camera projection for screen-space raytracing effects
 
+#ifdef PSX_AFFINE_MAPPING
+noperspective varying vec2 foxlite_TexCoordv; // Texture coordinates (no perspective correction)
+#else
 varying vec2 foxlite_TexCoordv; // Texture coordinates
+#endif
 varying vec4 foxlite_Colorv;	// Vertex colors
 varying vec4 viewPosition;    	// View-space
 varying vec3 modelViewNormal; 	// Computed normal-view transformation for deferred renderers
