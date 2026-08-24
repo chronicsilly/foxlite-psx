@@ -20,6 +20,7 @@ import foxlite.texture.FoxCubemapSide;
 import foxlite.texture.FoxFramebuffer;
 import foxlite.texture.FoxTexture;
 import foxlite.texture.FoxTextureFilter;
+import foxlite.texture.FoxWrapMode;
 import haxe.ds.StringMap;
 import lime.graphics.opengl.GL;
 import lime.utils.DataPointer;
@@ -143,14 +144,17 @@ class FoxRenderer {
 		trace('[FoxLite > FoxRenderer]: Texture Anisotropy ${ext == null ?  "not" : "is"} supported.');
 
 		// Initialize missing texture
-		MISSING_TEXTURE = FoxTexture.create(2, 2, "rgb");
+		MISSING_TEXTURE = FoxTexture.create(2, 2, "rgba", "UNSIGNED_SHORT_4_4_4_4");
 		MISSING_TEXTURE.filter = FoxTextureFilter.NEAREST;
+		MISSING_TEXTURE.wrapMode = FoxWrapMode.REPEAT;
 
 		// Upload some data
 		context.__bindGLTexture2D(MISSING_TEXTURE.glTexture.__textureID);
 
-		#if lime_webgl GL.texSubImage2DWEBGL #else GL.texSubImage2D #end (gl.TEXTURE_2D, 0, 0, 0, 2, 2, gl.RGBA, gl.UNSIGNED_BYTE, 
-			TypedArray.UInt8Array([255, 0, 255, 255,  0, 0, 0, 255,  0, 0, 0, 255,  255, 0, 255, 255])
+		#if lime_webgl GL.texSubImage2DWEBGL #else GL.texSubImage2D #end (gl.TEXTURE_2D, 0, 0, 0, 2, 2, gl.RGBA, gl.UNSIGNED_SHORT_4_4_4_4, 
+			// Uint8 takes 8 bits per element but our pixel only needs 4 bits, we use the a UInt16 array for two pairs of 4
+			// For an element, from left to right, F represents this format: RGBA
+			TypedArray.UInt16Array([0xF0FF, 0x000F, 0x000F, 0xF0FF])
 		);
 
 		MISSING_MATERIAL.name = "Missing material";
@@ -168,7 +172,7 @@ class FoxRenderer {
 		varying vec2 foxlite_TexCoordv;
 
 		void main(void) {
-			foxlite_TexCoordv = foxlite_TexCoord;
+			foxlite_TexCoordv = foxlite_TexCoord*10.;
 			gl_Position = projection * view * model * vec4(foxlite_Position.xyz, 1.0);
 		}", "
 		#ifdef GL_ES
@@ -669,11 +673,13 @@ class FoxRenderer {
 		}
 	}
 	
-	/** A GPU texture that can be of any available format
-	* It can hold any sort of values, for deferred renderers and storage.
-	*
-	* For a friendly list of available formats, check https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D#type
-	* 
+	/** 
+		A GPU texture that can be of any available format
+		It can hold any sort of values, for deferred renderers and storage.
+	
+		For a friendly list of available formats, check MDN's [texImage2D() types](https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D#type). 
+		
+		It applies for standard OpenGL aswell, with the exception of `WEBGL_`.
 	**/
 	public static function createTextureStorage(width:Int, height:Int, format:String="rgba", type:String="unsigned_byte"):Texture {
 		var gl = context.gl;

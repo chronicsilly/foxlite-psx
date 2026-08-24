@@ -166,9 +166,13 @@ class FoxTexture {
 	// TODO: DXT and ASTC texture support
 	//public static function fromImageCompressed(name:String, ?mipmaps:Bool, ?format:Int, ?params):FoxTexture {}
 
-	/*
-	* Create on GPU
-	*/
+	/**
+		Creates a texture on the GPU, this texture can be used as a render target.
+
+		For a friendly list of available formats, check MDN's [texImage2D() types](https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D#type). 
+		
+		It applies for standard OpenGL aswell, with the exception of `WEBGL_`.
+	**/
 	public static function create(width:Int, height:Int, format:String="rgba", type:String="unsigned_byte"):FoxTexture {
 		var tex = FoxTexture.wrapGL(FoxRenderer.createTextureStorage(width, height, format, type));
 		tex.__format = format.toUpperCase();
