@@ -125,7 +125,6 @@ class FoxMTLLoader {
 						p[1] = Std.parseFloat(tk.matched(3));
 						p[2] = Std.parseFloat(tk.matched(4));
 					}
-					trace(p, tk.matched(4));
 				};
 				// Textures
 				case 'map_Kd': {
