@@ -9,10 +9,10 @@ import foxlite.lights.FoxDirectionalLight;
 import foxlite.lights.FoxLightType;
 import foxlite.lights.FoxPointLight;
 import foxlite.lights.FoxSpotLight;
-import foxlite.lights.packed.PackedDirectionalLight;
-import foxlite.lights.packed.PackedPointLight;
-import foxlite.lights.packed.PackedSpotLight;
-import foxlite.lights.packed.PackedAreaLight;
+import foxlite.lights.uniform.UniformDirectionalLight;
+import foxlite.lights.uniform.UniformPointLight;
+import foxlite.lights.uniform.UniformSpotLight;
+import foxlite.lights.uniform.UniformAreaLight;
 import foxlite.polyfill.VectorFactory;
 import foxlite.renderer.FoxRenderer;
 import foxlite.texture.FoxFramebuffer;
@@ -37,10 +37,10 @@ class FoxLightData {
 	public final shadowLights:Array<FoxBaseLight> = [];
 
 	// Data
-	public final directionalLightBuffer:Array<PackedDirectionalLight> = [];
-	public final pointLightBuffer:Array<PackedPointLight> = [];
-	public final spotLightBuffer:Array<PackedSpotLight> = [];
-	public final areaLightBuffer:Array<PackedAreaLight> = [];
+	public final directionalLightBuffer:Array<UniformDirectionalLight> = [];
+	public final pointLightBuffer:Array<UniformPointLight> = [];
+	public final spotLightBuffer:Array<UniformSpotLight> = [];
+	public final areaLightBuffer:Array<UniformAreaLight> = [];
 
 	public var lightCount:Array<Int> = [0, 0, 0, 0];
 
@@ -148,10 +148,10 @@ class FoxLightData {
 
 	public function new() {
 		// Initialize buffers
-		for(i in 0...FoxLightData.MAX_DIRECTIONAL_LIGHTS) directionalLightBuffer.push(new PackedDirectionalLight());
-		for(i in 0...FoxLightData.MAX_POINT_LIGHTS) pointLightBuffer.push(new PackedPointLight());
-		for(i in 0...FoxLightData.MAX_SPOT_LIGHTS) spotLightBuffer.push(new PackedSpotLight());
-		for(i in 0...FoxLightData.MAX_AREA_LIGHTS) areaLightBuffer.push(new PackedAreaLight());
+		for(i in 0...FoxLightData.MAX_DIRECTIONAL_LIGHTS) directionalLightBuffer.push(new UniformDirectionalLight());
+		for(i in 0...FoxLightData.MAX_POINT_LIGHTS) pointLightBuffer.push(new UniformPointLight());
+		for(i in 0...FoxLightData.MAX_SPOT_LIGHTS) spotLightBuffer.push(new UniformSpotLight());
+		for(i in 0...FoxLightData.MAX_AREA_LIGHTS) areaLightBuffer.push(new UniformAreaLight());
 
 		var gl = FoxRenderer.getContext().gl;
 		var maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) ?? 4096;
