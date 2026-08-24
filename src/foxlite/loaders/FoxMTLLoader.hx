@@ -12,7 +12,7 @@ import openfl.geom.Vector3D;
 
 class FoxMTLLoader {
 	
-	@:dox(hide) public static final n = "(-?\\d+[e.]?\\d*?)"; // Regex int/float token
+	@:dox(hide) public static final n = "(-?\\d+[e.]?\\d*)"; // Regex int/float token
 
 	@:dox(hide) public static final tokenizer = {
 		def:  new EReg('(newmtl|Ns|Ni|illum|d)\\s+(.+)', 'g'),
@@ -107,6 +107,25 @@ class FoxMTLLoader {
 						Std.parseFloat(tk.matched(3)),
 						Std.parseFloat(tk.matched(4))
 					]);
+				};
+				case 'Kd': {
+					var tk = tokenizer.K;
+					tk.match(line);
+
+					var p:Array<Float> = curMat.params.get("color");
+					if(p == null) {
+						p = [
+							Std.parseFloat(tk.matched(2)), 
+							Std.parseFloat(tk.matched(3)), 
+							Std.parseFloat(tk.matched(4)), 1];
+						curMat.params.set("color", p);
+					}
+					else {
+						p[0] = Std.parseFloat(tk.matched(2));
+						p[1] = Std.parseFloat(tk.matched(3));
+						p[2] = Std.parseFloat(tk.matched(4));
+					}
+					trace(p, tk.matched(4));
 				};
 				// Textures
 				case 'map_Kd': {
