@@ -1,17 +1,20 @@
 package foxlite;
 
+
+import flixel.util.FlxColor;
 import foxlite.FoxLayer;
 import foxlite.FoxModel;
 import foxlite.FoxShader;
 import foxlite.instancing.FoxInstanceData;
 import foxlite.instancing.FoxInstanceUpdateMode;
+import foxlite.math.FoxMathUtil;
 import foxlite.mesh.FoxMesh;
 import foxlite.renderer.FoxRenderer;
 import haxe.ds.List;
 import haxe.io.Bytes;
-import lime.math.Vector4;
 import lime.utils.Float32Array;
 import openfl.geom.Matrix3D;
+import openfl.geom.Vector3D;
 
 /**
 	Like `FoxModel`, but designed to render a mesh multiple times, useful for particles
@@ -24,7 +27,7 @@ class FoxInstancedModel extends FoxModel {
 		This is a mat3x4 split into 3 attributes
 		And an extra vec4 buffer for color/custom data
 	**/
-	public var instanceData = new FoxInstanceData();
+	public var instanceData:FoxInstanceData;
 
 	/**
 		The number of instances that will be rendered, this is applied per mesh.
@@ -61,14 +64,18 @@ class FoxInstancedModel extends FoxModel {
 
 	public function new(numInstances:Int=0, x:Float=0, y:Float=0, z:Float=0, layers:FoxLayer=0x1, ?groups:Array<Int>, culling:Bool=true) {
 		super(x, y, z, layers, groups, culling);
-		instanceCount = numInstances;
+		if(numInstances > 0) {
+			instanceData = new FoxInstanceData();
+			instanceCount = numInstances;
+		}
 	}
 
 	private function set_instanceCount(v:Int):Int {
 		if(v == this.instanceCount) return v;
 		// Only reallocate when we need more instances
 		if(v > __maxInstanceCount) {
-			instanceData.reallocate(v);
+			if(instanceData != null) instanceData.reallocate(v);
+			else trace("Warning! instanceData is null! Please assign one and try again!");
 			__maxInstanceCount = v;
 		}
 		if(v == 0 || this.instanceCount == 0) {
@@ -127,7 +134,7 @@ class FoxInstancedModel extends FoxModel {
 	}
 
 	/**
-		This function changes an instance position, rotation and scale.
+		This function changes an instance position, rotation and scale from a matrix.
 
 		__Note:__ This will not include the last column of the matrix.
 
@@ -139,6 +146,19 @@ class FoxInstancedModel extends FoxModel {
 		pushUpdate(instance);
 	}
 
+	/**
+		If you want to transform an instance from a set of components, use this.
+	**/
+	public function setInstanceTransformSeparate(instance:Int, ?position:Vector3D, ?rotation:Vector3D, ?scale:Vector3D) {
+		instanceData.setInstanceTransformSeparate(instance, position, rotation, scale);
+		pushUpdate(instance);
+	}
+
+	/**
+		Extracts a `Matrix3D` containing the instance transform data
+
+		To get `position`, `rotation` and `scale`, use the matrix `decompose()`
+	**/
 	public function getInstanceTransform(instance:Int):Matrix3D {
 		return instanceData.getInstanceTransform(instance);
 	}
@@ -150,13 +170,22 @@ class FoxInstancedModel extends FoxModel {
 		@param instance The instance index
 		@param color The color value in RGBA float
 	**/
-	public function setInstanceColor(instance:Int, color:Vector4) {
+	public function setInstanceColor(instance:Int, color:Vector3D) {
 		instanceData.setInstanceColor(instance, color);
 		pushUpdate(instance);
 	}
 
-	public function getInstanceColor(instance:Int):Vector4 {
+	public function setInstanceFlxColor(instance:Int, color:FlxColor) {
+		instanceData.setInstanceFlxColor(instance, color);
+		pushUpdate(instance);
+	}
+
+	public function getInstanceColor(instance:Int):Vector3D {
 		return instanceData.getInstanceColor(instance);
+	}
+
+	public function getInstanceFlxColor(instance:Int):FlxColor {
+		return instanceData.getInstanceFlxColor(instance);
 	}
 
 	public function pushUpdate(instance:Int) {

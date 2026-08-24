@@ -1,12 +1,14 @@
 package foxlite.instancing;
 
+import flixel.util.FlxColor;
 import foxlite.instancing.FoxInstanceChunkData;
+import foxlite.math.FoxMathUtil;
 import foxlite.renderer.FoxRenderer;
 import haxe.io.Bytes;
-import lime.math.Vector4;
 import lime.utils.Float32Array;
 import openfl.display3D.Context3D;
 import openfl.geom.Matrix3D;
+import openfl.geom.Vector3D;
 
 class FoxInstanceData {
 
@@ -17,6 +19,9 @@ class FoxInstanceData {
 
 	var __tmpBuffer = new Float32Array(4);
 	var _bytes:Bytes;
+
+	// Temporary matrix stuffs
+	var __tempMatrix:Matrix3D = new Matrix3D();
 
 	public var context:Context3D;
 
@@ -79,6 +84,11 @@ class FoxInstanceData {
 		}
 	}
 
+	public function setInstanceTransformSeparate(pos:Int, ?position:Vector3D, ?rotation:Vector3D, ?scale:Vector3D) {
+		FoxMathUtil.transformMatrix(__tempMatrix, position ?? FoxMathUtil.ZERO, rotation ?? FoxMathUtil.ZERO, scale ?? FoxMathUtil.ONE);
+		setInstanceTransform(pos, __tempMatrix);
+	}
+
 	public function getInstanceTransform(pos:Int):Matrix3D {
 		pos *= 4;
 		var transform = new Matrix3D();
@@ -95,7 +105,7 @@ class FoxInstanceData {
 		return transform;
 	}
 
-	public function setInstanceColor(pos:Int, col:Vector4) {
+	public function setInstanceColor(pos:Int, col:Vector3D) {
 		pos *= 4;
 		color.setFloat(pos  , col.x);
 		color.setFloat(pos+1, col.y);
@@ -103,10 +113,28 @@ class FoxInstanceData {
 		color.setFloat(pos+3, col.w);
 	}
 
-	public function getInstanceColor(pos:Int):Vector4 {
+	public function setInstanceFlxColor(pos:Int, col:FlxColor) {
+		pos *= 4;
+		color.setFloat(pos  , col.redFloat);
+		color.setFloat(pos+1, col.greenFloat);
+		color.setFloat(pos+2, col.blueFloat);
+		color.setFloat(pos+3, col.alphaFloat);
+	}
+
+	public function getInstanceColor(pos:Int):Vector3D {
 		pos *= 4;
 		FoxRenderer.allocationsThisFrame += 1;
-		return new Vector4(
+		return new Vector3D(
+			color.getFloat(pos  ),
+			color.getFloat(pos+1),
+			color.getFloat(pos+2),
+			color.getFloat(pos+3)
+		);
+	}
+
+	public function getInstanceFlxColor(pos:Int):FlxColor {
+		pos *= 4;
+		return FlxColor.fromRGBFloat(
 			color.getFloat(pos  ),
 			color.getFloat(pos+1),
 			color.getFloat(pos+2),
@@ -119,17 +147,6 @@ class FoxInstanceData {
 		FoxRenderer.updateVertexBuffer(context, column1.glBuffer, column1.buffer);
 		FoxRenderer.updateVertexBuffer(context, column2.glBuffer, column2.buffer);
 		FoxRenderer.updateVertexBuffer(context, color.glBuffer, color.buffer);
-
-		/*
-		var b = column0.buffer;
-		trace(b[0], b[1], b[2], b[3]);
-		var b = column1.buffer;
-		trace(b[0], b[1], b[2], b[3]);
-		var b = column2.buffer;
-		trace(b[0], b[1], b[2], b[3]);
-		var b = color.buffer;
-		trace(b[0], b[1], b[2], b[3]);
-		*/
 	}
 
 	public function flushInstance(instance:Int) {
