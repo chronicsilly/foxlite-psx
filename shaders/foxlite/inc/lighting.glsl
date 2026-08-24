@@ -54,7 +54,7 @@ uniform ivec4 lightCount; 									//   +1 = 145 vec4s for lights
 															// lightCount: x=directional, y=point, z=spot, w=area
 
 
-#ifndef NO_SHADOW_CODE
+#if !defined(NO_SHADOW_CODE) && !defined(UNSHADED)
 #include "foxlite/inc/shadow.glsl"
 #endif
 
