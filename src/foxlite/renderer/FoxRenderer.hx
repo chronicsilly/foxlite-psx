@@ -639,20 +639,33 @@ class FoxRenderer {
 			if(blendMode == 0) gl.disable(gl.BLEND);
 			else {
 				gl.enable(gl.BLEND);
-				gl.blendEquation(gl.FUNC_ADD);
 				
 				// Functions
 				switch(blendMode) {
-					case FoxBlendMode.MIX: gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-					case FoxBlendMode.ADD: gl.blendFunc(gl.ONE, gl.ONE);
+					case FoxBlendMode.MIX: {
+						gl.blendEquation(gl.FUNC_ADD);
+						gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+					};
+					case FoxBlendMode.ADD: {
+						gl.blendEquation(gl.FUNC_ADD);
+						gl.blendFunc(gl.ONE, gl.ONE);
+					};
 					case FoxBlendMode.SUBTRACT: {
 						gl.blendEquation(gl.FUNC_REVERSE_SUBTRACT);
 						gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 					};
-					case FoxBlendMode.MULTIPLY: gl.blendFunc(gl.DST_COLOR, gl.ZERO);
-					case FoxBlendMode.PREMULTIPLIED_ALPHA: gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-					default:
+					case FoxBlendMode.MULTIPLY: {
+						gl.blendEquation(gl.FUNC_ADD);
+						gl.blendFunc(gl.DST_COLOR, gl.ZERO);
+					};
+					case FoxBlendMode.PREMULTIPLIED_ALPHA: {
+						gl.blendEquation(gl.FUNC_ADD);
+						gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+					};
+					default: {
+						gl.blendEquation(gl.FUNC_ADD);
 						gl.blendFunc(gl.ONE, gl.ZERO);
+					};
 				}
 			}
 
