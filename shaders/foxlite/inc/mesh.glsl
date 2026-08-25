@@ -14,7 +14,11 @@ attribute vec4 foxlite_Color;
 attribute vec4 foxlite_InstanceData0;
 attribute vec4 foxlite_InstanceData1;
 attribute vec4 foxlite_InstanceData2;
+#ifndef DISABLE_INSTANCE_COLOR
 attribute vec4 foxlite_InstanceColor;
+#else
+#define foxlite_InstanceColor vec4(1)
+#endif
 
 uniform bool uInstanced;
 
