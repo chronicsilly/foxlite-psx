@@ -103,6 +103,11 @@ class FoxMaterial {
 		return this;
 	}
 
+	public function getColor():FlxColor {
+		var c:Array<Float> = params.get("color");
+		return FlxColor.fromRGBFloat(c[0], c[1], c[2], c[3]);
+	}
+
 	/**
 		Sets the material emissive color, this is the light emitted from the model, acts like `colorOffsets`
 
@@ -134,6 +139,12 @@ class FoxMaterial {
 			c[2] = emissive.z;
 		}
 		return this;
+	}
+
+	public function getEmissiveColor():FlxColor {
+		var c:Array<Float> = params.get("uEmissive");
+		if(c == null) return 0x0;
+		return FlxColor.fromRGBFloat(c[0], c[1], c[2], c[3]);
 	}
 
 	/**
