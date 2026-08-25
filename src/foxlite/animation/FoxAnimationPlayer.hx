@@ -181,10 +181,10 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 	public function play(name:String, ?from:Float, ?reversed:Bool) {
 		curAnim = library.get(name);
 		animSelector = name;
-		if(from != null) time = from;
 		if(reversed != null) reverse = reversed;
-		playing = true;
 		__playFrame = true;
+		playing = true;
+		if(from != null) seek(from);
 	}
 
 	/**
