@@ -61,8 +61,10 @@ class FoxAnimation {
 		return this.duration = Math.max(v, 0);
 	}
 
-	public function new(animationName:String):Void {
+	public function new(animationName:String, duration:Float=0, looping:Bool=false):Void {
 		name = animationName;
+		this.duration = duration;
+		loop = looping;
 		FoxRenderer.allocationsThisFrame += 3;
 	}
 
