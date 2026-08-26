@@ -66,6 +66,7 @@ class FoxJSONLoader {
 
 			var mesh = new FoxMesh();
 			mesh.setArrays(model.vertices, model.uvtData, model.indices, material, model.normals, model.colors, model.weights, model.influences);
+			mesh.calculateBounds(model.vertices);
 			mesh.assetsKey = name;
 			meshes.push(mesh);
 		}

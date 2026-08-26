@@ -79,6 +79,7 @@ class FoxOBJLoader {
 
 		function finishMesh() {
 			curMesh?.setArrays(vertices, uvtData, indices, null, normals);
+			curMesh?.calculateBounds(vertices);
 			if(curMesh != null && curMesh.material == null) curMesh.material = FoxRenderer.MISSING_MATERIAL; // What happened to our material...
 					
 			curMesh = new FoxMesh();
@@ -219,6 +220,7 @@ class FoxOBJLoader {
 		// EOF reached
 		// Finish pending mesh
 		curMesh?.setArrays(vertices, uvtData, indices, null, normals, colors);
+		curMesh?.calculateBounds(vertices);
 		if(curMesh != null && curMesh.material == null) curMesh.material = FoxRenderer.MISSING_MATERIAL; // What happened to our material...
 
 		FoxCache.meshes().set(name, meshes);

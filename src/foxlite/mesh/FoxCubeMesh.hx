@@ -71,5 +71,6 @@ class FoxCubeMesh extends FoxMesh {
 
 		if(usage != null) bufferUsage = usage;
 		setArrays(vertices, uvtData, indices, material, normals);
+		calculateBounds(vertices);
 	}
 }

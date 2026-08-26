@@ -183,7 +183,6 @@ class FoxMesh {
 			vertexBuffer?.dispose();
 			vertexBuffer = context.createVertexBuffer(Std.int(vertices.length / 3), 3);
 			vertexBuffer.__usage = bufferUsage;
-			calculateBounds(vertices);
 			setBuffer(FoxMeshBufferType.VERTICES, vertices); // Upload to GPU
 			FoxRenderer.allocationsThisFrame += 1;
 		}
