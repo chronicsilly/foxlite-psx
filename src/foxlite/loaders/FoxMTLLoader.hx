@@ -2,12 +2,13 @@ package foxlite.loaders;
 
 import StringTools;
 import EReg;
+import haxe.io.Path;
+import haxe.ds.StringMap;
 import foxlite.FoxShader;
 import foxlite.loaders.FoxLoaderUtil;
 import foxlite.material.FoxMaterial;
 import foxlite.material.FoxTriangleFace;
 import foxlite.texture.FoxTexture;
-import haxe.ds.StringMap;
 import openfl.geom.Vector3D;
 
 class FoxMTLLoader {
@@ -130,13 +131,13 @@ class FoxMTLLoader {
 				case 'map_Kd': {
 					var tk = tokenizer.map;
 					tk.match(line);
-					curMat.textures.set("bitmap", FoxTexture.fromImage(FoxLoaderUtil.file(tk.matched(2))));
+					curMat.textures.set("bitmap", FoxTexture.fromImage(Path.withoutExtension(tk.matched(2))));
 					matShaderFlags.remove("SOLID");
 				};
 				case 'map_Ke': {
 					var tk = tokenizer.map;
 					tk.match(line);
-					curMat.textures.set("emissiveMap", FoxTexture.fromImage(FoxLoaderUtil.file(tk.matched(2))));
+					curMat.textures.set("emissiveMap", FoxTexture.fromImage(Path.withoutExtension(tk.matched(2))));
 					matShaderFlags.push("EMISSIVE_MAP");
 					
 					// Make sure emissives are visible
@@ -145,13 +146,13 @@ class FoxMTLLoader {
 				case 'map_Bump': {
 					var tk = tokenizer.map;
 					tk.match(line);
-					curMat.textures.set("normalMap", FoxTexture.fromImage(FoxLoaderUtil.file(tk.matched(2))));
+					curMat.textures.set("normalMap", FoxTexture.fromImage(Path.withoutExtension(tk.matched(2))));
 					matShaderFlags.push("NORMAL_MAP");
 				};
 				case 'map_ORM': {
 					var tk = tokenizer.map;
 					tk.match(line);
-					curMat.textures.set("ormMap", FoxTexture.fromImage(FoxLoaderUtil.file(tk.matched(2))));
+					curMat.textures.set("ormMap", FoxTexture.fromImage(Path.withoutExtension(tk.matched(2))));
 					matShaderFlags.push("ORM_MAP");
 				};
 			}

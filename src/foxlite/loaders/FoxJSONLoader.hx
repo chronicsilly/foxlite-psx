@@ -3,6 +3,7 @@ package foxlite.loaders;
 import Reflect;
 import Array;
 import haxe.Json;
+import haxe.io.Path;
 import haxe.ds.StringMap;
 import foxlite.animation.FoxAnimation;
 import foxlite.animation.FoxTrackType;
@@ -50,7 +51,7 @@ class FoxJSONLoader {
 		var meshes:Array<FoxMesh> = [];
 		var materials:Map<String, FoxMaterial> = new StringMap();
 
-		var path:String = FoxLoaderUtil.path(name);
+		var path:String = Path.directory(name) + '/';
 
 		for(model in modelData) {
 			var material:FoxMaterial = null;

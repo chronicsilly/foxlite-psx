@@ -79,27 +79,4 @@ class FoxLoaderUtil {
 			if(len == -1) break;
 		}
 	}
-
-	/**
-		Returns a file path without the extension
-	**/
-	public static function file(f:String):String {
-		var i = f.lastIndexOf(".");
-		return i == -1 ? f : f.substr(0, i);
-	}
-
-	/**
-		Returns a file path without the file
-	**/
-	public static function path(f:String):String {
-		return f.substr(0, f.lastIndexOf('/')+1);
-	}
-
-	/**
-		Returns the file extension from a path
-	**/
-	public static function extension(f:String):String {
-		var i = f.lastIndexOf('.')+1;
-		return i == 0 ? "" : f.substr(i);
-	}
 }
