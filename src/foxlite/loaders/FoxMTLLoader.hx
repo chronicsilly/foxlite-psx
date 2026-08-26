@@ -10,6 +10,7 @@ import foxlite.material.FoxMaterial;
 import foxlite.material.FoxTriangleFace;
 import foxlite.texture.FoxTexture;
 import openfl.geom.Vector3D;
+import openfl.Assets;
 
 class FoxMTLLoader {
 	
@@ -38,6 +39,7 @@ class FoxMTLLoader {
 			trace('[Foxlite > FoxOBJLoader]: Could not load MTL: ${name} (Not found.)');
 			return null;
 		}
+		var dir = Path.directory(name) + '/';
 
 		if(extraShaderFlags == null) extraShaderFlags = [];
 
@@ -131,13 +133,13 @@ class FoxMTLLoader {
 				case 'map_Kd': {
 					var tk = tokenizer.map;
 					tk.match(line);
-					curMat.textures.set("bitmap", FoxTexture.fromImage(Path.withoutExtension(tk.matched(2))));
+					curMat.textures.set("bitmap", _loadTexture(dir + tk.matched(2)));
 					matShaderFlags.remove("SOLID");
 				};
 				case 'map_Ke': {
 					var tk = tokenizer.map;
 					tk.match(line);
-					curMat.textures.set("emissiveMap", FoxTexture.fromImage(Path.withoutExtension(tk.matched(2))));
+					curMat.textures.set("emissiveMap", _loadTexture(dir + tk.matched(2)));
 					matShaderFlags.push("EMISSIVE_MAP");
 					
 					// Make sure emissives are visible
@@ -146,13 +148,13 @@ class FoxMTLLoader {
 				case 'map_Bump': {
 					var tk = tokenizer.map;
 					tk.match(line);
-					curMat.textures.set("normalMap", FoxTexture.fromImage(Path.withoutExtension(tk.matched(2))));
+					curMat.textures.set("normalMap", _loadTexture(dir + tk.matched(2)));
 					matShaderFlags.push("NORMAL_MAP");
 				};
 				case 'map_ORM': {
 					var tk = tokenizer.map;
 					tk.match(line);
-					curMat.textures.set("ormMap", FoxTexture.fromImage(Path.withoutExtension(tk.matched(2))));
+					curMat.textures.set("ormMap", _loadTexture(dir + tk.matched(2)));
 					matShaderFlags.push("ORM_MAP");
 				};
 			}
@@ -165,6 +167,19 @@ class FoxMTLLoader {
 		FoxCache.materialLibs().set(name, materials);
 
 		return materials;
+	}
+
+	@:dox(hide)
+	@:noCompletion public static function _loadTexture(name:String):FoxTexture {
+		// Check if image exists relative to our model
+		var relPath = FoxLoaderUtil.filePath(name);
+		#if cne
+		if(Assets.exists(relPath)) return FoxTexture.fromImageRaw(relPath);
+		// Nothing, load from `images/`
+		return FoxTexture.fromImage(Path.withoutExtension(name));
+		#else
+		return FoxTexture.fromImageRaw(relPath);
+		#end
 	}
 
 }

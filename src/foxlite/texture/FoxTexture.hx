@@ -124,18 +124,27 @@ class FoxTexture {
 		return foxTex;
 	}
 
+	/**
+		Loads a `FoxTexture` from an image located in `images/` (with .png extension)
+	**/
 	public static function fromImage(name:String, mipmaps:Bool=false, format:Context3DTextureFormat=#if !foxlite_polymod Context3DTextureFormat.BGRA #else 1 #end, ?params:{?wrapMode:FoxWrapMode, ?filter:FoxTextureFilter, ?mipFilter:FoxMipFilter}):FoxTexture {
+		return fromImageRaw(FoxLoaderUtil.imagePath(name), mipmaps, format, params);
+	}
+	
+	/**
+		Loads a `FoxTexture` using a full raw asset path (including extension)
+	**/
+	public static function fromImageRaw(name:String, mipmaps:Bool=false, format:Context3DTextureFormat=#if !foxlite_polymod Context3DTextureFormat.BGRA #else 1 #end, ?params:{?wrapMode:FoxWrapMode, ?filter:FoxTextureFilter, ?mipFilter:FoxMipFilter}):FoxTexture {
 		if(FoxCache.textures().exists(name)) return FoxCache.textures().get(name);
 		
-		var path = FoxLoaderUtil.imagePath(name);
-		if(!Assets.exists(path)) {
-			trace('[Foxlite > FoxTexture]: Could not load image: ${path} (Not found.)');
+		if(!Assets.exists(name)) {
+			trace('[Foxlite > FoxTexture]: Could not load image: ${name} (Not found.)');
 			return null;
 		}
 
-		var data = Assets.getBitmapData(path, false);
+		var data = Assets.getBitmapData(name, false);
 		if(data == null) {
-			trace('[Foxlite > FoxTexture]: Could not load image: ${path} (BitmapData error.)');
+			trace('[Foxlite > FoxTexture]: Could not load image: ${name} (BitmapData error.)');
 			return null;
 		}
 
