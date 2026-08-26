@@ -18,6 +18,7 @@ import lime.graphics.opengl.GL;
 import lime.utils.DataPointer;
 #end
 import lime.utils.Float32Array;
+import lime.utils.UInt16Array;
 
 class FoxMesh {
 
@@ -75,17 +76,29 @@ class FoxMesh {
 		@param data The data array
 	**/
 	public function setBuffer(type:FoxMeshBufferType, data:Array<Float>) {
-		var buffer = getBufferByType(type);
-		buffer.uploadFromTypedArray(TypedArray.Float32Array(cast data));
+		setBufferRaw(type, TypedArray.Float32Array(cast data));
 		FoxRenderer.allocationsThisFrame += 1;
+	}
+
+	/**
+		Writes buffer data on the GPU using an existing `ArrayBufferView`.
+		This method runs faster than `setBuffer`
+	**/
+	public function setBufferRaw(type:FoxMeshBufferType, data:ArrayBufferView) {
+		var buffer = getBufferByType(type);
+		buffer.uploadFromTypedArray(data);
 	}
 
 	/**
 		Same as `setBuffer()` but exclusive to the Index buffer
 	**/
 	public function setIndexBuffer(data:Array<Int>) {
-		indexBuffer.uploadFromTypedArray(TypedArray.UInt16Array(cast data));
+		setIndexBufferRaw(TypedArray.UInt16Array(cast data));
 		FoxRenderer.allocationsThisFrame += 1;
+	}
+
+	public function setIndexBufferRaw(data:UInt16Array) {
+		indexBuffer.uploadFromTypedArray(data);
 	}
 
 	/**
@@ -370,13 +383,13 @@ class FoxMesh {
 	**/
 	public function getBufferByType(type:FoxMeshBufferType):VertexBuffer3D {
 		return switch(type) {
-			case FoxMeshBufferType.VERTICES: return vertexBuffer;
-			case FoxMeshBufferType.UVS: return uvBuffer;
-			case FoxMeshBufferType.NORMALS: return normalBuffer;
-			case FoxMeshBufferType.TANGENTS: return tangentBuffer;
-			case FoxMeshBufferType.COLORS: return colorBuffer;
-			case FoxMeshBufferType.WEIGHTS: return boneWeights;
-			case FoxMeshBufferType.BONE_INDICES: return boneIndices;
+			case FoxMeshBufferType.VERTICES: vertexBuffer;
+			case FoxMeshBufferType.UVS: uvBuffer;
+			case FoxMeshBufferType.NORMALS: normalBuffer;
+			case FoxMeshBufferType.TANGENTS: tangentBuffer;
+			case FoxMeshBufferType.COLORS: colorBuffer;
+			case FoxMeshBufferType.WEIGHTS: boneWeights;
+			case FoxMeshBufferType.BONE_INDICES: boneIndices;
 			default: null;
 		}
 	}
