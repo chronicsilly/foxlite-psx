@@ -1,5 +1,6 @@
 package foxlite.lights;
 
+import flixel.util.FlxColor;
 import foxlite.math.FoxMathUtil;
 import openfl.geom.Rectangle;
 import openfl.geom.Matrix3D;
@@ -340,6 +341,10 @@ class FoxLightData {
 
 	public function setAmbientLight(color:Vector3D) {
 		ambientLight.copyFrom(color);
+	}
+
+	public function setAmbientLightFlxColor(color:FlxColor) {
+		ambientLight.setTo(color.redFloat, color.greenFloat, color.blueFloat);
 	}
 
 	public function updateShaderLights(shader:FoxShader) {
