@@ -95,6 +95,16 @@ class FoxObject extends FoxBasic {
 		scale.copyFrom(object.scale);
 	}
 
+	/**
+		Rotates the object so its Z axis points in the direction of another object's position
+
+		__Note:__ Positions are expected to be in global space, so the resulting rotation will also be in global space
+	**/
+	public function lookAt(otherPos:Vector3D) {
+		transform.pointAt(globalPosition, otherPos, FoxMathUtil.UP);
+		FoxMathUtil.eulerFromMatrix(transform, rotation, scale);
+	}
+
 	public override function update(dt) {
 		super.update(dt);
 		// Calculations must happen for parent every time
