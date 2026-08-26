@@ -23,7 +23,7 @@ class FoxCamera extends FoxObject {
 	public var far(default, set):Float = 1000.0;
 	public var aspect(default, set):Float = 1;
 	public var orthogonal(default, set):Bool = false;
-	public var bgColor = 0x00000000;
+	public var bgColor:FlxColor = 0x00000000;
 	public var __aspect:Float = 1; // Target aspect
 	//public var __destroyed:Bool = false;
 	public var __updateProjection:Bool = true;
