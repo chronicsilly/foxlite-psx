@@ -51,7 +51,7 @@ class FoxLoaderUtil {
 	}
 
 	public static function loadJSON(name:String):Dynamic {
-		var path = jsonPath(name);
+		var path = filePath(name);
 		if(!Assets.exists(path)) return null;
 		return Json.parse(Assets.getText(path));
 	}
