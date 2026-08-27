@@ -71,6 +71,7 @@ class FoxOBJLoader {
 		var curIndex:Int = 0;
 
 		var curMesh:FoxMesh = null;
+		var __prevMesh:FoxMesh = null;
 		var meshes:Array<FoxMesh> = [];
 		var groupBuildStage:Int = -1;
 
@@ -110,7 +111,12 @@ class FoxOBJLoader {
 					materials = FoxMTLLoader.load(matPath, extraShaderFlags, customShaderPath);
 				};
 				case 'usemtl': { // Set material
-					curMesh.material = materials?.get(data.join(' ')); // Join spaces since names can have them
+					var material = materials?.get(data.join(' ')); // Join spaces since names can have them
+					if(__prevMesh == curMesh && __prevMesh?.material != null && curMesh?.material != null) {
+						trace('Warning! Material "${material.name}" tried to overwrite mesh material "${curMesh.material.name}". FoxLite does not support per-face materials, skipping!!');
+					}
+					else curMesh.material = material;
+					__prevMesh = curMesh;
 				};
 				case 'o': { // New object
 					finishMesh();
