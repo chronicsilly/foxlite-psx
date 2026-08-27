@@ -427,8 +427,27 @@ class FoxShader {
 		if(flags == null) flags = shaderDefines;
 		disposeProgram();
 		uniformCache.clear();
-		FoxShader.fromSources(__vertSource, __fragSource, flags, this);
-		__isCombined = false;
+
+		// Check in cache if we have a shader with these flags from the assetsKey
+		// And use its programs instead
+		var defHash = flags.toString();
+		if(!StringTools.startsWith(defHash, '[')) defHash = '[$defHash]';
+
+		var cache = FoxCache.shaders().get(defHash + assetsKey);
+		if(cache != null) {
+			program = cache.program;
+			shadow.program = cache.shadow?.program;
+			__isCombined = true;
+			
+			initCache();
+			__needsCompiling = false;
+			shadow.__needsCompiling = false;
+			FoxCache.shaders().set(defHash + assetsKey, this);
+		}
+		else {
+			FoxShader.fromSources(__vertSource, __fragSource, flags, this);
+			__isCombined = false;
+		}
 	}
 
 	public inline function getVertexShaderLog():String {
