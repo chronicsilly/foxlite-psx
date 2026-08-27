@@ -541,7 +541,7 @@ class FoxRenderer {
 
 		// Skinning
 		if(attrib.boneWeight != -1) context.setVertexBufferAt(attrib.boneWeight, mesh.boneWeights, 0);
-		if(attrib.boneIndex != -1) context.setVertexBufferAt(attrib.boneIndex, mesh.boneIndices, 0, cast 0); // OpenFL normalizes bytes... we don't want that so atm we multiply by 255 in our shader
+		if(attrib.boneIndex != -1) FoxRenderer.vertexAtrribPtrUByte(context, attrib.boneIndex, mesh.boneIndices); // OpenFL normalizes bytes... we don't want that so we use our own
 
 		// Draw things the OpenGL way
 		@:privateAccess // Shut up haxe everything is okay
@@ -579,7 +579,7 @@ class FoxRenderer {
 
 		// Skinning
 		if(attrib.boneWeight != -1) context.setVertexBufferAt(attrib.boneWeight, mesh.boneWeights, 0);
-		if(attrib.boneIndex != -1) context.setVertexBufferAt(attrib.boneIndex, mesh.boneIndices, 0, cast 0); // OpenFL normalizes bytes... we don't want that so atm we multiply by 255 in our shader
+		if(attrib.boneIndex != -1) FoxRenderer.vertexAtrribPtrUByte(context, attrib.boneIndex, mesh.boneIndices); // OpenFL normalizes bytes... we don't want that so we use our own
 
 		// Instance data
 		var ID = attrib.instanceData;
@@ -882,5 +882,16 @@ class FoxRenderer {
 		#else
 		gl.bufferSubData(gl.ARRAY_BUFFER, offset, data);
 		#end
+	}
+
+	public static function vertexAtrribPtrUByte(context:Context3D, index:Int, buffer:VertexBuffer3D, bufferOffet:Int=0) {
+		if(buffer == null) {
+			GL.disableVertexAttribArray(index);
+			context.__bindGLArrayBuffer(null);
+			return;
+		}
+		context.__bindGLArrayBuffer(buffer.__id);
+		GL.enableVertexAttribArray(index); //  		     	       vvvvv literally just fixing this
+		GL.vertexAttribPointer(index, 4, context.gl.UNSIGNED_BYTE, false, buffer.__stride, bufferOffet);
 	}
 }
