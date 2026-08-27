@@ -228,6 +228,7 @@ class FoxGLTFLoader {
 			if(pbr.baseColorTexture != null) {
 				var tex = textures[pbr.baseColorTexture.index];
 				if(tex != null) material.textures.set("bitmap", tex);
+				extraShaderFlags.remove("SOLID");
 			}
 			else addFlag("SOLID");
 
