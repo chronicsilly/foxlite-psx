@@ -126,9 +126,9 @@ vec2 areaLight(vec3 lightPos, vec3 lightDirection, vec4 sdfData, float range, fl
 
 void addLight(inout vec3 diffuse, inout vec3 specular, vec3 color, vec2 light) {
 	#ifdef TOONLIGHT_3
-	light = round(light*3.)/3.;
+	light = floor(light*3.)/3.;
 	#elif defined(TOONLIGHT_2)
-	light = round(light*2.)/2.;
+	light = floor(light*2.)/2.;
 	#endif
 	diffuse += light.s * color;
 	specular += light.t * color;
