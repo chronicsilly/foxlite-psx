@@ -541,7 +541,7 @@ class FoxRenderer {
 
 		// Skinning
 		if(attrib.boneWeight != -1) context.setVertexBufferAt(attrib.boneWeight, mesh.boneWeights, 0);
-		if(attrib.boneIndex != -1) context.setVertexBufferAt(attrib.boneIndex, mesh.boneIndices, 0);
+		if(attrib.boneIndex != -1) context.setVertexBufferAt(attrib.boneIndex, mesh.boneIndices, 0, cast 0); // OpenFL normalizes bytes... we don't want that so atm we multiply by 255 in our shader
 
 		// Draw things the OpenGL way
 		@:privateAccess // Shut up haxe everything is okay
@@ -579,7 +579,7 @@ class FoxRenderer {
 
 		// Skinning
 		if(attrib.boneWeight != -1) context.setVertexBufferAt(attrib.boneWeight, mesh.boneWeights, 0);
-		if(attrib.boneIndex != -1) context.setVertexBufferAt(attrib.boneIndex, mesh.boneIndices, 0);
+		if(attrib.boneIndex != -1) context.setVertexBufferAt(attrib.boneIndex, mesh.boneIndices, 0, cast 0); // OpenFL normalizes bytes... we don't want that so atm we multiply by 255 in our shader
 
 		// Instance data
 		var ID = attrib.instanceData;

@@ -185,11 +185,8 @@ class FoxMesh {
 
 	/**
 		Creates buffers and uploads data to the GPU.
-
-		__Note:__ The influences array type is not a typo, the values are
-		processed as integers in the shader, this prevents internal casts.
 	**/
-	public function setArrays(?vertices:Array<Float>, ?uvtData:Array<Float>, ?indices:Array<Int>, ?material_:FoxMaterial, ?normals:Array<Float>, ?colors:Array<Float>, ?weights:Array<Float>, ?influences:Array<Float>) {
+	public function setArrays(?vertices:Array<Float>, ?uvtData:Array<Float>, ?indices:Array<Int>, ?material_:FoxMaterial, ?normals:Array<Float>, ?colors:Array<Float>, ?weights:Array<Float>, ?influences:Array<Int>) {
 		if(material_ != null) material = material_;
 
 		if(vertices?.length > 0) {
@@ -254,8 +251,9 @@ class FoxMesh {
 			boneIndices?.dispose();
 			boneIndices = context.createVertexBuffer(Std.int(influences.length / 4), 4);
 			boneIndices.__usage = bufferUsage;
-			setBuffer(FoxMeshBufferType.BONE_INDICES, influences); // Upload to GPU
-			FoxRenderer.allocationsThisFrame += 1;
+			//setBuffer(FoxMeshBufferType.BONE_INDICES, influences); // Upload to GPU
+			setBufferRaw(FoxMeshBufferType.BONE_INDICES, TypedArray.UInt8ClampedArray(influences));
+			FoxRenderer.allocationsThisFrame += 2;
 		}
 	}
 

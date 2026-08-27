@@ -10,7 +10,7 @@ uniform float BONESDATA_TWIDTH;
 uniform bool uSkinned;
 
 mat4 skin() {
-	ivec4 index = ivec4(foxlite_BoneIndex);
+	ivec4 index = ivec4(foxlite_BoneIndex * 255.);
 	
 	mat4 transform =
 		fox_textureBufferMat4(BONESDATA, index.x, BONESDATA_TWIDTH) * foxlite_BoneWeight.x +
