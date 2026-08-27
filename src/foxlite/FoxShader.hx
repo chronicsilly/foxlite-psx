@@ -42,7 +42,7 @@ import lime.utils.DataPointer;
 #end
 
 // Uniform constant types for switch statement
-@:dox(hide) #if !foxlite_polymod enum abstract #else class #end UType #if !foxlite_polymod (Int) from Int to Int #end {
+@:dox(hide) #if !foxlite_polymod abstract #else class #end UType #if !foxlite_polymod (Int) from Int to Int #end {
 	public inline static final FLOAT = 0x1406;
 	public inline static final FLOAT_VEC2 = 0x8B50;
 	public inline static final FLOAT_VEC3 = 0x8B51;
@@ -433,7 +433,7 @@ class FoxShader {
 		var defHash = flags.toString();
 		if(!StringTools.startsWith(defHash, '[')) defHash = '[$defHash]';
 
-		var cache = FoxCache.shaders().get(defHash + assetsKey);
+		var cache = FoxCache.shaders().get(assetsKey + defHash);
 		if(cache != null) {
 			program = cache.program;
 			shadow.program = cache.shadow?.program;
@@ -442,7 +442,7 @@ class FoxShader {
 			initCache();
 			__needsCompiling = false;
 			shadow.__needsCompiling = false;
-			FoxCache.shaders().set(defHash + assetsKey, this);
+			FoxCache.shaders().set(assetsKey + defHash, this);
 		}
 		else {
 			FoxShader.fromSources(__vertSource, __fragSource, flags, this);

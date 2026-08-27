@@ -1,8 +1,8 @@
 package foxlite.material;
 
-// How to create enum abstracts in Polymod: You don't!
+// How to create abstracts in Polymod: You don't!
 // Surprisingly, this is valid in Haxe
-#if !foxlite_polymod enum abstract #else class #end FoxBlendMode #if !foxlite_polymod (Int) from Int to Int #end {
+#if !foxlite_polymod abstract #else class #end FoxBlendMode #if !foxlite_polymod (Int) from Int to Int #end {
 	public inline static final NONE = 0; // No mixing, faster
 	public inline static final MIX = 1;
 	public inline static final ADD = 2;

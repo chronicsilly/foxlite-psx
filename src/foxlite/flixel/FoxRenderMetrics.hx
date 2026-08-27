@@ -92,7 +92,7 @@ class FoxRenderMetrics extends #if polymod ScriptedFlxSpriteGroup #else FlxSprit
 		var inst = FoxRenderer.renderedInstances > 0 ? '\n    (x${FoxRenderer.renderedInstances} instance${FoxRenderer.renderedInstances != 1 ? 's' : ''})' : '';
 		output = StringTools.replace(output, "$0", '${FoxRenderer.BUILD_NAME} v${FoxRenderer.VERSION}');
 		output = StringTools.replace(output, "$1", '${FoxRenderer.drawCalls}');
-		output = StringTools.replace(output, "$2", '${FoxRenderer.verticesDrawn} $inst');
+		output = StringTools.replace(output, "$2", '${FoxRenderer.verticesDrawn} (${Std.int(FoxRenderer.verticesDrawn/3)} triangles) $inst');
 		output = StringTools.replace(output, "$3", '${FoxRenderer.stateSwitches}');
 		output = StringTools.replace(output, "$4", '${FoxRenderer.frameCount}');
 		output = StringTools.replace(output, "$5", '${FoxRenderer.allocationsThisFrame}');

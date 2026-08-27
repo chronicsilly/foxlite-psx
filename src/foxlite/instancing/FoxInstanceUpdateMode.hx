@@ -1,8 +1,8 @@
 package foxlite.instancing;
 
-// How to create enum abstracts in Polymod: You don't!
+// How to create abstracts in Polymod: You don't!
 // Surprisingly, this is valid in Haxe
-#if !foxlite_polymod enum abstract #else class #end FoxInstanceUpdateMode #if !foxlite_polymod (Int) from Int to Int #end {
+#if !foxlite_polymod abstract #else class #end FoxInstanceUpdateMode #if !foxlite_polymod (Int) from Int to Int #end {
 	public inline static final ONE_BY_ONE = 0;
 	public inline static final CHUNK = 1;
 	/**
