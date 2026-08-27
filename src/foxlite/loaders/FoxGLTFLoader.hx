@@ -1,6 +1,6 @@
 package foxlite.loaders;
 
-import Reflect;
+import StringTools;
 import haxe.Json;
 import haxe.io.Path;
 import haxe.io.Bytes;
@@ -284,8 +284,8 @@ class FoxGLTFLoader {
 					count *= data32PerVertex;
 
 					var dataArray:ArrayBufferView = switch(accessor.componentType:Int) {
-						case AccessorComponentType.BYTE: new UInt8ClampedArray(count);
-						case AccessorComponentType.UNSIGNED_BYTE: new Int8Array(count);
+						case AccessorComponentType.BYTE: new Int8Array(count);
+						case AccessorComponentType.UNSIGNED_BYTE: new UInt8ClampedArray(count);
 						case AccessorComponentType.SHORT: new Int16Array(count);
 						case AccessorComponentType.UNSIGNED_SHORT: new UInt16Array(count);
 						case AccessorComponentType.UNSIGNED_INT: new UInt32Array(count);
@@ -326,6 +326,11 @@ class FoxGLTFLoader {
 						case "NORMAL": mesh.normalBuffer = gpuBuffer;
 						case "TANGENT": mesh.tangentBuffer = gpuBuffer;
 						case "TEXCOORD_0": mesh.uvBuffer = gpuBuffer;
+						case "JOINTS_0": {
+							mesh.boneIndices = gpuBuffer;
+							mesh.boneIndices.__stride = 4; // Fix OpenFL stride bugs
+						}
+						case "WEIGHTS_0": mesh.boneWeights = gpuBuffer;
 						case "COLOR_0": mesh.colorBuffer = gpuBuffer;
 						case "INDICES": mesh.indexBuffer = gpuBuffer;
 						default: (gpuBuffer:Dynamic)?.dispose(); // In case we have an invalid attribute
