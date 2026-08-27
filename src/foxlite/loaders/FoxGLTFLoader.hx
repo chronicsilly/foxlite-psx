@@ -124,14 +124,14 @@ class FoxGLTFLoader {
 		return _processData("", null, null);
 	}
 
-	@:noCompletion public static function _processData(directory:String, gltfJson:Dynamic, buffers:Array<ByteArray>, ?extraShaderFlags:Array<String>, ?customShaderPath:String):{arrayMeshes:Array<Array<FoxMesh>>, ?materials:Map<String, FoxMaterial>, ?animationLibs:Array<Map<String, FoxAnimation>>} {
+	@:noCompletion public static function _processData(directory:String, gltfJson:Dynamic, buffers:Array<ByteArray>, ?extraShaderFlags:Array<String>, ?customShaderPath:String):{meshes:Array<FoxMesh>, ?materials:Map<String, FoxMaterial>, ?animationLibs:Array<Map<String, FoxAnimation>>, gltfScenes:Array<Dynamic>} {
 		if(extraShaderFlags == null) extraShaderFlags = [];
 		if(customShaderPath == null) customShaderPath = FoxShader.BASIC;
 
 		var accessors:Array<Dynamic> = gltfJson.accessors;
 		var bufferViews:Array<Dynamic> = gltfJson.bufferViews;
 
-		var meshData:Array<Array<FoxMesh>> = [];
+		var meshes:Array<FoxMesh> = [];
 		var materials:Map<String, FoxMaterial> = new StringMap();
 		var textures:Array<FoxTexture> = [];
 		var materialArray:Array<FoxMaterial> = [];
@@ -258,7 +258,6 @@ class FoxGLTFLoader {
 		}
 
 		for(mesh in (gltfJson.meshes:Array<Dynamic>)) {
-			var meshes:Array<FoxMesh> = [];
 			for(i=>prim in (mesh.primitives:Array<Dynamic>)) {
 				var mesh = new FoxMesh();
 				var meshAccessors:IntMap<String> = new IntMap();
@@ -336,12 +335,12 @@ class FoxGLTFLoader {
 				//if(Std.isOfType(prim.mode, Int)) ;
 				meshes.push(mesh);
 			}
-			meshData.push(meshes);
 		}
 
 		return {
-			arrayMeshes: meshData,
-			materials: materials
+			meshes: meshes,
+			materials: materials,
+			gltfScenes: null
 		};
 	}
 }
