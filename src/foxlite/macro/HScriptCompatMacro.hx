@@ -51,7 +51,8 @@ class HScriptCompatMacro {
 			"foxlite.skin.FoxSkinData",
 			"foxlite.lights.FoxLightData",
 			"foxlite.instancing.FoxInstanceData",
-			"foxlite.lights.FoxDirectionalLight"
+			"foxlite.lights.FoxDirectionalLight",
+			"foxlite.loaders.FoxGLTFLoader"
 		]) {
 			haxe.macro.Compiler.addGlobalMetadata(fox, "@:build(foxlite.macro.HScriptCompatMacro.build_VectorAccess())", true, true, false);
 		}

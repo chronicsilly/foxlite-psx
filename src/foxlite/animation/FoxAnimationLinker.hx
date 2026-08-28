@@ -5,6 +5,7 @@ import foxlite.animation.data.FoxTrackData;
 import foxlite.animation.data.FoxTrackLinkData;
 import foxlite.animation.FoxAnimation;
 import foxlite.animation.FoxTrackType;
+import foxlite.skin.FoxSkinData;
 import foxlite.FoxBasic;
 
 class FoxAnimationLinker extends FoxBasic {
@@ -97,6 +98,28 @@ class FoxAnimationLinker extends FoxBasic {
 			if(data == null) return;
 			for(link in data) if(link.object == object && (property == null || link.property == property)) removals.push(link);
 			while(removals.length > 0) data.remove(removals.pop());
+		}
+	}
+
+	/**
+		Links all supported tracks to a `FoxSkinData`
+
+		Tracks with the name following the format `boneName:property` will be linked.
+		Supported properties are `position`, `rotation` and `scale`
+	**/
+	public function linkSkin(skin:FoxSkinData) {
+		for(bone in skin.bones) {
+			link('${bone.name}:rotation', bone, "setRotation");
+			link('${bone.name}:scale', bone, "setScale");
+			link('${bone.name}:position', bone, "setPosition");
+		}
+	}
+
+	public function unlinkSkin(skin:FoxSkinData) {
+		for(bone in skin.bones) {
+			unlink('${bone.name}:rotation', bone, "setRotation");
+			unlink('${bone.name}:scale', bone, "setScale");
+			unlink('${bone.name}:translation', bone, "setPosition");
 		}
 	}
 

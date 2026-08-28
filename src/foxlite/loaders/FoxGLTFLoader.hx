@@ -8,14 +8,20 @@ import haxe.ds.IntMap;
 import haxe.ds.StringMap;
 import foxlite.FoxShader;
 import foxlite.animation.FoxAnimation;
+import foxlite.animation.FoxTrackType;
+import foxlite.animation.FoxAnimationTrack;
+import foxlite.animation.FoxEaseType;
 import foxlite.culling.BoundingBox;
 import foxlite.material.FoxMaterial;
 import foxlite.material.FoxTriangleFace;
 import foxlite.material.FoxBlendMode;
+import foxlite.math.FoxMathUtil;
 import foxlite.mesh.FoxMesh;
 import foxlite.mesh.FoxMeshBufferType;
+import foxlite.polyfill.VectorFactory;
 import foxlite.renderer.FoxRenderer;
 import foxlite.skin.FoxSkinData;
+import foxlite.skin.FoxBone;
 import foxlite.texture.FoxMipFilter;
 import foxlite.texture.FoxTextureFilter;
 import foxlite.texture.FoxWrapMode;
@@ -28,9 +34,11 @@ import lime.utils.Int16Array;
 import lime.utils.Int8Array;
 import lime.utils.UInt8ClampedArray;
 import lime.utils.ArrayBufferView;
+import lime.math.Vector2;
 
 import openfl.Assets;
 import openfl.geom.Vector3D;
+import openfl.geom.Matrix3D;
 import openfl.utils.ByteArray;
 import openfl.display3D.VertexBuffer3D;
 import openfl.display3D.IndexBuffer3D;
@@ -85,12 +93,26 @@ import openfl.display3D.IndexBuffer3D;
 	public inline static final REPEAT = 10497;
 }
 
-/**
-	TODO
-**/
+typedef GLTFData = {
+	meshes:Array<FoxMesh>, 
+	?materials:Map<String, FoxMaterial>, 
+	?animations:Map<String, FoxAnimation>, 
+	?skins:Array<FoxSkinData>,
+	gltfJson:Dynamic
+};
+
 class FoxGLTFLoader {
 
-	public static function load(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String) {
+	/**
+		Loads models, animations and lights from a `.gltf` file, this also includes the `.bin` buffers and textures.
+
+		GLTF models are scenes, this means they have an unique structure models should follow.
+
+		You can use the meshes array, but all meshes will be positioned at the origin. Instead, call
+		`FoxObjectGroup.fromGLTF()`, this takes a gltf json structure and parses the respective objects with
+		their respective parent, skin data, animations and so on
+	**/
+	public static function load(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String):GLTFData {
 		var dir:String = Path.directory(name) + '/';
 
 		var gltfJson:Dynamic = FoxLoaderUtil.loadJSON(name);
@@ -120,11 +142,20 @@ class FoxGLTFLoader {
 		return _processData(dir, gltfJson, buffers, extraShaderFlags, customShaderPath);
 	}
 
-	public static function loadGLB() {
-		return _processData("", null, null);
+	/**
+		Loads models, animations and lights from a GLTF binary file `.glb`. This method is identical to `load()`
+	**/
+	// Warning: TODO
+	public static function loadBinary(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String):GLTFData {
+		var dir:String = Path.directory(name) + '/';
+
+		var buffers:Array<ByteArray> = [];
+		var gltfJson:Dynamic = null;
+
+		return _processData(dir, gltfJson, buffers, extraShaderFlags, customShaderPath);
 	}
 
-	@:noCompletion public static function _processData(directory:String, gltfJson:Dynamic, buffers:Array<ByteArray>, ?extraShaderFlags:Array<String>, ?customShaderPath:String):{meshes:Array<FoxMesh>, ?materials:Map<String, FoxMaterial>, ?animationLibs:Array<Map<String, FoxAnimation>>, gltfScenes:Array<Dynamic>} {
+	@:noCompletion public static function _processData(directory:String, gltfJson:Dynamic, buffers:Array<ByteArray>, ?extraShaderFlags:Array<String>, ?customShaderPath:String):GLTFData {
 		if(extraShaderFlags == null) extraShaderFlags = [];
 		if(customShaderPath == null) customShaderPath = FoxShader.BASIC;
 
@@ -132,7 +163,7 @@ class FoxGLTFLoader {
 		var bufferViews:Array<Dynamic> = gltfJson.bufferViews;
 
 		var meshes:Array<FoxMesh> = [];
-		var materials:Map<String, FoxMaterial> = new StringMap();
+		var materials:Map<String, FoxMaterial> = null;
 		var textures:Array<FoxTexture> = [];
 		var materialArray:Array<FoxMaterial> = [];
 
@@ -181,81 +212,84 @@ class FoxGLTFLoader {
 			else textures.push(null);
 		}
 
-		if(gltfJson.materials != null) for(mat in (gltfJson.materials:Array<Dynamic>)) {
-			var material = new FoxMaterial();
-			if(Std.isOfType(mat.doubleSided, Bool)) material.culling = mat.doubleSided ? FoxTriangleFace.NONE : FoxTriangleFace.BACK;
-			
-			if(Std.isOfType(mat.alphaMode, String)) switch(mat.alphaMode:String) {
-				case "OPAQUE": addFlag("NO_ALPHA_SCISSOR");
-				case "BLEND": material.blendMode = FoxBlendMode.MIX;
-			}
-
-			if(Std.isOfType(mat.alphaCutoff, Float) || Std.isOfType(mat.alphaCutoff, Int))
-				material.alphaScissor = mat.alphaCutoff;
-			
-			if(mat.emissiveTexture != null) {
-				addFlag("EMISSIVE_MAP");
-				var tex = textures[mat.emissiveTexture.index];
-				if(tex != null) material.textures.set("emissiveMap", tex);
-			}
-
-			if(Std.isOfType(mat.emissiveFactor, Array)) {
-				material.params.set("uEmissive", mat.emissiveFactor.copy());
-			}
-
-			if(mat.normalTexture != null) {
-				addFlag("NORMAL_MAP");
-				var tex = textures[mat.normalTexture.index];
-				if(tex != null) material.textures.set("normalMap", tex);
-			}
-
-			var pbr:Dynamic = mat.pbrMetallicRoughness;
-
-			if(pbr?.metallicFactor != null) material.setMetallic(pbr.metallicFactor);
-			if(pbr?.roughnessFactor != null) material.setRoughness(pbr.roughnessFactor);
-
-			if(pbr?.baseColorFactor != null) {
-				var c = pbr?.baseColorFactor;
-				material.params.set("color", c);
-			}
-
-			if(pbr?.metallicRoughnessTexture != null) {
-				addFlag("ORM_MAP");
-				var tex = textures[pbr.metallicRoughnessTexture.index];
-				if(tex != null) material.textures.set("ormMap", tex);
-			}
-
-			if(pbr.baseColorTexture != null) {
-				var tex = textures[pbr.baseColorTexture.index];
-				if(tex != null) material.textures.set("bitmap", tex);
-				extraShaderFlags.remove("SOLID");
-			}
-			else addFlag("SOLID");
-
-			// Extensions
-			var KHR_materials_specular:Dynamic = mat.extensions?.KHR_materials_specular;
-			var KHR_materials_emissive_strength:Dynamic = mat.extensions?.KHR_materials_emissive_strength;
-
-			if(KHR_materials_specular?.specularColorFactor != null) {
-				var spec = KHR_materials_specular.specularColorFactor;
-				material.setSpecularLevels(spec[0], spec[1], spec[2]);
-			}
-
-			if(Std.isOfType(KHR_materials_emissive_strength?.emissiveStrength, Float) || Std.isOfType(KHR_materials_emissive_strength?.emissiveStrength, Int)) {
-				var em = material.params.get("uEmissive");
-				if(em != null) {
-					var s:Float = KHR_materials_emissive_strength.emissiveStrength;
-					em[0] *= s;
-					em[1] *= s;
-					em[2] *= s;
+		if(gltfJson.materials != null) {
+			materials = new StringMap();
+			for(mat in (gltfJson.materials:Array<Dynamic>)) {
+				var material = new FoxMaterial();
+				if(Std.isOfType(mat.doubleSided, Bool)) material.culling = mat.doubleSided ? FoxTriangleFace.NONE : FoxTriangleFace.BACK;
+				
+				if(Std.isOfType(mat.alphaMode, String)) switch(mat.alphaMode:String) {
+					case "OPAQUE": addFlag("NO_ALPHA_SCISSOR");
+					case "BLEND": material.blendMode = FoxBlendMode.MIX;
 				}
+
+				if(Std.isOfType(mat.alphaCutoff, Float) || Std.isOfType(mat.alphaCutoff, Int))
+					material.alphaScissor = mat.alphaCutoff;
+				
+				if(mat.emissiveTexture != null) {
+					addFlag("EMISSIVE_MAP");
+					var tex = textures[mat.emissiveTexture.index];
+					if(tex != null) material.textures.set("emissiveMap", tex);
+				}
+
+				if(Std.isOfType(mat.emissiveFactor, Array)) {
+					material.params.set("uEmissive", mat.emissiveFactor.copy());
+				}
+
+				if(mat.normalTexture != null) {
+					addFlag("NORMAL_MAP");
+					var tex = textures[mat.normalTexture.index];
+					if(tex != null) material.textures.set("normalMap", tex);
+				}
+
+				var pbr:Dynamic = mat.pbrMetallicRoughness;
+
+				if(pbr?.metallicFactor != null) material.setMetallic(pbr.metallicFactor);
+				if(pbr?.roughnessFactor != null) material.setRoughness(pbr.roughnessFactor);
+
+				if(pbr?.baseColorFactor != null) {
+					var c = pbr?.baseColorFactor;
+					material.params.set("color", c);
+				}
+
+				if(pbr?.metallicRoughnessTexture != null) {
+					addFlag("ORM_MAP");
+					var tex = textures[pbr.metallicRoughnessTexture.index];
+					if(tex != null) material.textures.set("ormMap", tex);
+				}
+
+				if(pbr.baseColorTexture != null) {
+					var tex = textures[pbr.baseColorTexture.index];
+					if(tex != null) material.textures.set("bitmap", tex);
+					extraShaderFlags.remove("SOLID");
+				}
+				else addFlag("SOLID");
+
+				// Extensions
+				var KHR_materials_specular:Dynamic = mat.extensions?.KHR_materials_specular;
+				var KHR_materials_emissive_strength:Dynamic = mat.extensions?.KHR_materials_emissive_strength;
+
+				if(KHR_materials_specular?.specularColorFactor != null) {
+					var spec = KHR_materials_specular.specularColorFactor;
+					material.setSpecularLevels(spec[0], spec[1], spec[2]);
+				}
+
+				if(Std.isOfType(KHR_materials_emissive_strength?.emissiveStrength, Float) || Std.isOfType(KHR_materials_emissive_strength?.emissiveStrength, Int)) {
+					var em = material.params.get("uEmissive");
+					if(em != null) {
+						var s:Float = KHR_materials_emissive_strength.emissiveStrength;
+						em[0] *= s;
+						em[1] *= s;
+						em[2] *= s;
+					}
+				}
+
+				// Compile shader
+				material.shader = FoxShader.fromAsset(customShaderPath, extraShaderFlags);
+
+				materials.set(mat.name, material);
+				materialArray.push(material);
 			}
-
-			// Compile shader
-			material.shader = FoxShader.fromAsset(customShaderPath, extraShaderFlags);
-
-			materials.set(mat.name, material);
-			materialArray.push(material);
 		}
 
 		for(mesh in (gltfJson.meshes:Array<Dynamic>)) {
@@ -294,7 +328,12 @@ class FoxGLTFLoader {
 					}
 
 					// Write data
+					#if js
+					var buf:Bytes = Bytes.ofData(dataArray.buffer);
+					buf.blit(0, buffer, view.byteOffset, view.byteLength);
+					#else
 					dataArray.buffer.blit(0, buffer, view.byteOffset, view.byteLength);
+					#end
 					
 					var gpuBuffer:Any = null;
 					
@@ -342,11 +381,165 @@ class FoxGLTFLoader {
 				meshes.push(mesh);
 			}
 		}
+		
+		var nodes:Array<Dynamic> = gltfJson.nodes;
+		var parent:Array<Null<Int>> = [];
+		parent.resize(nodes.length);
+
+		// Cache parent indices
+		for(i=>node in nodes) if(Std.isOfType(node.children, Array)) for(c in (node.children:Array<Int>)) {
+			if(parent[c] != null) trace('Warning! node ${parent[c]} ($c) already has a parent!');
+			parent[c] = i;
+		}
+
+		var skins:Array<FoxSkinData> = [];
+
+		// Temporary vectors for Quaternion -> Euler conversion
+		var tempMatrix = new Matrix3D();
+		var tempVectors = tempMatrix.decompose().__array;
+
+		// Skinning
+		if(gltfJson.skins != null) {
+			for(skin in (gltfJson.skins:Array<Dynamic>)) {
+				var accessor:Dynamic = accessors[skin.inverseBindMatrices];
+				var view:Dynamic = bufferViews[accessor.bufferView];
+				var buffer:ByteArray = buffers[view.buffer];
+
+				var skinData = new FoxSkinData();
+
+				var gltfJoints:Array<Int> = skin.joints;
+				for(idx=>joint in gltfJoints) {
+					var inverseMat = new Matrix3D();
+
+					var a = inverseMat.rawData.__array;
+					for(i in 0...16) {
+						buffer.position = view.byteOffset + (i+idx*16)*4;
+						a[i] = buffer.readFloat();
+					}
+					var bone = new FoxBone(inverseMat);
+					var node:Dynamic = nodes[joint];
+					bone.name = node.name;
+					if(Std.isOfType(node.translation, Array)) bone.setPosition(node.translation[0], node.translation[1], node.translation[2]);
+					if(Std.isOfType(node.scale, Array)) bone.setScale(node.scale[0], node.scale[1], node.scale[2]);
+					if(Std.isOfType(node.rotation, Array)) {
+						// Rotations are stored as quaternions, we have to turn them into euler angles
+						tempVectors[1].setTo(node.rotation[0], node.rotation[1], node.rotation[2]);
+						tempVectors[1].w = node.rotation[3];
+
+						tempMatrix.recompose(tempVectors, cast 2);
+						FoxMathUtil.eulerFromMatrix(tempMatrix, bone.rotation);
+					}
+					skinData.addBone(bone, -1);
+					skinData.reparentBoneByName(idx, nodes[parent[joint]]?.name ?? "");
+				}
+				skins.push(skinData);
+			}
+		}
+
+		var animations:StringMap<FoxAnimation> = null;
+
+		if(gltfJson.animations != null) {
+			animations = new StringMap();
+			for(anim in (gltfJson.animations:Array<Dynamic>)) {
+				var animation = new FoxAnimation(anim.name);
+				var trackType:FoxTrackType = -1;
+				for(channel in (anim.channels:Array<Dynamic>)) {
+					var sampler:Dynamic = anim.samplers[channel.sampler];
+					var interpolation:FoxEaseType = sampler.interpolation == "STEP" ? FoxEaseType.ZERO : FoxEaseType.LINEAR;
+					var node:Dynamic = nodes[channel.target.node];
+					var path:String = channel.target.path;
+
+					var accessorIn:Dynamic = accessors[sampler.input];	// Times
+					var accessorOut:Dynamic = accessors[sampler.output]; // Values
+
+					var viewIn:Dynamic = bufferViews[accessorIn.bufferView];
+					var viewOut:Dynamic = bufferViews[accessorOut.bufferView];
+
+					var bufferIn:ByteArray = buffers[viewIn.buffer];
+					var bufferOut:ByteArray = buffers[viewOut.buffer];
+
+					animation.duration = Math.max(animation.duration, accessorIn.max[0]);
+
+					trackType = switch(accessorOut.type:String) {
+						case "SCALAR": FoxTrackType.FLOAT;
+						case "VEC2": FoxTrackType.VECTOR2;
+						case "VEC3": FoxTrackType.VECTOR3D;
+						case "VEC4": path == "rotation" ? FoxTrackType.EULER_ANGLES : FoxTrackType.VECTOR4;
+						//case "MAT2": FoxTrackType.MATRIX2;
+						//case "MAT3": FoxTrackType.MATRIX3;
+						case "MAT4": FoxTrackType.MATRIX4;
+						default: continue;
+					};
+					
+					path = StringTools.replace(path, "translation", "position");
+					var track:FoxAnimationTrack<Any> = animation.addTrack('${node.name}:$path', trackType);
+					for(i in 0...accessorIn.count) {
+						bufferIn.position = viewIn.byteOffset + i*4;
+						var time:Float = bufferIn.readFloat();
+						switch(trackType) {
+							case FoxTrackType.FLOAT: {
+								bufferOut.position = viewOut.byteOffset + i*4;
+								track.addFrame(time, bufferOut.readFloat(), interpolation);
+							};
+							case FoxTrackType.VECTOR2: {
+								bufferOut.position = viewOut.byteOffset + i*8;
+								var x = bufferOut.readFloat();
+								var y = bufferOut.readFloat();
+								track.addFrame(time, new Vector2(x, y), interpolation);
+							};
+							case FoxTrackType.VECTOR3D: {
+								bufferOut.position = viewOut.byteOffset + i*12;
+								var x = bufferOut.readFloat();
+								var y = bufferOut.readFloat();
+								var z = bufferOut.readFloat();
+								track.addFrame(time, new Vector3D(x, y, z), interpolation);
+							};
+							case FoxTrackType.VECTOR4: {
+								bufferOut.position = viewOut.byteOffset + i*16;
+								var v = new Vector3D(
+									bufferOut.readFloat(),
+									bufferOut.readFloat(),
+									bufferOut.readFloat(),
+									bufferOut.readFloat()
+								);
+								track.addFrame(time, v, interpolation);
+							};
+							case FoxTrackType.EULER_ANGLES: {
+								bufferOut.position = viewOut.byteOffset + i*16;
+								var v = new Vector3D(
+									bufferOut.readFloat(),
+									bufferOut.readFloat(),
+									bufferOut.readFloat(),
+									bufferOut.readFloat()
+								);
+								// Convert to euler angles
+								tempVectors[1].copyFrom(v);
+								tempVectors[1].w = v.w;
+								tempMatrix.recompose(tempVectors, cast 2);
+								FoxMathUtil.eulerFromMatrix(tempMatrix, v);
+								track.addFrame(time, v, interpolation);
+							};
+							case FoxTrackType.MATRIX4: {
+								bufferOut.position = viewOut.byteOffset + i*64;
+								var matrix = new Matrix3D();
+								var a = matrix.rawData.__array;
+								for(i in 0...16) a[i] = bufferOut.readFloat();
+								track.addFrame(time, matrix, interpolation);
+							};
+						}
+					}
+				}
+
+				animations.set(anim.name, animation);
+			}
+		}
 
 		return {
 			meshes: meshes,
 			materials: materials,
-			gltfScenes: null
+			skins: skins,
+			animations: animations,
+			gltfJson: gltfJson
 		};
 	}
 }
