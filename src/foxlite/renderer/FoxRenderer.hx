@@ -287,6 +287,7 @@ class FoxRenderer {
 		context.setStencilActions();
 		context.setStencilReferenceValue(0);
 		context.setScissorRectangle(null);
+		context.setColorMask(true, true, true, true);
 
 		var gl = context.gl;
 		// Reset target color buffers
@@ -401,6 +402,11 @@ class FoxRenderer {
 		// this messes up transluscent blending...
 		// instead of material.depthTest, use material.depthWrite
 		context.setDepthTest(material.depthWrite, cast material.depthFunc);
+		
+		if(material.colorWrite) 
+			context.setColorMask(true, true, true, true);
+		else
+			context.setColorMask(false, false, false, false);
 	
 		// Helper
 		FoxRenderer.setBlendMode(context, material.blendMode);
@@ -475,6 +481,11 @@ class FoxRenderer {
 		context.setCulling(cast material.shadowCulling); // Preferrably FRONT
 		context.setDepthTest(true, cast 4); // always LESS
 		FoxRenderer.setBlendMode(context, FoxBlendMode.NONE);
+
+		if(material.colorWrite) 
+			context.setColorMask(true, true, true, true);
+		else
+			context.setColorMask(false, false, false, false);
 		
 		// Stencil test
 		var stencil = material.stencil;

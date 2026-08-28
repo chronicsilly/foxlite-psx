@@ -38,6 +38,7 @@ class FoxMaterial {
 	public var depthTest:Bool = true;
 	public var depthFunc:FoxDepthCompareMode = FoxDepthCompareMode.LESS;
 	public var depthWrite:Bool = true;
+	public var colorWrite:Bool = true;
 	public var culling:FoxTriangleFace = FoxTriangleFace.NONE;
 	public var shadowCulling:FoxTriangleFace = FoxTriangleFace.FRONT;
 	public var blendMode:FoxBlendMode = FoxBlendMode.NONE;
@@ -218,6 +219,7 @@ class FoxMaterial {
 		mat.depthTest = depthTest;
 		mat.depthFunc = depthFunc;
 		mat.depthWrite = depthWrite;
+		mat.colorWrite = colorWrite;
 		mat.culling = culling;
 		mat.shadowCulling = culling;
 		mat.blendMode = blendMode;
