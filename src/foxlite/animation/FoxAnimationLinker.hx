@@ -119,7 +119,7 @@ class FoxAnimationLinker extends FoxBasic {
 		for(bone in skin.bones) {
 			unlink('${bone.name}:rotation', bone, "setRotation");
 			unlink('${bone.name}:scale', bone, "setScale");
-			unlink('${bone.name}:translation', bone, "setPosition");
+			unlink('${bone.name}:position', bone, "setPosition");
 		}
 	}
 
