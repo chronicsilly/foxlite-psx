@@ -130,10 +130,10 @@ void addLight(inout vec3 diffuse, inout vec3 specular, vec3 color, vec2 light) {
 	#elif defined(TOONLIGHT_2)
 	light = floor(light*2.)/2.;
 	#endif
-	#ifdef NO_DIFFUSE
+	#ifndef NO_DIFFUSE
 	diffuse += light.s * color;
 	#endif
-	#ifdef NO_SPECULAR
+	#ifndef NO_SPECULAR
 	specular += light.t * color;
 	#endif
 }
