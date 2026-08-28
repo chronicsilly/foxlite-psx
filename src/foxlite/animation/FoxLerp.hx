@@ -193,7 +193,7 @@ class FoxLerp {
 		
 		output.copyFrom(a);
 		output.scaleBy(scalePreviousQuat);
-		output.w *= a.w * scalePreviousQuat;
+		output.w = a.w * scalePreviousQuat;
 
 		output.x += x;
 		output.y += y;
