@@ -350,11 +350,12 @@ class FoxGLTFLoader {
 
 					// Write data
 					#if js
-					var buf:Bytes = Bytes.ofData(dataArray.buffer);
-					buf.blit(0, buffer, view.byteOffset, view.byteLength);
+					var blitBuffer:Bytes = Bytes.ofData(dataArray.buffer);
 					#else
-					dataArray.buffer.blit(0, buffer, view.byteOffset, view.byteLength);
+					var blitBuffer:Bytes = dataArray.buffer;
 					#end
+
+					blitBuffer.blit(0, buffer, (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0), dataArray.byteLength);
 					
 					var gpuBuffer:Any = null;
 					
