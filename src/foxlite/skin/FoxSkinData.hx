@@ -43,6 +43,19 @@ class FoxSkinData {
 		return null;
 	}
 
+	public function reparentBone(boneIndex:Int, parentIndex:Int=-1) {
+		var bone:FoxBone = bones[boneIndex];
+		bone.parent = bones[parentIndex] ?? root;
+		bone.parentIndex = parentIndex;
+	}
+
+	public function reparentBoneByName(boneIndex:Int, parentName:String) {
+		var bone:FoxBone = bones[boneIndex];
+		var parent:FoxBone = getBoneByName(parentName);
+		bone.parent = parent ?? root;
+		bone.parentIndex = bones.indexOf(parent);
+	}
+
 	public function update(dt:Float) {
 		// Update allocation
 		var w = bones.length*4;
