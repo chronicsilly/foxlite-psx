@@ -1,6 +1,5 @@
 package foxlite.math;
 
-import flixel.math.FlxMath;
 import foxlite.polyfill.VectorFactory;
 import foxlite.renderer.FoxRenderer;
 import openfl.geom.Matrix3D;
