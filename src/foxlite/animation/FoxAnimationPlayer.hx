@@ -128,7 +128,7 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 				case FoxTrackType.VECTOR4: 	 	FoxLerp.lerp4DToOutput(v0, v1, timeLerp, data.value);
 				case FoxTrackType.MATRIX4:		FoxLerp.lerpMatrix4ToOutput(v0, v1, timeLerp, data.value);
 				case FoxTrackType.VECTOR3D: 	FoxLerp.lerp3DToOutput(v0, v1, timeLerp, data.value);
-				case FoxTrackType.QUATERNION: 	FoxLerp.lerpQuaternionToOutput(v0, v1, timeLerp, data.value);
+				case FoxTrackType.QUATERNION: 	FoxLerp.lerpQuaternion(v0, v1, timeLerp, data.value);
 				case FoxTrackType.EULER_ANGLES: FoxLerp.lerpAngle3DToOutput(v0, v1, timeLerp, data.value);
 				default: { data.value = v0; };
 			}

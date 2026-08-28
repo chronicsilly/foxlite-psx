@@ -110,6 +110,7 @@ class FoxAnimationLinker extends FoxBasic {
 	public function linkSkin(skin:FoxSkinData) {
 		for(bone in skin.bones) {
 			link('${bone.name}:rotation', bone, "setRotation");
+			link('${bone.name}:quaternion', bone, "setRotationQuaternion");
 			link('${bone.name}:scale', bone, "setScale");
 			link('${bone.name}:position', bone, "setPosition");
 		}
@@ -118,6 +119,7 @@ class FoxAnimationLinker extends FoxBasic {
 	public function unlinkSkin(skin:FoxSkinData) {
 		for(bone in skin.bones) {
 			unlink('${bone.name}:rotation', bone, "setRotation");
+			unlink('${bone.name}:quaternion', bone, "setRotationQuaternion");
 			unlink('${bone.name}:scale', bone, "setScale");
 			unlink('${bone.name}:position', bone, "setPosition");
 		}

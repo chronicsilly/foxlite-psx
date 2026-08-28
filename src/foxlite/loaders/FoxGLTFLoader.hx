@@ -416,12 +416,11 @@ class FoxGLTFLoader {
 
 		var skins:Array<FoxSkinData> = [];
 
-		// Temporary vectors for Quaternion -> Euler conversion
-		var tempMatrix = new Matrix3D();
-		var tempVectors = tempMatrix.decompose().__array;
-
 		// Skinning
 		if(gltfJson.skins != null) {
+			// Temporary vectors for Quaternion -> Euler conversion
+			var tempMatrix = new Matrix3D();
+			var tempVectors = tempMatrix.decompose().__array;
 			for(skin in (gltfJson.skins:Array<Dynamic>)) {
 				var accessor:Dynamic = accessors[skin.inverseBindMatrices];
 				var view:Dynamic = bufferViews[accessor.bufferView];
@@ -504,6 +503,7 @@ class FoxGLTFLoader {
 					};
 					
 					path = StringTools.replace(path, "translation", "position");
+					path = StringTools.replace(path, "rotation", "quaternion"); // We'll be using quat interpolation
 					var track:FoxAnimationTrack<Any> = animation.addTrack('${node.name}:$path', trackType);
 					for(i in 0...accessorIn.count) {
 						bufferIn.position = viewIn.byteOffset + i*4;
@@ -526,7 +526,7 @@ class FoxGLTFLoader {
 								var z = bufferOut.readFloat();
 								track.addFrame(time, new Vector3D(x, y, z), interpolation);
 							};
-							case FoxTrackType.VECTOR4: {
+							case FoxTrackType.VECTOR4, FoxTrackType.QUATERNION: {
 								bufferOut.position = viewOut.byteOffset + i*16;
 								var v = new Vector3D(
 									bufferOut.readFloat(),
@@ -534,21 +534,6 @@ class FoxGLTFLoader {
 									bufferOut.readFloat(),
 									bufferOut.readFloat()
 								);
-								track.addFrame(time, v, interpolation);
-							};
-							case FoxTrackType.QUATERNION: {
-								bufferOut.position = viewOut.byteOffset + i*16;
-								var v = new Vector3D(
-									bufferOut.readFloat(),
-									bufferOut.readFloat(),
-									bufferOut.readFloat(),
-									bufferOut.readFloat()
-								);
-								// Convert to euler angles
-								tempVectors[1].copyFrom(v);
-								tempVectors[1].w = v.w;
-								tempMatrix.recompose(tempVectors, cast 2);
-								FoxMathUtil.eulerFromMatrix(tempMatrix, v);
 								track.addFrame(time, v, interpolation);
 							};
 							case FoxTrackType.MATRIX4: {
