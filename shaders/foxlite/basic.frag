@@ -7,7 +7,13 @@
 
 void main() {
 	#ifndef SOLID
-	vec4 albedo = texture2D(bitmap, foxlite_TexCoordv) * foxlite_Colorv;
+	
+	#ifdef SCREEN_UV_AS_COORD
+	vec4 albedo = texture2D(bitmap, ScreenUV);
+	#else
+	vec4 albedo = texture2D(bitmap, foxlite_TexCoordv);
+	#endif
+	albedo *= foxlite_Colorv;
 	
 	#if !defined(NO_ALPHA_SCISSOR) && !(defined(ALPHA_DITHER) || defined(ALPHA_DITHER_FAST))
 	if(albedo.a < alphaScissor) discard; // Alpha cutout (disabled when alpha dithering is enabled)
