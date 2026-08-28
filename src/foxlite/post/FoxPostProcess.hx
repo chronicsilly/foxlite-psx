@@ -13,6 +13,7 @@ class FoxPostProcess extends FoxModel {
 	public var input(get, set):FoxTexture;
 	public var samplers(get, never):Map<String, FoxTexture>;
 	public var shader(get, set):FoxShader;
+	public var material(get, set):FoxMaterial;
 
 	public function new(shader_:FoxShader, priority:Int=1000) {
 		super();
@@ -59,6 +60,15 @@ class FoxPostProcess extends FoxModel {
 
 	private function set_shader(v:FoxShader):FoxShader {
 		meshes[0].material.shader = v;
+		return v;
+	}
+
+	private function get_material():FoxMaterial {
+		return meshes[0].material;
+	}
+
+	private function set_material(v:FoxMaterial):FoxMaterial {
+		meshes[0].material = v;
 		return v;
 	}
 }
