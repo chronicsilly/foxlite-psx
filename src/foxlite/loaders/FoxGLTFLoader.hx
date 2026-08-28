@@ -247,7 +247,8 @@ class FoxGLTFLoader {
 				}
 
 				if(Std.isOfType(mat.emissiveFactor, Array)) {
-					material.params.set("uEmissive", mat.emissiveFactor.copy());
+					var f:Array<Float> = mat.emissiveFactor;
+					material.params.set("uEmissive", f.copy());
 				}
 
 				if(mat.normalTexture != null) {
@@ -355,7 +356,27 @@ class FoxGLTFLoader {
 					var blitBuffer:Bytes = dataArray.buffer;
 					#end
 
-					blitBuffer.blit(0, buffer, (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0), dataArray.byteLength);
+					if(view.byteStride == null) blitBuffer.blit(0, buffer, (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0), dataArray.byteLength);
+					else {
+						// Buffer has a stride, we have to custom blit (slow in hscript)
+						var dataSize:Int = switch(accessor.componentType:Int) {
+							case AccessorComponentType.BYTE, AccessorComponentType.UNSIGNED_BYTE: 1;
+							case AccessorComponentType.SHORT, AccessorComponentType.UNSIGNED_SHORT: 2;
+							case AccessorComponentType.UNSIGNED_INT, AccessorComponentType.FLOAT: 4;
+							default: 1;
+						}
+						
+						var offset:Int = (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0);
+						var step:Int = data32PerVertex * dataSize;
+						var stride:Int = step + (view.byteStride:Int);
+						var len:Int = offset + view.byteLength;
+						var i:Int = 0;
+						while(offset < len) {
+							blitBuffer.blit(i, buffer, offset, step);
+							offset += stride;
+							i += step;
+						}
+					}
 					
 					var gpuBuffer:Any = null;
 					
