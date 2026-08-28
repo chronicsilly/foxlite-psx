@@ -109,7 +109,6 @@ class FoxAnimationLinker extends FoxBasic {
 	**/
 	public function linkSkin(skin:FoxSkinData) {
 		for(bone in skin.bones) {
-			link('${bone.name}:rotation', bone, "setRotation");
 			link('${bone.name}:quaternion', bone, "setRotationQuaternion");
 			link('${bone.name}:scale', bone, "setScale");
 			link('${bone.name}:position', bone, "setPosition");
@@ -118,11 +117,27 @@ class FoxAnimationLinker extends FoxBasic {
 
 	public function unlinkSkin(skin:FoxSkinData) {
 		for(bone in skin.bones) {
-			unlink('${bone.name}:rotation', bone, "setRotation");
 			unlink('${bone.name}:quaternion', bone, "setRotationQuaternion");
 			unlink('${bone.name}:scale', bone, "setScale");
 			unlink('${bone.name}:position', bone, "setPosition");
 		}
+	}
+
+	/**
+		Links a `FoxObject`'s transforms to this track data
+	**/
+	public function linkObject(trackPrefix:String, object:FoxObject) {
+		link('$trackPrefix:rotation', object, "setRotation");
+		link('$trackPrefix:quaternion', object, "setRotationQuaternion");
+		link('$trackPrefix:scale', object, "setScale");
+		link('$trackPrefix:position', object, "setPosition");
+	}
+
+	public function unlinkObject(trackPrefix:String, object:FoxObject) {
+		unlink('$trackPrefix:rotation', object, "setRotation");
+		unlink('$trackPrefix:quaternion', object, "setRotationQuaternion");
+		unlink('$trackPrefix:scale', object, "setScale");
+		unlink('$trackPrefix:position', object, "setPosition");
 	}
 
 	public function clearLinks() {
