@@ -152,12 +152,55 @@ class FoxLerp {
 		return output;
 	}
 
-	public inline static function lerpQuaternion(a:Vector3D, b:Vector3D, w:Float):Vector3D {
-		return FoxLerp.lerp4D(a, b, w); // TODO: Proper quaternion interpolation
-	}
+	public static function lerpQuaternion(a:Vector3D, b:Vector3D, w:Float, ?output:Vector3D):Vector3D {
+		// Slerp
+		var dot = a.dotProduct(b) + a.w*b.w;
+		var c = b.clone();
+		if(output == null) output = new Vector3D();
 
-	public inline static function lerpQuaternionToOutput(a:Vector3D, b:Vector3D, w:Float, output:Vector3D):Vector3D {
-		return FoxLerp.lerp4DToOutput(a, b, w, output); // TODO: Proper quaternion interpolation
+		//make sure we take the shortest path in case dot Product is negative
+		if(dot < 0.0) {
+			c.negate();
+			c.w *= -1;
+			dot *= -1;
+		}
+		
+		//if the two quaternions are too close to each other, just linear interpolate between the 4D vector
+		if(dot > 0.9995) {
+			FoxLerp.lerp4DToOutput(a, c, w, output);
+			// normalize
+			var len = Math.sqrt(output.lengthSquared + output.w*output.w);
+			output.scaleBy(1 / len);
+			output.w /= len;
+			return output;
+		}
+
+		//perform the spherical linear interpolation
+		var theta0:Float = Math.acos(dot);
+		var theta:Float = w * theta0;
+		var sinTheta:Float = Math.sin(theta);
+		var sinTheta0:Float = Math.sin(theta0);
+
+		var scalePreviousQuat:Float = Math.cos(theta) - dot * sinTheta / sinTheta0;
+		var scaleNextQuat:Float = sinTheta / sinTheta0;
+
+		output.copyFrom(c);
+		output.scaleBy(scaleNextQuat);
+		output.w = c.w * scaleNextQuat;
+
+		// copy temporarily
+		var x = output.x, y = output.y, z = output.z, w = output.w;
+		
+		output.copyFrom(a);
+		output.scaleBy(scalePreviousQuat);
+		output.w *= a.w * scalePreviousQuat;
+
+		output.x += x;
+		output.y += y;
+		output.z += z;
+		output.w += w;
+
+		return output;
 	}
 
 	// Test
