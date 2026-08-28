@@ -6,6 +6,7 @@ import haxe.io.Path;
 import haxe.io.Bytes;
 import haxe.ds.IntMap;
 import haxe.ds.StringMap;
+import haxe.crypto.Base64;
 import foxlite.FoxShader;
 import foxlite.animation.FoxAnimation;
 import foxlite.animation.FoxTrackType;
@@ -116,25 +117,35 @@ class FoxGLTFLoader {
 		var dir:String = Path.directory(name) + '/';
 
 		var gltfJson:Dynamic = FoxLoaderUtil.loadJSON(name);
+		gltfJson.assetsKey = name;
 		
 		var buffers:Array<ByteArray> = [];
-		for(buf in (gltfJson.buffers:Array<Dynamic>)) {
-			var bufPath = FoxLoaderUtil.filePath(dir + buf.uri);
-			if(!Assets.exists(bufPath)) {
-				buffers.push(null);
-				trace('[FoxLite > FoxGLTFLoader]: Warning! buffer $buf not found! (Loading: $bufPath)');
-				continue;
+		for(i=>buf in (gltfJson.buffers:Array<Dynamic>)) {
+			var isDataUrl = StringTools.startsWith(buf.uri, "data:");
+			var bufPath = isDataUrl ? buf.uri : FoxLoaderUtil.filePath(dir + buf.uri);
+
+			var buffer:ByteArray = null;
+			if(!isDataUrl) {
+				if(!Assets.exists(bufPath)) {
+					buffers.push(null);
+					trace('[FoxLite > FoxGLTFLoader]: Warning! buffer $i not found! (Loading: $bufPath)');
+					continue;
+				}
+				buffer = Assets.getBytes(bufPath);
+				if(buffer == null) {
+					trace('[FoxLite > FoxGLTFLoader]: Warning! Could not load buffer $i! (Loading: $bufPath)');
+					buffers.push(null);
+					continue;
+				}
 			}
-			var buffer = Assets.getBytes(bufPath);
-			if(buffer == null) {
-				trace('[FoxLite > FoxGLTFLoader]: Warning! Could not load buffer $buf! (Loading: $bufPath)');
-				buffers.push(null);
-				continue;
+			else { // Load embedded
+				var bytes:Bytes = Base64.decode(bufPath.split(',')[1]); 
+				buffer = ByteArray.fromBytes(bytes);
 			}
 			buffers.push(buffer);
 		}
 
-		if(buffers.length == 0) {
+		if(false && buffers.filter(f -> f == null).length == buffers.length) {
 			trace('[FoxLite > FoxGLTFLoader]: Could not load $name. (All buffers are missing)');
 			return null;
 		}
@@ -206,7 +217,9 @@ class FoxGLTFLoader {
 					else params.wrapMode = FoxWrapMode.CLAMP;
 				}
 
-				var texture = FoxTexture.fromImageRaw(FoxLoaderUtil.filePath(directory + Std.string(image.uri)), mipmaps, cast 1, params) ?? FoxRenderer.MISSING_TEXTURE;
+				var isDataUrl = StringTools.startsWith(image.uri, "data:");
+				var imagePath = isDataUrl ? image.uri : FoxLoaderUtil.filePath(directory + Std.string(image.uri));
+				var texture = FoxTexture.fromImageRaw(imagePath, mipmaps, cast 1, params) ?? FoxRenderer.MISSING_TEXTURE;
 				textures.push(texture);
 			}
 			else textures.push(null);
@@ -214,8 +227,9 @@ class FoxGLTFLoader {
 
 		if(gltfJson.materials != null) {
 			materials = new StringMap();
-			for(mat in (gltfJson.materials:Array<Dynamic>)) {
+			for(idx=>mat in (gltfJson.materials:Array<Dynamic>)) {
 				var material = new FoxMaterial();
+				material.assetsKey = gltfJson.assetsKey;
 				if(Std.isOfType(mat.doubleSided, Bool)) material.culling = mat.doubleSided ? FoxTriangleFace.NONE : FoxTriangleFace.BACK;
 				
 				if(Std.isOfType(mat.alphaMode, String)) switch(mat.alphaMode:String) {
@@ -287,6 +301,7 @@ class FoxGLTFLoader {
 				// Compile shader
 				material.shader = FoxShader.fromAsset(customShaderPath, extraShaderFlags);
 
+				if(!Std.isOfType(mat.name, String)) mat.name = 'Material.${StringTools.lpad(Std.string(idx), '0', 3)}';
 				materials.set(mat.name, material);
 				materialArray.push(material);
 			}
@@ -296,6 +311,7 @@ class FoxGLTFLoader {
 			for(i=>prim in (mesh.primitives:Array<Dynamic>)) {
 				var mesh = new FoxMesh();
 				var meshAccessors:IntMap<String> = new IntMap();
+				var skip = false;
 
 				for(attrib in Reflect.fields(prim.attributes)) meshAccessors.set(Reflect.field(prim.attributes, attrib), attrib.toUpperCase());
 				meshAccessors.set(prim.indices, "INDICES");
@@ -304,6 +320,11 @@ class FoxGLTFLoader {
 					var accessor:Dynamic = accessors[accessorIndex];
 					var view:Dynamic = bufferViews[accessor.bufferView];
 					var buffer:ByteArray = buffers[view.buffer];
+					if(buffer == null) {
+						trace('Warning! Buffer ${view.buffer} not found for mesh $i/$attrib, skipping!');
+						skip = true;
+						break;
+					}
 
 					var count:Int = accessor.count;
 					var data32PerVertex:Int = switch(accessor.type:String) {
@@ -375,6 +396,7 @@ class FoxGLTFLoader {
 						default: (gpuBuffer:Dynamic)?.dispose(); // In case we have an invalid attribute
 					}
 				}
+				if(skip) break;
 				if(Std.isOfType(prim.material, Int)) mesh.material = materialArray[prim.material];
 				// TODO: maybe move render mode to mesh instead of material?
 				//if(Std.isOfType(prim.mode, Int)) ;
@@ -404,6 +426,10 @@ class FoxGLTFLoader {
 				var accessor:Dynamic = accessors[skin.inverseBindMatrices];
 				var view:Dynamic = bufferViews[accessor.bufferView];
 				var buffer:ByteArray = buffers[view.buffer];
+				if(buffer == null) {
+					trace('Warning! Buffer ${view.buffer} not found for skin ${skin.name}, skipping!');
+					break;
+				}
 
 				var skinData = new FoxSkinData();
 
@@ -458,13 +484,19 @@ class FoxGLTFLoader {
 					var bufferIn:ByteArray = buffers[viewIn.buffer];
 					var bufferOut:ByteArray = buffers[viewOut.buffer];
 
+					if(bufferIn == null || bufferOut == null) {
+						trace('Warning! Buffers ${viewIn.buffer} and/or ${viewOut.buffer} not found for animation track "${node.name}:$path", skipping!');
+						if(viewIn.buffer == viewOut.buffer) break;
+						else continue;
+					}
+
 					animation.duration = Math.max(animation.duration, accessorIn.max[0]);
 
 					trackType = switch(accessorOut.type:String) {
 						case "SCALAR": FoxTrackType.FLOAT;
 						case "VEC2": FoxTrackType.VECTOR2;
 						case "VEC3": FoxTrackType.VECTOR3D;
-						case "VEC4": path == "rotation" ? FoxTrackType.EULER_ANGLES : FoxTrackType.VECTOR4;
+						case "VEC4": path == "rotation" ? FoxTrackType.QUATERNION : FoxTrackType.VECTOR4;
 						//case "MAT2": FoxTrackType.MATRIX2;
 						//case "MAT3": FoxTrackType.MATRIX3;
 						case "MAT4": FoxTrackType.MATRIX4;
@@ -504,7 +536,7 @@ class FoxGLTFLoader {
 								);
 								track.addFrame(time, v, interpolation);
 							};
-							case FoxTrackType.EULER_ANGLES: {
+							case FoxTrackType.QUATERNION: {
 								bufferOut.position = viewOut.byteOffset + i*16;
 								var v = new Vector3D(
 									bufferOut.readFloat(),

@@ -1,5 +1,6 @@
 package foxlite.texture;
 
+import StringTools;
 import lime.graphics.opengl.GL;
 import foxlite.FoxCache;
 import foxlite.loaders.FoxLoaderUtil;
@@ -137,12 +138,19 @@ class FoxTexture {
 	public static function fromImageRaw(name:String, mipmaps:Bool=false, format:Context3DTextureFormat=#if !foxlite_polymod Context3DTextureFormat.BGRA #else 1 #end, ?params:{?wrapMode:FoxWrapMode, ?filter:FoxTextureFilter, ?mipFilter:FoxMipFilter}):FoxTexture {
 		if(FoxCache.textures().exists(name)) return FoxCache.textures().get(name);
 		
-		if(!Assets.exists(name)) {
+		var isDataUrl = StringTools.startsWith(name, "data:");
+		if(!Assets.exists(name) && !isDataUrl) {
 			trace('[Foxlite > FoxTexture]: Could not load image: ${name} (Not found.)');
 			return null;
 		}
 
-		var data = Assets.getBitmapData(name, false);
+		var data:BitmapData = null;
+		if(isDataUrl) {
+			var components = name.split(',');
+			data = BitmapData.fromBase64(components[1], components[0].substr(5, components[0].indexOf(';base64')-5));
+		} 
+		else data = Assets.getBitmapData(name, false);
+
 		if(data == null) {
 			trace('[Foxlite > FoxTexture]: Could not load image: ${name} (BitmapData error.)');
 			return null;
