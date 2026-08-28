@@ -1,5 +1,6 @@
 package foxlite.math;
 
+import flixel.math.FlxMath;
 import foxlite.polyfill.VectorFactory;
 import foxlite.renderer.FoxRenderer;
 import openfl.geom.Matrix3D;
@@ -208,6 +209,35 @@ class FoxMathUtil {
 		}
 		else {
 			e.x = Math.atan2(mt[6] / scale.y, mt[5] / scale.y);
+			e.z = 0;
+		}
+		return e;
+	}
+
+	/**
+		Converts a quaternion rotation to euler angles. This operation is not safely reversible.
+
+		__Note:__ This expects the quaternion vector to be normalized.
+	**/
+	public static function eulerFromQuaternion(quat:Vector3D, ?output:Vector3D):Vector3D {
+		var e = output ?? new Vector3D();
+		var x:Float = quat.x, y:Float = quat.y, z:Float = quat.z, w:Float = quat.w;
+
+		var m0 = 1 - 2 * y * y - 2 * z * z,
+			m4 = 2 * x * y - 2 * w * z,
+			m5 = 1 - 2 * x * x - 2 * z * z,
+			m6 = 2 * y * z + 2 * w * x,
+			m8 = 2 * x * z + 2 * w * y,
+			m9 = 2 * y * z - 2 * w * x,
+			m10 = 1 - 2 * x * x - 2 * y * y;
+
+		e.y = Math.asin(m8);
+		if(Math.abs(m8) < 0.9999999) {
+			e.x = Math.atan2(-m9, m10);
+			e.z = Math.atan2(-m4, m0);
+		}
+		else {
+			e.x = Math.atan2(m6, m5);
 			e.z = 0;
 		}
 		return e;

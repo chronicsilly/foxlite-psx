@@ -1,5 +1,6 @@
 package foxlite;
 
+import foxlite.polyfill.VectorFactory;
 import foxlite.FoxBasic;
 import foxlite.math.FoxMathUtil;
 import foxlite.renderer.FoxRenderer;
@@ -79,6 +80,21 @@ class FoxObject extends FoxBasic {
 		}
 		output.setTo(angleX, angleY, angleZ);
 		return output;
+	}
+
+	/**
+		Sets the object's `rotation` from a Quaternion, which is needed accurate rotation representation for interpolation
+
+		__Note:__ This method needs to be optimized
+	**/
+	public function setRotationQuaternion(x:Float=0, y:Float=0, z:Float=0, w:Float=1):Vector3D {
+		rotation.setTo(x, y, z);
+		rotation.w = w;
+		return FoxMathUtil.eulerFromQuaternion(rotation, rotation);
+	}
+
+	public inline function setRotationQuaternionFromVector(quat:Vector3D):Vector3D {
+		return setRotationQuaternion(quat.x, quat.y, quat.z, quat.w);
 	}
 
 	public inline function setScale(x:Float=1, y:Float=1, z:Float=1) {
