@@ -16,6 +16,8 @@ package foxlite.animation;
 	public inline static final FUNCTION = 10;
 	public inline static final DEGREES = 11;
 	public inline static final COLOR = 12;
+	public inline static final MATRIX3 = 13;
+	public inline static final MATRIX2 = 14; // closer to 2x2 matrix
 
 	@:from public static function fromString(type:String):FoxTrackType {
 		type = type.toLowerCase();
@@ -33,6 +35,8 @@ package foxlite.animation;
 			case "function": FoxTrackType.FUNCTION;
 			case "degrees": FoxTrackType.DEGREES;
 			case "color": FoxTrackType.COLOR;
+			case "matrix3": FoxTrackType.MATRIX3;
+			case "matrix2": FoxTrackType.MATRIX2;
 			default: -1;
 		}
 	}
@@ -52,6 +56,8 @@ package foxlite.animation;
 			case FoxTrackType.FUNCTION: "function";
 			case FoxTrackType.DEGREES: "degrees";
 			case FoxTrackType.COLOR: "color";
+			case FoxTrackType.MATRIX3: "matrix3";
+			case FoxTrackType.MATRIX2: "matrix2";
 			default: "";
 		}
 	}
