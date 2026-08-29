@@ -55,6 +55,12 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 	public var reverse:Bool = false;
 	public var curAnim:FoxAnimation;
 
+	/**
+		If enabled, will ensure the animation plays smoothly if keyframes are too close together.
+		For more details, check `fineTune()`. Disable this if performance is unacceptable.
+	**/
+	public var fineTuned:Bool = #if !foxlite_polymod true; #else false; #end
+
 	var __reset:Bool = false;
 	var __playFrame:Bool = true;
 
@@ -86,6 +92,8 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 
 			if(__reset) data.frameIndex = reverse ? len : 0;
 			if(__playFrame) data.prevFrameIndex = -1;
+			
+			if(fineTuned) data.frameIndex = fineTune(data, frames, this.time, tDir, curAnim.duration);
 			
 			var curFrame = frames[data.frameIndex];
 			var nextFrame = frames[Std.int(FlxMath.bound(data.frameIndex + tDir, 0, len))];
@@ -188,44 +196,34 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 	}
 
 	/**
-		Normally, you'd assign a value to `time` to seek the animation.
-		However, due to frame picking and interpolation, the current frame may
-		not correspond to the current time until a number of frames later, and
-		the values will sweep across all the frames in-between (including function calls).
+		Fine-tunes a frame index to always interpolate between two timestamps for a current play time.
 
-		This method is a fine-tuned version of the seek, it sweeps across frames in advance so
-		the actual update happens immediately.
+		This ensures the animation plays smoothly and doesn't hold onto a keyframe if they're too close together until the next frame.
+	**/
+	public function fineTune(data:FoxTrackData, frames:Array<FoxKeyframe<Any>>, time:Float, direction:Int, duration:Float):Int {
+		var len = frames.length - 1;
+		while(true) {
+			var curTime = frames[data.frameIndex].time;
+			var nextTime = frames[Std.int(FlxMath.bound(data.frameIndex + direction, 0, len))].time;
+
+			if(time >= Math.max(Math.min(curTime, nextTime), 0) && time <= Math.min(Math.max(curTime, nextTime), duration)) {
+				break; 
+			}
+			else {
+				data.frameIndex = Std.int(FlxMath.mod(data.frameIndex + direction, frames.length));
+			}
+		}
+		return data.frameIndex;
+	}
+
+	/**
+		Seeks the animation to a particular `time`. This has the same effect as setting `time` directly, with a bit extra safety.
 
 		@param forceUpdate Forces the animation to update right away (values will interpolate and functions may be called)
 	**/
 	public function seek(seekTime:Float, forceUpdate:Bool=false) {
 		if(curAnim == null) return;
 		time = FlxMath.bound(seekTime, 0, curAnim.duration);
-
-		var curData:Map<String, FoxTrackData> = trackData.get(curAnim.name);
-		var tDir = reverse ? -1 : 1;
-		for(trackName => track in curAnim.tracks) {
-			var frames = track.frames;
-			var len = frames.length-1;
-			if(len == -1) continue;
-			
-			var data:FoxTrackData = curData.get(trackName);
-			
-			var seeking:Bool = true;
-			while(seeking) {
-				var curTime = frames[data.frameIndex].time;
-				var nextTime = frames[Std.int(FlxMath.bound(data.frameIndex + tDir, 0, len))].time;
-
-				if(time >= Math.max(Math.min(curTime, nextTime), 0) && time <= Math.min(Math.max(curTime, nextTime), curAnim.duration)) {
-					seeking = false;
-					break;
-				}
-				else {
-					data.frameIndex += tDir;
-					data.frameIndex = Std.int(FlxMath.mod(data.frameIndex, frames.length));
-				}
-			}
-		}
 		if(forceUpdate) update(0);
 	}
 
