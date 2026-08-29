@@ -460,7 +460,7 @@ class FoxRenderer {
 		// Render mode
 		if(debugWireframe <= 0.0) {
 			FoxRenderer.renderMode = material.renderMode;
-			if(material.renderMode == gl.LINES) gl.lineWidth(material.lineWidth);
+			if(material.renderMode == gl.LINES || material.renderMode == gl.LINE_STRIP) gl.lineWidth(material.lineWidth);
 		}
 		else {
 			gl.lineWidth(debugWireframe);
@@ -510,7 +510,7 @@ class FoxRenderer {
 		// Render mode
 		if(debugWireframe <= 0.0) {
 			FoxRenderer.renderMode = material.renderMode;
-			if(material.renderMode == gl.LINES) gl.lineWidth(material.lineWidth);
+			if(material.renderMode == gl.LINES || material.renderMode == gl.LINE_STRIP) gl.lineWidth(material.lineWidth);
 		}
 		else {
 			gl.lineWidth(debugWireframe);
