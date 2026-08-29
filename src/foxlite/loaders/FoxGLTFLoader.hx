@@ -36,13 +36,17 @@ import lime.utils.Int8Array;
 import lime.utils.UInt8ClampedArray;
 import lime.utils.ArrayBufferView;
 import lime.math.Vector2;
+import lime.graphics.Image;
+import lime.system.Endian;
 
 import openfl.Assets;
 import openfl.geom.Vector3D;
 import openfl.geom.Matrix3D;
 import openfl.utils.ByteArray;
+import openfl.display.BitmapData;
 import openfl.display3D.VertexBuffer3D;
 import openfl.display3D.IndexBuffer3D;
+import openfl.display3D.textures.Texture;
 
 @dox(hide)
 @:noCompletion abstract AccessorComponentType(Int) from Int to Int {
@@ -116,7 +120,25 @@ class FoxGLTFLoader {
 	public static function load(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String):GLTFData {
 		var dir:String = Path.directory(name) + '/';
 
+		// Check cache
+		// Meshes are enough since everything consists of the same gltf
+		if(FoxCache.meshes().exists(name)) return {
+			meshes: FoxCache.meshes().get(name),
+			materials: FoxCache.materialLibs().get(name),
+			animations: FoxCache.animationLibs().get(name),
+			skins: FoxCache.skins().get(name),
+			gltfJson: null
+		};
+
 		var gltfJson:Dynamic = FoxLoaderUtil.loadJSON(name);
+		if(gltfJson == null) {
+			trace('[FoxLite > FoxGLTFLoader]: Could not load $name (Not found.)');
+			return null;
+		}
+		if(gltfJson.asset.version == null || gltfJson.asset.version < "2.0") {
+			trace('[FoxLite > FoxGLTFLoader]: GLTF version < 2.0 is not supported! ($name)');
+			return null;
+		}
 		gltfJson.assetsKey = name;
 		
 		var buffers:Array<ByteArray> = [];
@@ -146,11 +168,13 @@ class FoxGLTFLoader {
 		}
 
 		if(false && buffers.filter(f -> f == null).length == buffers.length) {
-			trace('[FoxLite > FoxGLTFLoader]: Could not load $name. (All buffers are missing)');
+			trace('[FoxLite > FoxGLTFLoader]: Could not load "$name". (All buffers are missing)');
 			return null;
 		}
 
-		return _processData(dir, gltfJson, buffers, extraShaderFlags, customShaderPath);
+		var data = _processData(name, gltfJson, buffers, extraShaderFlags, customShaderPath);
+		for(b in buffers) b.clear(); // Free memory
+		return data;
 	}
 
 	/**
@@ -158,23 +182,57 @@ class FoxGLTFLoader {
 	**/
 	// Warning: TODO
 	public static function loadBinary(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String):GLTFData {
-		var dir:String = Path.directory(name) + '/';
+		var path = FoxLoaderUtil.filePath(name);
+		if(!Assets.exists(path)) {
+			trace('[FoxLite > FoxGLTFLoader]: Could not load "$name" (Not found.)');
+			return null;
+		}
+		
+		var glb:ByteArray = Assets.getBytes(path);
+		if(glb.readUTFBytes(4) != "glTF") {
+			trace('[FoxLite > FoxGLTFLoader]: GLB header error! ($name)');
+			return null;
+		}
+		if(glb.readUnsignedInt() < 2) {
+			trace('[FoxLite > FoxGLTFLoader]: GLTF version < 2.0 is not supported! ($name)');
+			return null;
+		}
 
-		var buffers:Array<ByteArray> = [];
-		var gltfJson:Dynamic = null;
+		var length:UInt = glb.readUnsignedInt();
+		var jsonLength:UInt = glb.readUnsignedInt();
+		glb.position += 4; // Skip JSON header
 
-		return _processData(dir, gltfJson, buffers, extraShaderFlags, customShaderPath);
+		var gltfJson:Dynamic = Json.parse(glb.readUTFBytes(jsonLength));
+		
+		var binLength:UInt = glb.readUnsignedInt(); // embedded .bin size
+		glb.position += 4; // Skip BIN header
+
+		if(glb.bytesAvailable < binLength) {
+			trace('[FoxLite > FoxGLTFLoader]: Could not load "$name". Not enough bytes, buffer is corrupted. (${glb.bytesAvailable} < $binLength)');
+			return null;
+		}
+
+		var dataArray = Bytes.alloc(binLength);
+		glb.readBytes(dataArray, 0, binLength);
+
+		var buffers:Array<ByteArray> = [dataArray];
+
+		var data = _processData(name, gltfJson, buffers, extraShaderFlags, customShaderPath);
+		
+		for(b in buffers) b.clear(); // Free memory
+		return data;
 	}
 
-	@:noCompletion public static function _processData(directory:String, gltfJson:Dynamic, buffers:Array<ByteArray>, ?extraShaderFlags:Array<String>, ?customShaderPath:String):GLTFData {
+	@:noCompletion public static function _processData(name:String, gltfJson:Dynamic, buffers:Array<ByteArray>, ?extraShaderFlags:Array<String>, ?customShaderPath:String):GLTFData {
+		var directory = Path.directory(name) + '/';
 		if(extraShaderFlags == null) extraShaderFlags = [];
 		if(customShaderPath == null) customShaderPath = FoxShader.BASIC;
 
 		var accessors:Array<Dynamic> = gltfJson.accessors;
 		var bufferViews:Array<Dynamic> = gltfJson.bufferViews;
 
-		var meshes:Array<FoxMesh> = [];
-		var materials:Map<String, FoxMaterial> = null;
+		var meshes:Array<FoxMesh> = FoxCache.meshes().get(name) ?? [];
+		var materials:Map<String, FoxMaterial> = FoxCache.materialLibs().get(name);
 		var textures:Array<FoxTexture> = [];
 		var materialArray:Array<FoxMaterial> = [];
 
@@ -186,7 +244,10 @@ class FoxGLTFLoader {
 		if(gltfJson.textures != null) for(tex in (gltfJson.textures:Array<Dynamic>)) {
 			var image:Dynamic = gltfJson.images[tex.source];
 
-			if(image?.uri != null) {
+			var isBuffer = Std.isOfType(image?.bufferView, Int);
+			var isDataUrl = image?.uri != null && StringTools.startsWith(image.uri, "data:");
+			
+			if(image?.uri != null || isBuffer) {
 				var sampler:Dynamic = gltfJson.samplers[tex.sampler];
 				
 				var mipmaps:Bool = 
@@ -217,18 +278,51 @@ class FoxGLTFLoader {
 					else params.wrapMode = FoxWrapMode.CLAMP;
 				}
 
-				var isDataUrl = StringTools.startsWith(image.uri, "data:");
-				var imagePath = isDataUrl ? image.uri : FoxLoaderUtil.filePath(directory + Std.string(image.uri));
-				var texture = FoxTexture.fromImageRaw(imagePath, mipmaps, cast 1, params) ?? FoxRenderer.MISSING_TEXTURE;
+				var texture:FoxTexture = null;
+				if(!isBuffer) {
+					var imagePath = isDataUrl ? image.uri : FoxLoaderUtil.filePath(directory + Std.string(image.uri));
+					texture = FoxTexture.fromImageRaw(imagePath, mipmaps, cast 1, params) ?? FoxRenderer.MISSING_TEXTURE;
+				}
+				else {
+					texture = new FoxTexture();
+					texture.assetsKey = image.name;
+					texture.wrapMode = params.wrapMode;
+					texture.filter = params.filter;
+					texture.mipFilter = params.mipFilter;
+					FoxCache.textures().set(image.name, texture);
+
+					var view = bufferViews[image.bufferView];
+					var buffer = buffers[view.buffer];
+					var imageBytes = Bytes.alloc(view.byteLength);
+					imageBytes.blit(0, buffer, view.byteOffset, view.byteLength);
+					
+					Image.loadFromBytes(imageBytes).onComplete(image -> {
+						(imageBytes:ByteArray).clear();
+						if(image == null) return;
+						// Upload image directly to the GPU
+						// This method is completely detached from openfl's BitmapData operations
+						// Unless we find a better method, we'll stick with this
+						texture.glTexture = FoxRenderer.createTextureStorage(image.width, image.height, image.transparent ? "rgba" : "rgb");
+						(cast texture.glTexture:Texture).uploadFromTypedArray(image.buffer.data);
+					});
+				}
 				textures.push(texture);
 			}
 			else textures.push(null);
 		}
 
-		if(gltfJson.materials != null) {
+		if(gltfJson.materials != null && materials == null) {
 			materials = new StringMap();
 			for(idx=>mat in (gltfJson.materials:Array<Dynamic>)) {
-				var material = new FoxMaterial();
+				if(!Std.isOfType(mat.name, String)) mat.name = 'Material.${StringTools.lpad(Std.string(idx), '0', 3)}';
+				var material:FoxMaterial = materials?.get(mat.name);
+
+				if(material != null) {
+					materialArray.push(material);
+					continue;
+				}
+
+				material = new FoxMaterial();
 				material.assetsKey = gltfJson.assetsKey;
 				if(Std.isOfType(mat.doubleSided, Bool)) material.culling = mat.doubleSided ? FoxTriangleFace.NONE : FoxTriangleFace.BACK;
 				
@@ -273,7 +367,7 @@ class FoxGLTFLoader {
 					if(tex != null) material.textures.set("ormMap", tex);
 				}
 
-				if(pbr.baseColorTexture != null) {
+				if(pbr?.baseColorTexture != null) {
 					var tex = textures[pbr.baseColorTexture.index];
 					if(tex != null) material.textures.set("bitmap", tex);
 					extraShaderFlags.remove("SOLID");
@@ -302,128 +396,111 @@ class FoxGLTFLoader {
 				// Compile shader
 				material.shader = FoxShader.fromAsset(customShaderPath, extraShaderFlags);
 
-				if(!Std.isOfType(mat.name, String)) mat.name = 'Material.${StringTools.lpad(Std.string(idx), '0', 3)}';
 				materials.set(mat.name, material);
 				materialArray.push(material);
 			}
+			FoxCache.materialLibs().set(name, materials);
 		}
 
-		for(mesh in (gltfJson.meshes:Array<Dynamic>)) {
-			for(i=>prim in (mesh.primitives:Array<Dynamic>)) {
-				var mesh = new FoxMesh();
-				var meshAccessors:IntMap<String> = new IntMap();
-				var skip = false;
+		if(meshes.length == 0) {
+			for(mesh in (gltfJson.meshes:Array<Dynamic>)) {
+				for(i=>prim in (mesh.primitives:Array<Dynamic>)) {
+					var mesh = new FoxMesh();
+					var meshAccessors:IntMap<String> = new IntMap();
+					var skip = false;
 
-				for(attrib in Reflect.fields(prim.attributes)) meshAccessors.set(Reflect.field(prim.attributes, attrib), attrib.toUpperCase());
-				meshAccessors.set(prim.indices, "INDICES");
-				
-				for(accessorIndex=>attrib in meshAccessors) {
-					var accessor:Dynamic = accessors[accessorIndex];
-					var view:Dynamic = bufferViews[accessor.bufferView];
-					var buffer:ByteArray = buffers[view.buffer];
-					if(buffer == null) {
-						trace('Warning! Buffer ${view.buffer} not found for mesh $i/$attrib, skipping!');
-						skip = true;
-						break;
-					}
+					for(attrib in Reflect.fields(prim.attributes)) meshAccessors.set(Reflect.field(prim.attributes, attrib), attrib.toUpperCase());
+					meshAccessors.set(prim.indices, "INDICES");
+					
+					for(accessorIndex=>attrib in meshAccessors) {
+						var accessor:Dynamic = accessors[accessorIndex];
+						var view:Dynamic = bufferViews[accessor.bufferView];
+						var buffer:ByteArray = buffers[view.buffer];
+						if(buffer == null) {
+							trace('Warning! Buffer ${view.buffer} not found for mesh $i/$attrib, skipping!');
+							skip = true;
+							break;
+						}
 
-					var count:Int = accessor.count;
-					var data32PerVertex:Int = switch(accessor.type:String) {
-						case "SCALAR": 1;
-						case "VEC2": 2;
-						case "VEC3": 3;
-						case "VEC4", "MAT2": 4;
-						case "MAT3": 9;
-						case "MAT4": 16;
-						default: 1;
-					};
-					count *= data32PerVertex;
-
-					var dataArray:ArrayBufferView = switch(accessor.componentType:Int) {
-						case AccessorComponentType.BYTE: new Int8Array(count);
-						case AccessorComponentType.UNSIGNED_BYTE: new UInt8ClampedArray(count);
-						case AccessorComponentType.SHORT: new Int16Array(count);
-						case AccessorComponentType.UNSIGNED_SHORT: new UInt16Array(count);
-						case AccessorComponentType.UNSIGNED_INT: new UInt32Array(count);
-						case AccessorComponentType.FLOAT: new Float32Array(count);
-						default: null;
-					}
-
-					// Write data
-					#if js
-					var blitBuffer:Bytes = Bytes.ofData(dataArray.buffer);
-					#else
-					var blitBuffer:Bytes = dataArray.buffer;
-					#end
-
-					if(view.byteStride == null) blitBuffer.blit(0, buffer, (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0), dataArray.byteLength);
-					else {
-						// Buffer has a stride, we have to custom blit (slow in hscript)
-						var dataSize:Int = switch(accessor.componentType:Int) {
-							case AccessorComponentType.BYTE, AccessorComponentType.UNSIGNED_BYTE: 1;
-							case AccessorComponentType.SHORT, AccessorComponentType.UNSIGNED_SHORT: 2;
-							case AccessorComponentType.UNSIGNED_INT, AccessorComponentType.FLOAT: 4;
+						var count:Int = accessor.count;
+						var data32PerVertex:Int = switch(accessor.type:String) {
+							case "SCALAR": 1;
+							case "VEC2": 2;
+							case "VEC3": 3;
+							case "VEC4", "MAT2": 4;
+							case "MAT3": 9;
+							case "MAT4": 16;
 							default: 1;
+						};
+						count *= data32PerVertex;
+
+						var dataArray:ArrayBufferView = switch(accessor.componentType:Int) {
+							case AccessorComponentType.BYTE: new Int8Array(count);
+							case AccessorComponentType.UNSIGNED_BYTE: new UInt8ClampedArray(count);
+							case AccessorComponentType.SHORT: new Int16Array(count);
+							case AccessorComponentType.UNSIGNED_SHORT: new UInt16Array(count);
+							case AccessorComponentType.UNSIGNED_INT: new UInt32Array(count);
+							case AccessorComponentType.FLOAT: new Float32Array(count);
+							default: null;
+						}
+
+						// Write data
+						#if js
+						var blitBuffer:Bytes = Bytes.ofData(dataArray.buffer);
+						#else
+						var blitBuffer:Bytes = dataArray.buffer;
+						#end
+
+						blitBuffer.blit(0, buffer, (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0), dataArray.byteLength);
+						
+						var gpuBuffer:Any = null;
+						
+						switch(view.target:Int) {
+							case BufferViewTarget.ARRAY_BUFFER: {
+								gpuBuffer = mesh.context.createVertexBuffer(accessor.count, data32PerVertex);
+								(gpuBuffer:VertexBuffer3D).uploadFromTypedArray(dataArray);
+							};
+							case BufferViewTarget.ELEMENT_ARRAY_BUFFER: {
+								gpuBuffer = mesh.context.createIndexBuffer(accessor.count);
+								(gpuBuffer:IndexBuffer3D).uploadFromTypedArray(dataArray);
+							};
 						}
 						
-						var offset:Int = (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0);
-						var step:Int = data32PerVertex * dataSize;
-						var stride:Int = step + (view.byteStride:Int);
-						var len:Int = offset + view.byteLength;
-						var i:Int = 0;
-						while(offset < len) {
-							blitBuffer.blit(i, buffer, offset, step);
-							offset += stride;
-							i += step;
-						}
-					}
-					
-					var gpuBuffer:Any = null;
-					
-					switch(view.target:Int) {
-						case BufferViewTarget.ARRAY_BUFFER: {
-							gpuBuffer = mesh.context.createVertexBuffer(accessor.count, data32PerVertex);
-							(gpuBuffer:VertexBuffer3D).uploadFromTypedArray(dataArray);
-						};
-						case BufferViewTarget.ELEMENT_ARRAY_BUFFER: {
-							gpuBuffer = mesh.context.createIndexBuffer(accessor.count);
-							(gpuBuffer:IndexBuffer3D).uploadFromTypedArray(dataArray);
-						};
-					}
-					
-					switch(attrib) {
-						case "POSITION": {
-							// Add precalculated bounds aswell
-							if(mesh.bounds == null) {
-								var min:Array<Float> = accessor.min;
-								var max:Array<Float> = accessor.max;
-								mesh.bounds = new BoundingBox();
-								mesh.bounds.fromExtents(
-									new Vector3D(min[0], min[1], min[2]),
-									new Vector3D(max[0], max[1], max[2])
-								);
+						switch(attrib) {
+							case "POSITION": {
+								// Add precalculated bounds aswell
+								if(mesh.bounds == null) {
+									var min:Array<Float> = accessor.min;
+									var max:Array<Float> = accessor.max;
+									mesh.bounds = new BoundingBox();
+									mesh.bounds.fromExtents(
+										new Vector3D(min[0], min[1], min[2]),
+										new Vector3D(max[0], max[1], max[2])
+									);
+								}
+								mesh.vertexBuffer = gpuBuffer;
 							}
-							mesh.vertexBuffer = gpuBuffer;
+							case "NORMAL": mesh.normalBuffer = gpuBuffer;
+							case "TANGENT": mesh.tangentBuffer = gpuBuffer;
+							case "TEXCOORD_0": mesh.uvBuffer = gpuBuffer;
+							case "JOINTS_0": {
+								mesh.boneIndices = gpuBuffer;
+								mesh.boneIndices.__stride = 4; // Fix OpenFL stride bugs
+							}
+							case "WEIGHTS_0": mesh.boneWeights = gpuBuffer;
+							case "COLOR_0": mesh.colorBuffer = gpuBuffer;
+							case "INDICES": mesh.indexBuffer = gpuBuffer;
+							default: (gpuBuffer:Dynamic)?.dispose(); // In case we have an invalid attribute
 						}
-						case "NORMAL": mesh.normalBuffer = gpuBuffer;
-						case "TANGENT": mesh.tangentBuffer = gpuBuffer;
-						case "TEXCOORD_0": mesh.uvBuffer = gpuBuffer;
-						case "JOINTS_0": {
-							mesh.boneIndices = gpuBuffer;
-							mesh.boneIndices.__stride = 4; // Fix OpenFL stride bugs
-						}
-						case "WEIGHTS_0": mesh.boneWeights = gpuBuffer;
-						case "COLOR_0": mesh.colorBuffer = gpuBuffer;
-						case "INDICES": mesh.indexBuffer = gpuBuffer;
-						default: (gpuBuffer:Dynamic)?.dispose(); // In case we have an invalid attribute
 					}
+					if(skip) break;
+					if(Std.isOfType(prim.material, Int)) mesh.material = materialArray[prim.material];
+					// TODO: maybe move render mode to mesh instead of material?
+					//if(Std.isOfType(prim.mode, Int)) ;
+					meshes.push(mesh);
 				}
-				if(skip) break;
-				if(Std.isOfType(prim.material, Int)) mesh.material = materialArray[prim.material];
-				// TODO: maybe move render mode to mesh instead of material?
-				//if(Std.isOfType(prim.mode, Int)) ;
-				meshes.push(mesh);
 			}
+			FoxCache.meshes().set(name, meshes);
 		}
 		
 		var nodes:Array<Dynamic> = gltfJson.nodes;
@@ -436,10 +513,10 @@ class FoxGLTFLoader {
 			parent[c] = i;
 		}
 
-		var skins:Array<FoxSkinData> = [];
+		var skins:Array<FoxSkinData> = FoxCache.skins().get(name) ?? [];
 
 		// Skinning
-		if(gltfJson.skins != null) {
+		if(gltfJson.skins != null && skins.length == 0) {
 			// Temporary vectors for Quaternion -> Euler conversion
 			var tempMatrix = new Matrix3D();
 			var tempVectors = tempMatrix.decompose().__array;
@@ -481,11 +558,12 @@ class FoxGLTFLoader {
 				}
 				skins.push(skinData);
 			}
+			FoxCache.skins().set(name, skins);
 		}
 
-		var animations:StringMap<FoxAnimation> = null;
+		var animations:StringMap<FoxAnimation> = FoxCache.animationLibs().get(name);
 
-		if(gltfJson.animations != null) {
+		if(gltfJson.animations != null && animations == null) {
 			animations = new StringMap();
 			for(anim in (gltfJson.animations:Array<Dynamic>)) {
 				var animation = new FoxAnimation(anim.name);
@@ -571,6 +649,7 @@ class FoxGLTFLoader {
 
 				animations.set(anim.name, animation);
 			}
+			FoxCache.animationLibs().set(name, animations);
 		}
 
 		return {
