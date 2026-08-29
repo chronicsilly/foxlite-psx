@@ -532,8 +532,10 @@ class FoxGLTFLoader {
 		// Skinning
 		if(gltfJson.skins != null && skins.length == 0) {
 			// Temporary vectors for Quaternion -> Euler conversion
+			#if foxlite_polymod
 			var tempMatrix = new Matrix3D();
 			var tempVectors = tempMatrix.decompose().__array;
+			#end
 			for(skin in (gltfJson.skins:Array<Dynamic>)) {
 				var accessor:Dynamic = accessors[skin.inverseBindMatrices];
 				var view:Dynamic = bufferViews[accessor.bufferView];
@@ -560,12 +562,18 @@ class FoxGLTFLoader {
 					if(Std.isOfType(node.translation, Array)) bone.setPosition(node.translation[0], node.translation[1], node.translation[2]);
 					if(Std.isOfType(node.scale, Array)) bone.setScale(node.scale[0], node.scale[1], node.scale[2]);
 					if(Std.isOfType(node.rotation, Array)) {
+						#if foxlite_polymod
 						// Rotations are stored as quaternions, we have to turn them into euler angles
 						tempVectors[1].setTo(node.rotation[0], node.rotation[1], node.rotation[2]);
 						tempVectors[1].w = node.rotation[3];
 
 						tempMatrix.recompose(tempVectors, cast 2);
 						FoxMathUtil.eulerFromMatrix(tempMatrix, bone.rotation);
+						#else
+						bone.rotation.setTo(node.rotation[0], node.rotation[1], node.rotation[2]);
+						bone.rotation.w = node.rotation[3];
+						FoxMathUtil.eulerFromQuaternion(bone.rotation, bone.rotation);
+						#end
 					}
 					skinData.addBone(bone, -1);
 					skinData.reparentBoneByName(idx, nodes[parent[joint]]?.name ?? "");
