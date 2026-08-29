@@ -82,7 +82,9 @@ class FoxObject extends FoxBasic {
 	}
 
 	/**
-		Sets the object's `rotation` from a Quaternion, which is needed accurate rotation representation for interpolation
+		Sets the object's `rotation` from a Quaternion, which is needed for accurate rotation representation when interpolating.
+
+		How dows it work? hell if i know
 	**/
 	public function setRotationQuaternion(x:Float=0, y:Float=0, z:Float=0, w:Float=1):Vector3D {
 		rotation.setTo(x, y, z);
@@ -106,16 +108,6 @@ class FoxObject extends FoxBasic {
 		position.copyFrom(object.position);
 		rotation.copyFrom(object.rotation);
 		scale.copyFrom(object.scale);
-	}
-
-	/**
-		Rotates the object so its Z axis points in the direction of another object's position
-
-		__Note:__ Positions are expected to be in global space, so the resulting rotation will also be in global space
-	**/
-	public function lookAt(otherPos:Vector3D) {
-		transform.pointAt(globalPosition, otherPos, FoxMathUtil.UP);
-		FoxMathUtil.eulerFromMatrix(transform, rotation, scale);
 	}
 
 	public override function update(dt) {
