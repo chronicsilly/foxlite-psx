@@ -95,4 +95,11 @@ class FoxSkinData {
 	public inline static function fromJSON(name:String):FoxSkinData {
 		return FoxJSONLoader.loadSkinData(name);
 	}
+
+	public function destroy() {
+		for(b in bones) b.destroy();
+		bones = null;
+		boneData.destroy();
+		FoxCache.skins().remove(assetsKey);
+	}
 }

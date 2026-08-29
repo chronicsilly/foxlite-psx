@@ -6,6 +6,7 @@ import foxlite.animation.FoxAnimation;
 import foxlite.material.FoxMaterial;
 import foxlite.mesh.FoxMesh;
 import foxlite.texture.FoxTexture;
+import foxlite.skin.FoxSkinData;
 
 #if !foxlite_polymod
 @dox(hide) typedef FoxTextureCollection = Map<String, FoxTexture>;
@@ -14,6 +15,7 @@ import foxlite.texture.FoxTexture;
 @dox(hide) typedef FoxMaterialCollection = Map<String, Map<String, FoxMaterial>>;
 @dox(hide) typedef FoxMeshCollection = Map<String, Array<FoxMesh>>;
 @dox(hide) typedef FoxAnimationCollection = Map<String, Map<String, FoxAnimation>>;
+@dox(hide) typedef FoxSkinCollection = Map<String, Array<FoxSkinData>>;
 #end
 
 class FoxCache {
@@ -24,6 +26,7 @@ class FoxCache {
 	public var _materialLibs:FoxMaterialCollection = new StringMap();
 	public var _meshes:FoxMeshCollection = new StringMap();
 	public var _animationLibs:FoxAnimationCollection = new StringMap();
+	public var _skins:FoxSkinCollection = new StringMap();
 
 	/**
 		If enabled, will free resources on flixel's preStateSwitch signal
@@ -64,6 +67,10 @@ class FoxCache {
 		return FoxCache.instance._animationLibs;
 	}
 
+	public static inline function skins():FoxSkinCollection {
+		return FoxCache.instance._skins;
+	}
+
 	public function freeResources():Void {
 		#if debug
 		trace("[FoxLite > FoxCache]: CLEARING CACHE!");
@@ -73,6 +80,7 @@ class FoxCache {
 		for(r in _materialLibs) for(m in r) m?.destroy();
 		for(r in _meshes) for(m in r) m?.destroy();
 		for(r in _animationLibs) for(a in r) a?.destroy();
+		for(r in _skins) for(a in r) a?.destroy();
 
 		_texture.clear();
 		_shaders.clear();
@@ -80,6 +88,7 @@ class FoxCache {
 		_materialLibs.clear();
 		_meshes.clear();
 		_animationLibs.clear();
+		_skins.clear();
 	}
 
 	public static function cleanup() {
