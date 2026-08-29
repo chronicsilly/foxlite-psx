@@ -18,6 +18,7 @@
 
 package foxlite.renderer;
 
+import foxlite.flixel.FlxTypedSignalImpl;
 import Reflect;
 import foxlite.FoxCamera;
 import foxlite.FoxLayer;
@@ -118,6 +119,11 @@ class FoxRenderPass {
 
 	var shadowNode = new FoxDrawTreeNode(null);
 
+	public var onPrePass:FlxTypedSignalImpl<()->Void> = new FlxTypedSignalImpl();
+	public var onPostPass:FlxTypedSignalImpl<()->Void> = new FlxTypedSignalImpl();
+	public var onShadowPrePass:FlxTypedSignalImpl<()->Void> = new FlxTypedSignalImpl();
+	public var onShadowPostPass:FlxTypedSignalImpl<()->Void> = new FlxTypedSignalImpl();
+
 	/**
 		Creates a new render pass
 		
@@ -142,6 +148,9 @@ class FoxRenderPass {
 		var visibilityLayers = camera.modelLayers;
 
 		FoxRenderer.setTarget(framebuffer);
+		#if !foxlite_polymod
+		onPrePass.dispatch();
+		#end
 
 		if(clear) {
 			if(useCameraColor) {
@@ -190,6 +199,10 @@ class FoxRenderPass {
 
 		// Generate mipmaps for framebuffer textures with mipmap filtering enabled
 		for(tex in framebuffer.colorBuffers) if(tex.mipFilter != FoxMipFilter.MIPNONE) tex.generateMipmaps();
+
+		#if !foxlite_polymod
+		onPostPass.dispatch();
+		#end
 	}
 
 	/**
@@ -202,6 +215,9 @@ class FoxRenderPass {
 		var visibilityLayers = camera.modelLayers;
 
 		FoxRenderer.setTarget(shadowFramebuffer);
+		#if !foxlite_polymod
+		onShadowPrePass.dispatch();
+		#end
 		if(clearShadowMap) context.clear(0, 0, 0, 0, 1, 0, 6);
 
 		GL.viewport(Std.int(__shadowMapRegion.x), Std.int(__shadowMapRegion.y), __shadowMapRegion.width <= 0 ? shadowFramebuffer.width : Std.int(__shadowMapRegion.width), __shadowMapRegion.height <= 0 ? shadowFramebuffer.height : Std.int(__shadowMapRegion.height));
@@ -236,10 +252,13 @@ class FoxRenderPass {
 				// Render from the perspective of the light source
 				matShader.setMatrix4("projection", light.projectionMatrix);
 				matShader.setMatrix4("view", viewMatrix);
-
+				
 				render(shadowNode, matShader, visibilityLayers, samplerId);
 			}
 		}
+		#if !foxlite_polymod
+		onShadowPostPass.dispatch();
+		#end
 	}
 
 	public function passShadowLights(lightData:FoxLightData, camera:FoxCamera, drawGroups:Array<FoxDrawTree>) {
