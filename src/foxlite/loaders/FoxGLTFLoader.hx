@@ -189,6 +189,12 @@ class FoxGLTFLoader {
 		}
 		
 		var glb:ByteArray = Assets.getBytes(path);
+		if(glb == null) {
+			trace('[FoxLite > FoxGLTFLoader]: Could not load "$name" (Load error.)');
+			return null;
+		}
+
+		// GLB header checks
 		if(glb.readUTFBytes(4) != "glTF") {
 			trace('[FoxLite > FoxGLTFLoader]: GLB header error! ($name)');
 			return null;
@@ -198,9 +204,15 @@ class FoxGLTFLoader {
 			return null;
 		}
 
+		// JSON + Binary buffers
 		var length:UInt = glb.readUnsignedInt();
 		var jsonLength:UInt = glb.readUnsignedInt();
 		glb.position += 4; // Skip JSON header
+
+		if(glb.bytesAvailable < jsonLength) {
+			trace('[FoxLite > FoxGLTFLoader]: Could not load "$name". Not enough bytes for json chunk. (${glb.bytesAvailable} < $jsonLength)');
+			return null;
+		}
 
 		var gltfJson:Dynamic = Json.parse(glb.readUTFBytes(jsonLength));
 		
@@ -208,7 +220,7 @@ class FoxGLTFLoader {
 		glb.position += 4; // Skip BIN header
 
 		if(glb.bytesAvailable < binLength) {
-			trace('[FoxLite > FoxGLTFLoader]: Could not load "$name". Not enough bytes, buffer is corrupted. (${glb.bytesAvailable} < $binLength)');
+			trace('[FoxLite > FoxGLTFLoader]: Could not load "$name". Not enough bytes for binary buffer. (${glb.bytesAvailable} < $binLength)');
 			return null;
 		}
 
@@ -344,6 +356,7 @@ class FoxGLTFLoader {
 					var f:Array<Float> = mat.emissiveFactor;
 					material.params.set("uEmissive", f.copy());
 				}
+				else material.params.set("uEmissive", [0, 0, 0]);
 
 				if(mat.normalTexture != null) {
 					addFlag("NORMAL_MAP");
@@ -383,9 +396,10 @@ class FoxGLTFLoader {
 					material.setSpecularLevels(spec[0], spec[1], spec[2]);
 				}
 
-				if(Std.isOfType(KHR_materials_emissive_strength?.emissiveStrength, Float) || Std.isOfType(KHR_materials_emissive_strength?.emissiveStrength, Int)) {
-					var em = material.params.get("uEmissive");
-					if(em != null) {
+				var hasEmissiveStrength = Std.isOfType(KHR_materials_emissive_strength?.emissiveStrength, Float) || Std.isOfType(KHR_materials_emissive_strength?.emissiveStrength, Int);
+				var em = material.params.get("uEmissive");
+				if(em != null) {
+					if(hasEmissiveStrength) {
 						var s:Float = KHR_materials_emissive_strength.emissiveStrength;
 						em[0] *= s;
 						em[1] *= s;
