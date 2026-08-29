@@ -74,6 +74,15 @@ class FoxTypedGroup #if !foxlite_polymod <T:FoxBasic> #end extends FoxBasic {
 		return member;
 	}
 
+	public function getByName(name:String):Array<T> {
+		return members.filter(f -> f != null && f.name == name);
+	}
+
+	public function getFirstByName(name:String):T {
+		for(m in members) if(m != null && m.name == name) return m;
+		return null;
+	}
+
 	public inline function forEach(func:(member:T) -> Void, recurse:Bool=false) {
 		for(m in members) if(m != null) {
 			if(recurse) {

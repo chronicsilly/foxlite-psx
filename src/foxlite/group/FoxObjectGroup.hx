@@ -70,6 +70,14 @@ class FoxObjectGroup extends FoxObject {
 		onMemberRemoved.dispatch(member);
 		return member;
 	}
+	public function getByName(name:String):Array<FoxObject> {
+		return members.filter(f -> f != null && f.name == name);
+	}
+
+	public function getFirstByName(name:String):FoxObject {
+		for(m in members) if(m != null && m.name == name) return m;
+		return null;
+	}
 
 	public inline function forEach(func:(member:FoxObject) -> Void, recurse:Bool=false) {
 		for(m in members) if(m != null) {
