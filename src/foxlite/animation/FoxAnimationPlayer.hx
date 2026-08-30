@@ -81,30 +81,63 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 		time = curAnim.loop ? FlxMath.mod(time, curAnim.duration) : FlxMath.bound(time, 0, curAnim.duration);
 		var tDir = reverse ? -1 : 1;
 
-		var curData:Map<String, FoxTrackData> = trackData.get(curAnim.name);
+		interpolateTracks(time, tDir, curAnim, trackData.get(curAnim.name));
 
-		for(trackName=>track in curAnim.tracks) {
+		time += (reverse ? -dt : dt) * timeScale;
+
+		if(!reverse && time > curAnim.duration || reverse && time < 0) { 
+			// End hit
+			if(curAnim.loop) { // TODO: Add LoopModes and parse (0 = none, 1 = linear, 2 = pingpong)
+				queryReset();
+				onLoop.dispatch();
+			}
+			else {
+				pause();
+				onFinish.dispatch();
+			}
+		}
+		else {
+			__reset = false;
+			onUpdate.dispatch();
+		}
+		__playFrame = false;
+		updateLink(trackData.get(curAnim.name));
+		super.update(dt);
+	}
+
+	/**
+		Interpolates track values for an animation with data over time.
+
+		Can be used to update other animations offline.
+
+		@param time The current time for the track, this determines the result values
+		@param direction The direction for keyframe interpolation (1: forwards, -1: backwards)
+		@param animation The animation object for tracks source
+		@param trackDst The tracks that will recieve the interpolated values
+	**/
+	public function interpolateTracks(time:Float, direction:Int, animation:FoxAnimation, trackDst:Map<String, FoxTrackData>) {
+		for(trackName=>track in animation.tracks) {
 			var frames = track.frames;
 			var len = frames.length - 1;
 			if(len == -1) continue;
 
-			var data:FoxTrackData = curData.get(trackName);
+			var data:FoxTrackData = trackDst.get(trackName);
 
 			if(__reset) data.frameIndex = reverse ? len : 0;
 			if(__playFrame) data.prevFrameIndex = -1;
 			
-			if(fineTuned) data.frameIndex = fineTune(data, frames, this.time, tDir, curAnim.duration);
+			if(fineTuned) data.frameIndex = fineTune(data, frames, time, direction, animation.duration);
 			
 			var curFrame = frames[data.frameIndex];
-			var nextFrame = frames[Std.int(FlxMath.bound(data.frameIndex + tDir, 0, len))];
+			var nextFrame = frames[Std.int(FlxMath.bound(data.frameIndex + direction, 0, len))];
 
 			var timeLerp = FoxLerp.inverseLerp(curFrame.time, nextFrame.time, time);
 
 			var frameChanged = data.prevFrameIndex != data.frameIndex;
 			data.prevFrameIndex = data.frameIndex;
 			
-			if(timeLerp >= 1) data.frameIndex += tDir;
-			else if(timeLerp < 0) data.frameIndex -= tDir; // if for some crazy reason it's negative, go backwards
+			if(timeLerp >= 1) data.frameIndex += direction;
+			else if(timeLerp < 0) data.frameIndex -= direction; // if for some crazy reason it's negative, go backwards
 
 			// Advance frame
 			data.frameIndex = Std.int(FlxMath.bound(data.frameIndex, 0, len));
@@ -117,7 +150,7 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 				var arg:Array<Dynamic> = v0;
 				var func = (cast track:FoxCallbackTrack).callbacks.get(arg[0]);
 				if(func != null) Reflect.callMethod(null, func, arg[1]);
-				else trace('Could not call "${arg[0]}"! For track "$trackName" in "${curAnim.name}"');
+				else trace('Could not call "${arg[0]}"! For track "$trackName"');
 				continue;
 			}
 
@@ -141,26 +174,6 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 				default: { data.value = v0; };
 			}
 		}
-
-		time += (reverse ? -dt : dt) * timeScale;
-
-		if(!reverse && time > curAnim.duration || reverse && time < 0) { 
-			// End hit
-			if(curAnim.loop) { // TODO: Add LoopModes and parse (0 = none, 1 = linear, 2 = pingpong)
-				queryReset();
-				onLoop.dispatch();
-			}
-			else {
-				pause();
-				onFinish.dispatch();
-			}
-		}
-		else {
-			__reset = false;
-			onUpdate.dispatch();
-		}
-		__playFrame = false;
-		super.update(dt);
 	}
 
 	public override function addAnimation(anim:FoxAnimation) {
@@ -188,7 +201,6 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 
 	public function play(name:String, ?from:Float, ?reversed:Bool) {
 		curAnim = library.get(name);
-		animSelector = name;
 		if(reversed != null) reverse = reversed;
 		__playFrame = true;
 		playing = true;
@@ -201,16 +213,17 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 		This ensures the animation plays smoothly and doesn't hold onto a keyframe if they're too close together until the next frame.
 	**/
 	public function fineTune(data:FoxTrackData, frames:Array<FoxKeyframe<Any>>, time:Float, direction:Int, duration:Float):Int {
-		var len = frames.length - 1;
-		while(true) {
+		var len = frames.length;
+		if(direction != 0) for(i in 0...len) {
+			var nextIndex = Std.int(FlxMath.mod(data.frameIndex + direction, len));
 			var curTime = frames[data.frameIndex].time;
-			var nextTime = frames[Std.int(FlxMath.bound(data.frameIndex + direction, 0, len))].time;
+			var nextTime = frames[nextIndex].time;
 
-			if(time >= Math.max(Math.min(curTime, nextTime), 0) && time <= Math.min(Math.max(curTime, nextTime), duration)) {
+			if(time >= Math.min(curTime, nextTime) && time <= Math.max(curTime, nextTime)) {
 				break; 
 			}
 			else {
-				data.frameIndex = Std.int(FlxMath.mod(data.frameIndex + direction, frames.length));
+				data.frameIndex = nextIndex;
 			}
 		}
 		return data.frameIndex;
