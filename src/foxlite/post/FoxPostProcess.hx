@@ -19,13 +19,13 @@ class FoxPostProcess extends FoxModel {
 		super();
 		name = "FoxPostProcess";
 
-		var material = FoxMaterial.create(shader_);
-		material.depthTest = false; // Also disables depth write
-		material.depthWrite = false; // Also disables depth write
-		material.depthFunc = 0; // never
-		material.blendMode = FoxBlendMode.NONE;
+		var _material = FoxMaterial.create(shader_);
+		_material.depthTest = false; // Also disables depth write
+		_material.depthWrite = false; // Also disables depth write
+		_material.depthFunc = 0; // never
+		_material.blendMode = FoxBlendMode.NONE;
 
-		var quad = new FoxQuadMesh(2, 2, material); // Origin is at 0,0
+		var quad = new FoxQuadMesh(2, 2, _material); // Origin is at 0,0
 		addMesh(quad);
 		renderPriority = priority;
 	}
@@ -33,42 +33,42 @@ class FoxPostProcess extends FoxModel {
 	public override function update(dt:Float) {} // Skip transform operations
 
 	private function get_input():FoxTexture {
-		return meshes[0].material.textures.get("bitmap");
+		return meshes[0]?.material?.textures?.get("bitmap");
 	}
 
 	private function set_input(v:FoxTexture):FoxTexture {
-		meshes[0].material.textures.set("bitmap", v);
+		meshes[0]?.material?.textures?.set("bitmap", v);
 		return v;
 	}
 
 	private function get_renderPriority():Int {
-		return meshes[0].material.renderPriority;
+		return meshes[0]?.material?.renderPriority ?? -1;
 	}
 
 	private function set_renderPriority(v:Int):Int {
-		meshes[0].material.renderPriority = v;
+		if(meshes[0]?.material != null) meshes[0].material.renderPriority = v;
 		return v;
 	}
 
 	private function get_samplers():Map<String, FoxTexture> {
-		return meshes[0].material.textures;
+		return meshes[0]?.material?.textures;
 	}
 
 	private function get_shader():FoxShader {
-		return meshes[0].material.shader;
+		return meshes[0]?.material?.shader;
 	}
 
 	private function set_shader(v:FoxShader):FoxShader {
-		meshes[0].material.shader = v;
+		if(meshes[0]?.material != null) meshes[0].material.shader = v;
 		return v;
 	}
 
 	private function get_material():FoxMaterial {
-		return meshes[0].material;
+		return meshes[0]?.material;
 	}
 
 	private function set_material(v:FoxMaterial):FoxMaterial {
-		meshes[0].material = v;
+		if(meshes[0] != null) meshes[0].material = v;
 		return v;
 	}
 }

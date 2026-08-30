@@ -11,8 +11,12 @@ class FoxObject extends FoxBasic {
 	/**
 		If set, will adapt parent transform. Make sure the parent has a higher priority so it updates in order
 	**/
-	public var parent:FoxObject; 
+	public var parent:FoxObject;
+	#if !foxlite_polymod 
 	public var position:Vector3D; // Moved to constructor
+	#else
+	public var position:Vector3D = new Vector3D(); // has to be initialized for some reason
+	#end
 	public var rotation:Vector3D = new Vector3D();
 	public var scale:Vector3D = new Vector3D(1, 1, 1);
 

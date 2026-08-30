@@ -1,6 +1,6 @@
 package foxlite.funkin;
 
-import foxlite.group.FoxTypedGroup.FoxGroup;
+import foxlite.group.FoxGroup;
 import Reflect;
 
 class PolymodUtils {

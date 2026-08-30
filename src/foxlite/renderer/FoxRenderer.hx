@@ -97,7 +97,7 @@ class FoxRenderer {
 	/**
 		Missing texture placeholder.
 	**/
-	public static var MISSING_TEXTURE:FoxTexture;
+	public static var MISSING_TEXTURE:FoxTexture = null;
 
 	/**
 		Missing material placeholder.
@@ -107,7 +107,7 @@ class FoxRenderer {
 	/**
 		Missing shader placeholder.
 	**/
-	public static var MISSING_SHADER:FoxShader;
+	public static var MISSING_SHADER:FoxShader = null;
 
 	public static function staticInit() {
 		if(FoxRenderer.initialized) return;

@@ -49,7 +49,7 @@ import openfl.display3D.IndexBuffer3D;
 import openfl.display3D.textures.Texture;
 
 @dox(hide)
-@:noCompletion abstract AccessorComponentType(Int) from Int to Int {
+@:noCompletion #if !foxlite_polymod abstract #else class #end AccessorComponentType #if !foxlite_polymod (Int) from Int to Int #end {
 	public inline static final BYTE = 5120;
 	public inline static final UNSIGNED_BYTE = 5121;
 	public inline static final SHORT = 5122;
@@ -59,13 +59,13 @@ import openfl.display3D.textures.Texture;
 }
 
 @dox(hide)
-@:noCompletion abstract BufferViewTarget(Int) from Int to Int {
+@:noCompletion #if !foxlite_polymod abstract #else class #end BufferViewTarget #if !foxlite_polymod (Int) from Int to Int #end {
 	public inline static final ARRAY_BUFFER = 34962;
 	public inline static final ELEMENT_ARRAY_BUFFER = 34963;
 }
 
 @dox(hide)
-@:noCompletion abstract PrimitiveMode(Int) from Int to Int {
+@:noCompletion #if !foxlite_polymod abstract #else class #end PrimitiveMode #if !foxlite_polymod (Int) from Int to Int #end {
 	public inline static final POINTS = 0;
 	public inline static final LINES = 1;
 	public inline static final LINE_LOOP = 2;
@@ -76,13 +76,13 @@ import openfl.display3D.textures.Texture;
 }
 
 @dox(hide)
-@:noCompletion abstract SamplerMagFilter(Int) from Int to Int {
+@:noCompletion #if !foxlite_polymod abstract #else class #end SamplerMagFilter #if !foxlite_polymod (Int) from Int to Int #end {
 	public inline static final NEAREST = 9728;
 	public inline static final LINEAR = 9729;
 }
 
 @dox(hide)
-@:noCompletion abstract SamplerMinFilter(Int) from Int to Int {
+@:noCompletion #if !foxlite_polymod abstract #else class #end SamplerMinFilter #if !foxlite_polymod (Int) from Int to Int #end {
 	public inline static final NEAREST = 9728;
 	public inline static final LINEAR = 9729;
 	public inline static final NEAREST_MIPMAP_NEAREST = 9984;
@@ -92,7 +92,7 @@ import openfl.display3D.textures.Texture;
 }
 
 @dox(hide)
-@:noCompletion abstract SamplerWrap(Int) from Int to Int {
+@:noCompletion #if !foxlite_polymod abstract #else class #end SamplerWrap #if !foxlite_polymod (Int) from Int to Int #end {
 	public inline static final CLAMP_TO_EDGE = 33071;
 	public inline static final MIRRORED_REPEAT = 33648;
 	public inline static final REPEAT = 10497;
@@ -104,7 +104,7 @@ typedef GLTFData = {
 	?animations:Map<String, FoxAnimation>, 
 	?skins:Array<FoxSkinData>,
 	gltfJson:Dynamic
-};
+}
 
 class FoxGLTFLoader {
 

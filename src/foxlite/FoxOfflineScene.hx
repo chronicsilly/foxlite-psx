@@ -1,7 +1,7 @@
 package foxlite;
 
 import foxlite.flixel.FoxExtendableBasic;
-import foxlite.group.FoxTypedGroup.FoxGroup;
+import foxlite.group.FoxGroup;
 
 /**
 	Like `FoxScene`, but it only updates a `FoxGroup` (no rendering ever happens).

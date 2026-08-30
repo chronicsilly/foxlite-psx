@@ -165,9 +165,6 @@ class FoxLightData {
 	}
 
 	public static function staticInit() {
-		#if foxlite_polymod
-		trace(MAX_LIGHTS, MAX_SHADOW_LIGHTS);
-		#end
 	}
 
 	public function prepareLights(camera:FoxCamera) {

@@ -1,11 +1,12 @@
 package foxlite;
 
-import foxlite.funkin.PolymodUtils;
-import foxlite.group.FoxTypedGroup;
 import flixel.util.FlxColor;
 import foxlite.FoxBasic;
 import foxlite.FoxCamera;
 import foxlite.funkin.FoxExtendableSprite;
+import foxlite.funkin.PolymodUtils;
+import foxlite.group.FoxGroup;
+import foxlite.group.FoxTypedGroup;
 import foxlite.material.FoxMaterial;
 import foxlite.mesh.FoxMesh;
 import foxlite.renderer.FoxRenderer;
