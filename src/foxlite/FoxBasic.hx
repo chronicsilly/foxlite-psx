@@ -5,11 +5,9 @@ import foxlite.FoxScene;
 
 class FoxBasic {
 	
-	public var _name:String = "FoxBasic";
-	public var name(get, set):String;
+	public var name:String = "FoxBasic";
 	public var visible(default, set):Bool = true;
 	public var active:Bool = true;
-	public var priority:Int = 0;
 	public var scene:FoxScene = null;
 	public var __destroyed:Bool = false;
 
@@ -39,23 +37,7 @@ class FoxBasic {
 		scene = null;
 	}
 
-	// Render events
-
-	public function onScenePreDraw():Void {}
-	public function onScenePostDraw():Void {}
-
-	private function get_name():String {
-		return _name;
-	}
-	
 	private function set_visible(v:Bool):Bool {
 		return this.visible = v;
-	}
-
-	// Handle name changes when added to scene
-	private function set_name(v:String) {
-		if(this.scene != null) this.scene.rename(this, v); // We need to do some extra operations if we're on a scene
-		else this._name = v;
-		return v;
 	}
 }

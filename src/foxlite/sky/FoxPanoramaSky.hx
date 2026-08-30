@@ -32,7 +32,7 @@ class FoxPanoramaSky extends FoxModel {
 
 	public override function draw(camera:FoxCamera) {
 		// Set environment sky texture with ours
-		var env = scene.environment;
+		var env = camera.scene.environment;
 		env.skyTexture = cast texture;
 		env.skyOffset.setTo(offset.x, offset.y);
 	}

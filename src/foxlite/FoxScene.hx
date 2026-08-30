@@ -1,5 +1,8 @@
 package foxlite;
 
+import foxlite.funkin.PolymodUtils;
+import foxlite.group.FoxTypedGroup;
+import flixel.util.FlxColor;
 import foxlite.FoxBasic;
 import foxlite.FoxCamera;
 import foxlite.funkin.FoxExtendableSprite;
@@ -40,11 +43,8 @@ class FoxScene extends FoxExtendableSprite {
 	**/
 	public var outputColorIndex:Int = 0;
 
-	public var members:Map<String, FoxBasic> = new StringMap();
+	public var foxGroup:FoxTypedGroup<FoxBasic> = #if !foxlite_polymod new FoxGroup(); #else PolymodUtils.getFoxGroup(); #end
 	public var foxCameras:Array<FoxCamera> = [];
-
-	public final onMemberAdded:FlxTypedSignalImpl<(member:FoxBasic)->Void> = new FlxTypedSignalImpl();
-	public final onMemberRemoved:FlxTypedSignalImpl<(member:FoxBasic)->Void> = new FlxTypedSignalImpl();
 
 	/**
 		The scene environment.
@@ -52,19 +52,12 @@ class FoxScene extends FoxExtendableSprite {
 		This is just a holder object for global environment variables, such as sky textures.
 		Note: Subject to change in the future.
 	**/
-	public var environment:{skyTexture:FoxTexture, skyOffset:Vector2, fogColor:Vector3D} = {
+	public var environment:{skyTexture:FoxTexture, skyOffset:Vector2, fogColor:Vector3D, ambientLight:FlxColor} = {
 		skyTexture: null,
 		skyOffset: new Vector2(),
-		fogColor: new Vector3D()
+		fogColor: new Vector3D(),
+		ambientLight: FlxColor.WHITE
 	};
-
-	/**
-		The sorted members by process priority.
-
-		This is only used exclusively for this 3D manager, useful for global managers and such.
-	**/
-	public var sortedMembers:Array<FoxBasic> = [];
-	public var __needsSorting:Bool = true;
 
 	/**
 	* An array of `BalancedTree` containing sorted `FoxDrawTree` for drawing.
@@ -80,80 +73,40 @@ class FoxScene extends FoxExtendableSprite {
 	*/
 	public var drawGroups #if !foxlite_polymod : Array<FoxDrawTree> #end = [new BalancedTree()];
 
-	private var __removals:Array<FoxBasic> = [];
-
 	public var __width:Float = 0;
 	public var __height:Float = 0;
 	public var timeScale:Float = 1.0;
 
 	public var context:Context3D;
 
+	public var onFramebufferResized:FlxTypedSignalImpl<(width:Int, height:Int)->Void> = new FlxTypedSignalImpl();
+	public var onPreDraw:FlxTypedSignalImpl<()->Void> = new FlxTypedSignalImpl();
+	public var onPostDraw:FlxTypedSignalImpl<()->Void> = new FlxTypedSignalImpl();
+
 	public function new(width:Int, height:Int) {
 		super();
 		context = FoxRenderer.getContext();
 		flipY = true; // Flixel uses flipped Y UVs, so we flip it
+		foxGroup.scene = this;
 
 		setupBuffers(width, height); 
 	}
 
-	// We can only have ONE name identifier per member
-	// So if it already exists, add a postfix
-	public function getAvailableName(name:String):String {
-		var repeat = 0;
-		var origName = name;
-		while(members.exists(name)) {
-			repeat += 1;
-			name = origName + "@" + repeat;
-		}
-		return name;
+	public inline function add(member:FoxBasic):FoxBasic {
+		return foxGroup.add(member);
 	}
 
-	/**
-		@returns The available name for this member
-	**/
-	public function add(member:FoxBasic):String {
-		if(member == null || sortedMembers.contains(member)) return null;
-
-		var name = getAvailableName(member.name);
-		member.scene = this;
-		member._name = name;
-		members.set(name, member);
-		sortedMembers.push(member);
-		onMemberAdded.dispatch(member);
-
-		__needsSorting = true;
-		FoxRenderer.mustRebuildDrawGroups = true;
-		return name;
+	public inline function insert(pos:Int, member:FoxBasic):FoxBasic {
+		return foxGroup.insert(pos, member);
 	}
 
-	public function remove(member:FoxBasic, destroy:Bool=false):Void {
-		if(member == null) return;
-		var name = member.name;
-		members.remove(name);
-		sortedMembers.remove(member);
-		__needsSorting = true;
-		FoxRenderer.mustRebuildDrawGroups = true;
-		if(destroy) member.destroy();
-		onMemberRemoved.dispatch(member);
-	}
-
-	public function removeByName(memberName:String, destroy:Bool=false):Void {
-		var member = members.get(memberName);
-		remove(member, destroy);
-	}
-
-	public function rename(member:FoxBasic, name:String) {
-		var newName = getAvailableName(name);
-		if(newName != name) {
-			// Name wasn't available so we recieved a change
-			member._name = name;
-		}
-		members.remove(member.name);
-		members.set(newName, member);
+	public inline function remove(member:FoxBasic, splice:Bool=true):FoxBasic {
+		return foxGroup.remove(member, splice);
 	}
 
 	// Setup default back buffer
 	public function setupBuffers(width:Int, height:Int) {
+		if(__width == width && __height == height) return;
 		__width = width;
 		__height = height;
 
@@ -167,7 +120,7 @@ class FoxScene extends FoxExtendableSprite {
 		
 		setOutputDisplay(output, outputColorIndex);
 
-		onFrameBufferResized();
+		onFramebufferResized.dispatch(width, height);
 	}
 
 	/**
@@ -190,16 +143,8 @@ class FoxScene extends FoxExtendableSprite {
 
 		for(cam in foxCameras) if(cam.active) cam.update(elapsed);
 
-		// Sort members by process priority, this also affects the draw order in some way
-		if(__needsSorting) {
-			sortedMembers.sort((a, b) -> {
-				return b.priority - a.priority; // High ones first
-			});
-			__needsSorting = false;
-		}
-		
-
-		for(member in sortedMembers) {
+		var __removals:Array<FoxBasic> = [];
+		for(member in foxGroup.members) {
 			if(member.__destroyed) {
 				__removals.push(member);
 				continue;
@@ -211,8 +156,8 @@ class FoxScene extends FoxExtendableSprite {
 	}
 
 	public override function draw() {
-		onPreDraw();
 		FoxRenderer.begin();
+		onPreDraw.dispatch();
 
 		// Prepare draw groups
 		if(FoxRenderer.mustRebuildDrawGroups) buildDrawGroups();
@@ -222,13 +167,13 @@ class FoxScene extends FoxExtendableSprite {
 			cam.lightData.clearLights();
 			cam.scene = this;
 			// Draw call for our members before actual rendering
-			for(m in sortedMembers) if(m.visible) m.draw(cam);
+			for(m in foxGroup.members) if(m.visible) m.draw(cam);
 
 			cam.lightData.prepareLights(cam);
 			cam.render(drawGroups);
 		}
 
-		onPostDraw();
+		onPostDraw.dispatch();
 		FoxRenderer.backToFlixel();
 		super.draw();
 	}
@@ -249,7 +194,7 @@ class FoxScene extends FoxExtendableSprite {
 	*/
 	public function buildDrawGroups():Array<FoxDrawTree> {
 		for(g in drawGroups) g.clear(); 
-		for(m in sortedMembers) if(m.visible) m.pushDrawData(this);
+		for(m in foxGroup.members) if(m.visible) m.pushDrawData(this);
 		return drawGroups;
 	}
 
@@ -294,21 +239,8 @@ class FoxScene extends FoxExtendableSprite {
 			var cam = foxCameras.pop();
 			cam.destroy();
 		}
-		members.clear();
-		while(sortedMembers.length > 0) {
-			var member = sortedMembers.pop();
-			member.__destroyed = true;
-			member.destroy();
-		}
+		foxGroup.destroy();
 		disposeBuffers();
 		super.destroy();
 	}
-
-	public function onPreDraw():Void {
-		for(m in members) m.onScenePreDraw();
-	}
-	public function onPostDraw():Void {
-		//for(m in members) m.onScenePostDraw(); // disabled for less overhead for now
-	}
-	public function onFrameBufferResized():Void {}
 }

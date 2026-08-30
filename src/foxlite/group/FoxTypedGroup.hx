@@ -116,9 +116,11 @@ class FoxTypedGroup #if !foxlite_polymod <T:FoxBasic> #end extends FoxBasic {
 
 	public override function destroy() {
 		while(members.length > 0) {
-			members.pop()?.destroy();
+			var m = members.pop(); 
+			if(m == null) continue;
+			m.__destroyed = true;
+			m.destroy();
 		}
-		members = null;
 		super.destroy();
 	}
 
