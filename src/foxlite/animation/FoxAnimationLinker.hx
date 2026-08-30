@@ -10,19 +10,7 @@ import foxlite.FoxBasic;
 
 class FoxAnimationLinker extends FoxBasic {
 
-	/**
-		Stores interpolated values for animation tracks, for each animation.
-	**/
-	public var trackData:Map<String, Map<String, FoxTrackData>> = new StringMap();
 	public var linkData:Map<String, Array<FoxTrackLinkData>> = new StringMap();
-
-	public function addAnimation(anim:FoxAnimation) {
-		var map:Map<String, FoxTrackData> = new StringMap();
-		trackData.set(anim.name, map);
-		for(trackName=>track in anim.tracks) {
-			map.set(trackName, track.createData());
-		}
-	}
 	
 	/**
 		Links an object's property to an animation track, thus causing it to animate.
@@ -151,8 +139,7 @@ class FoxAnimationLinker extends FoxBasic {
 	}
 
 	public override function destroy() {
-		for(d in trackData) d.clear();
-		trackData.clear();
+		linkData = null;
 		super.destroy();
 	}
 }

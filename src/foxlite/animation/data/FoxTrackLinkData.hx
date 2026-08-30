@@ -36,7 +36,7 @@ class FoxTrackLinkData {
 				 FoxTrackType.QUATERNION, 
 				 FoxTrackType.EULER_ANGLES: { // For tracks of Vector3D copy
 					var v:Dynamic = Reflect.getProperty(object, property);
-					var value:Vector3D = data.value;
+					final value:Vector3D = data.value;
 					if(Std.isOfType(v, Vector3D)) {
 						v.copyFrom(value);
 						v.w = value.w;
@@ -45,7 +45,7 @@ class FoxTrackLinkData {
 			};
 			case FoxTrackType.MATRIX4: { // For tracks of Matrix3D copy
 				var v:Dynamic = Reflect.getProperty(object, property);
-				var value:Matrix3D = data.value;
+				final value:Matrix3D = data.value;
 				if(Std.isOfType(v, Matrix3D)) {
 					v.copyRawDataFrom(value.rawData);
 				}
@@ -53,7 +53,7 @@ class FoxTrackLinkData {
 			};
 			case FoxTrackType.VECTOR2: { // For tracks of Vector2 copy
 				var v:Dynamic = Reflect.getProperty(object, property);
-				var value:Vector2 = data.value;
+				final value:Vector2 = data.value;
 				if(Std.isOfType(v, Vector2)) {
 					v.setTo(value.x, value.y);
 				}
