@@ -16,11 +16,6 @@ class FoxAnimationLinker extends FoxBasic {
 	public var trackData:Map<String, Map<String, FoxTrackData>> = new StringMap();
 	public var linkData:Map<String, Array<FoxTrackLinkData>> = new StringMap();
 
-	/**
-		The name of which animation to use the tracks from
-	**/
-	public var animSelector:String = "";
-
 	public function addAnimation(anim:FoxAnimation) {
 		var map:Map<String, FoxTrackData> = new StringMap();
 		trackData.set(anim.name, map);
@@ -127,14 +122,12 @@ class FoxAnimationLinker extends FoxBasic {
 		Links a `FoxObject`'s transforms to this track data
 	**/
 	public function linkObject(trackPrefix:String, object:FoxObject) {
-		link('$trackPrefix:rotation', object, "setRotation");
 		link('$trackPrefix:quaternion', object, "setRotationQuaternion");
 		link('$trackPrefix:scale', object, "setScale");
 		link('$trackPrefix:position', object, "setPosition");
 	}
 
 	public function unlinkObject(trackPrefix:String, object:FoxObject) {
-		unlink('$trackPrefix:rotation', object, "setRotation");
 		unlink('$trackPrefix:quaternion', object, "setRotationQuaternion");
 		unlink('$trackPrefix:scale', object, "setScale");
 		unlink('$trackPrefix:position', object, "setPosition");
@@ -144,17 +137,14 @@ class FoxAnimationLinker extends FoxBasic {
 		linkData.clear();
 	}
 
-	public override function update(dt:Float) {
-		super.update(dt);
-		if(animSelector != null) updateLink(animSelector);
-	}
+	/**
+		Sends tracks value to the objects with linked properties
 
-	public function updateLink(anim:String) {
-		var curData = trackData.get(anim);
-		if(curData == null) return;
-
+		@param trackSrc The tracks source
+	**/
+	public function updateLink(trackSrc:Map<String, FoxTrackData>) {
 		for(trackName=>array in linkData) {
-			var data = curData.get(trackName);
+			var data = trackSrc.get(trackName);
 			if(data == null) continue;
 			for(link in array) if(link.enabled) link.process(data);
 		}
