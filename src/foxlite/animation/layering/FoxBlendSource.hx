@@ -7,6 +7,9 @@ import foxlite.animation.FoxAnimationBlender;
 import foxlite.material.FoxBlendMode;
 import flixel.math.FlxMath;
 
+/**
+	Provides an animation source to the animation blender
+**/
 class FoxBlendSource extends FoxBaseNode {
 
 	public var animName:String = "";
@@ -16,6 +19,11 @@ class FoxBlendSource extends FoxBaseNode {
 	public var loop:Bool = false;
 	var __seekIndex:Int = -1;
 
+	/**
+		@param anim The name of the animation in the player's library
+		@param loop Wheter or not loop the animation
+		@param reverse Wheter or not play it in reverse
+	**/
 	public function new(anim:String, loop:Bool=false, reverse:Bool=false) {
 		super();
 		animName = anim;

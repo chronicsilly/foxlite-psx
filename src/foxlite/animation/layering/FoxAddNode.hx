@@ -16,6 +16,11 @@ class FoxAddNode extends FoxBaseNode {
 	public var inputB:String;
 	public var factor:Float;
 
+	/**
+		@param inputA The name of the node for input A
+		@param inputB The name of the node for input B
+		@param factor The addition factor, this controls how much of inputB to add to inputA
+	**/
 	public function new(inputA:String, inputB:String, factor:Float=1) {
 		super();
 		this.inputA = inputA;

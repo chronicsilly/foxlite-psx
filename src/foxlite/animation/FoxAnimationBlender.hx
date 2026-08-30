@@ -15,6 +15,11 @@ import foxlite.animation.layering.FoxBaseNode;
 class FoxAnimationBlender extends FoxBasic {
 
 	public var player:FoxAnimationPlayer;
+
+	/**
+		Set this animation blender to be active or not, if set to true this
+		also disables the connected `FoxAnimationPlayer`
+	**/
 	public var enabled(default, set):Bool;
 	
 	@:dox(hide)
@@ -26,6 +31,11 @@ class FoxAnimationBlender extends FoxBasic {
 	}
 
 	public var nodes:StringMap<FoxBaseNode> = new StringMap();
+
+	/**
+		The blend output, this is the end result that will affect the linked variables.
+		Assign a node to it for it to take effect
+	**/
 	public var output:FoxBaseNode;
 
 	/**
@@ -47,6 +57,5 @@ class FoxAnimationBlender extends FoxBasic {
 		delta = dt;
 		for(node in nodes) if(node.active) node.process(this);
 		if(output != null) player.updateLink(output.data);
-		
 	}
 }

@@ -16,7 +16,12 @@ class FoxSubtractNode extends FoxBaseNode {
 	public var inputB:String;
 	public var factor:Float;
 
-	public function new(inputA:String, inputB:String, factor:Float=0) {
+	/**
+		@param inputA The name of the node for input A
+		@param inputB The name of the node for input B
+		@param factor The subtraction factor, this controls how much of inputB to subtract from inputA
+	**/
+	public function new(inputA:String, inputB:String, factor:Float=1) {
 		super();
 		this.inputA = inputA;
 		this.inputB = inputB;

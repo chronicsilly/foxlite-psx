@@ -13,6 +13,11 @@ class FoxMixNode extends FoxBaseNode {
 	public var inputB:String;
 	public var factor:Float;
 
+	/**
+		@param inputA The name of the node for input A
+		@param inputB The name of the node for input B
+		@param factor The mix factor, ranges from 0 to 1 where 0 is fully inputA and 1 is fully inputB
+	**/
 	public function new(inputA:String, inputB:String, factor:Float=0.5) {
 		super();
 		this.inputA = inputA;
