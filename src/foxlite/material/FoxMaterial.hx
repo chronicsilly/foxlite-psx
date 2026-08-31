@@ -301,7 +301,7 @@ class FoxMaterial {
 		Creates a line material using foxlite's minimal shader
 	**/
 	public static function createLine(?shaderFlags:Array<String>, thickness:Float=1):FoxMaterial {
-		if(shaderFlags == null) shaderFlags = ["VERTEX_COLORS"];
+		if(shaderFlags == null) shaderFlags = ["SOLID", "VERTEX_COLORS"];
 		var mat = FoxMaterial.createMinimal(shaderFlags);
 		mat.renderMode = 1; // GL.LINES
 		mat.lineWidth = thickness;
@@ -313,7 +313,7 @@ class FoxMaterial {
 		This material can recieve lights and shadows, aswell as having reflections and custom vertex transforms
 	**/
 	public static function createLineShaded(?shaderFlags:Array<String>, thickness:Float=1):FoxMaterial {
-		if(shaderFlags == null) shaderFlags = ["VERTEX_COLORS"];
+		if(shaderFlags == null) shaderFlags = ["SOLID", "VERTEX_COLORS"];
 		var mat = FoxMaterial.createBasic(shaderFlags);
 		mat.renderMode = 1; // GL.LINES
 		mat.lineWidth = thickness;
@@ -324,7 +324,7 @@ class FoxMaterial {
 		Creates a line material using a custom shader
 	**/
 	public static function createLineCustom(shaderPath:String, ?shaderFlags:Array<String>, thickness:Float=1):FoxMaterial {
-		if(shaderFlags == null) shaderFlags = ["VERTEX_COLORS"];
+		if(shaderFlags == null) shaderFlags = ["SOLID", "VERTEX_COLORS"];
 		var mat = FoxMaterial.createCustom(shaderPath, shaderFlags);
 		mat.renderMode = 1; // GL.LINES
 		mat.lineWidth = thickness;
