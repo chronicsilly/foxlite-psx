@@ -1,3 +1,5 @@
+#ifndef MOTIONVECTORS_GLSL
+#define MOTIONVECTORS_GLSL
 // Previous transforms to calculate motion vectors
 // STILL VERY WIP
 
@@ -17,6 +19,8 @@ attribute vec4 foxlite_PrevInstanceData2;
 
 #define foxlite_PrevInstanceTransform mat4(vec3(foxlite_PrevInstanceData0), 0, vec3(foxlite_PrevInstanceData1), 0, vec3(foxlite_PrevInstanceData2), 0, foxlite_PrevInstanceData0.w, foxlite_PrevInstanceData1.w, foxlite_PrevInstanceData2.w, 1)
 
+varying vec4 motionVectors;
+
 mat4 prevSkin() {
 	ivec4 index = ivec4(foxlite_BoneIndex);
 	
@@ -34,3 +38,4 @@ vec3 getMotion(vec4 curClipSpace, vec4 prevClipSpace) {
 	vec3 prevNDC = prevClipSpace.xyz / prevClipSpace.w;
 	return curNDC - prevNDC;
 }
+#endif

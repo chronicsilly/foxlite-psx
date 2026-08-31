@@ -7,6 +7,52 @@
 #include "foxlite/inc/sky.glsl"      // For worldDirection and sky reflections
 #include "foxlite/inc/armature.glsl"
 
+#define transformInstance(M, T) (M = M * T)
+#define transformSkinned(M, S) (M = M * S)
+
+#if defined(BILLBOARD)
+mat4 transformBillboard(inout mat4 M, in mat4 viewMatrix) {
+	mat4 fmodelView = viewMatrix * M;
+	#ifdef BILLBOARD_KEEP_SCALE
+	vec3 scale = vec3(
+		length(vec3(M[0])),
+		length(vec3(M[1])),
+		length(vec3(m[2]))
+	);
+	#else
+	const vec3 scale = vec3(1);
+	#endif
+	fmodelView[0] = vec4(scale.x, 0.0, 0.0, 0.0); // right
+    fmodelView[1] = vec4(0.0, scale.y, 0.0, 0.0); // up
+    fmodelView[2] = vec4(0.0, 0.0, scale.z, 0.0); // forward
+	return fmodelView;
+}
+#elif defined(BILLBOARD_Y)
+mat4 transformBillboard(inout mat4 M, in mat4 viewMatrix) {
+	vec3 right    = normalize(vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]));
+    const vec3 up = vec3(0.0, 1.0, 0.0);  // locked to world Y
+    vec3 forward  = normalize(cross(right, up));
+	right = normalize(cross(up, forward)); // reorthogonalize
+	
+	#ifdef BILLBOARD_KEEP_SCALE
+	vec3 scale = vec3(
+		length(vec3(M[0])),
+		length(vec3(M[1])),
+		length(vec3(M[2]))
+	);
+	#else
+	const vec3 scale = vec3(1);
+	#endif
+	mat4 fmodelView = viewMatrix * mat4(
+		vec4(right   * scale.x, 0.0),
+		vec4(up      * scale.y, 0.0),
+		vec4(forward * scale.z, 0.0),
+		M[3]
+	);
+	return fmodelView;
+}
+#endif
+
 void main(void)
 {
 	foxlite_TexCoordv = foxlite_TexCoord * uvScale + uvOffset;
@@ -16,53 +62,14 @@ void main(void)
 
 	if(uInstanced) {
 		foxlite_Colorv *= foxlite_InstanceColor;
-		worldTransform = worldTransform * foxlite_InstanceTransform;
+		transformInstance(worldTransform, foxlite_InstanceTransform);
 	}
 
-	#if defined(BILLBOARD)
-	if(uSkinned) worldTransform = worldTransform * skin();
-	
-	mat4 fmodelView = view * worldTransform;
-	#ifdef BILLBOARD_KEEP_SCALE
-	vec3 scale = vec3(
-		length(vec3(worldTransform[0])),
-		length(vec3(worldTransform[1])),
-		length(vec3(worldTransform[2]))
-	);
+	if(uSkinned) transformSkinned(worldTransform, skin());
+
+	#if defined(BILLBOARD) || defined(BILLBOARD_Y)
+	mat4 fmodelView = transformBillboard(worldTransform, view);
 	#else
-	const vec3 scale = vec3(1);
-	#endif
-	fmodelView[0] = vec4(scale.x, 0.0, 0.0, 0.0); // right
-    fmodelView[1] = vec4(0.0, scale.y, 0.0, 0.0); // up
-    fmodelView[2] = vec4(0.0, 0.0, scale.z, 0.0); // forward
-
-	#elif defined(BILLBOARD_Y)
-
-	if(uSkinned) worldTransform = worldTransform * skin();
-
-	vec3 right   = normalize(vec3(view[0][0], view[1][0], view[2][0]));
-    const vec3 up = vec3(0.0, 1.0, 0.0);  // locked to world Y
-    vec3 forward = normalize(cross(right, up));
-	right = normalize(cross(up, forward)); // reorthogonalize
-	
-	#ifdef BILLBOARD_KEEP_SCALE
-	vec3 scale = vec3(
-		length(vec3(worldTransform[0])),
-		length(vec3(worldTransform[1])),
-		length(vec3(worldTransform[2]))
-	);
-	#else
-	const vec3 scale = vec3(1);
-	#endif
-	mat4 fmodelView = view * mat4(
-		vec4(right   * scale.x, 0.0),
-		vec4(up      * scale.y, 0.0),
-		vec4(forward * scale.z, 0.0),
-		worldTransform[3]
-	);
-	#else // No billboard
-
-	if(uSkinned) worldTransform = worldTransform * skin();
 	mat4 fmodelView = view * worldTransform;
 	#endif
 
@@ -127,4 +134,25 @@ void main(void)
 	#endif
 
 	gl_Position = projection * viewPosition;
+
+	/////////////////////////////// Motion vectors ///////////////////////////////
+
+	#if defined(FORWARDPLUS_MOTION) && defined(MOTIONVECTORS_GLSL)
+
+	mat4 prevWorldTransform = prevModel;
+
+	if(uInstanced) transformInstance(prevWorldTransform, foxlite_PrevInstanceTransform);
+
+	if(uSkinned) transformSkinned(prevWorldTransform, prevSkin());
+
+	#if defined(BILLBOARD) || defined(BILLBOARD_Y)
+	mat4 prevFmodelView = transformBillboard(prevWorldTransform, prevView);
+	#else
+	mat4 prevFmodelView = prevView * prevWorldTransform;
+	#endif
+
+	vec4 prevViewPos = prevFmodelView * localPosition;
+	vec4 previousClip = projection * prevViewPos;
+	motionVectors = getMotion(gl_Position, previousClip);
+	#endif
 }

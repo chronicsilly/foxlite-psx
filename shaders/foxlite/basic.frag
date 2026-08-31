@@ -112,17 +112,21 @@ void main() {
 	#endif
 
 	#ifdef EMISSIVE_MAP
-	albedo.rgb += uEmissive * texture2D(emissiveMap, foxlite_TexCoordv).rgb;
+	vec3 emission = uEmissive * texture2D(emissiveMap, foxlite_TexCoordv).rgb;
+	albedo.rgb += emission;
 	#else
+	#define emission uEmissive;
 	albedo.rgb += uEmissive;
 	#endif
 
 	gl_FragData[0] = albedo;
-	#ifdef DEFERRED
+	
+	#ifdef FORWARDPLUS
 	gl_FragData[1].xyz = normalView;
-	//gl_FragData[2].xyz = motionVectors;
-
-	//gl_FragData[1].w = reflectiveness;
-	//gl_FragData[2].w = emission;
+	gl_FragData[1].w = metallic;
+	#endif
+	#if defined(FORWARDPLUS_MOTION) && defined(MOTIONVECTORS_GLSL)
+	gl_FragData[2].xyz = motionVectors;
+	gl_FragData[2].w = roughness;
 	#endif
 }
