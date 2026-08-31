@@ -296,6 +296,40 @@ class FoxMaterial {
 		mat.renderPriority = -1000; // Render before anything
 		return mat;
 	}
+
+	/**
+		Creates a line material using foxlite's minimal shader
+	**/
+	public static function createLine(?shaderFlags:Array<String>, thickness:Float=1):FoxMaterial {
+		if(shaderFlags == null) shaderFlags = ["VERTEX_COLORS"];
+		var mat = FoxMaterial.createMinimal(shaderFlags);
+		mat.renderMode = 1; // GL.LINES
+		mat.lineWidth = thickness;
+		return mat;
+	}
+
+	/**
+		Creates a line material using foxlite's basic shader.
+		This material can recieve lights and shadows, aswell as having reflections and custom vertex transforms
+	**/
+	public static function createLineShaded(?shaderFlags:Array<String>, thickness:Float=1):FoxMaterial {
+		if(shaderFlags == null) shaderFlags = ["VERTEX_COLORS"];
+		var mat = FoxMaterial.createBasic(shaderFlags);
+		mat.renderMode = 1; // GL.LINES
+		mat.lineWidth = thickness;
+		return mat;
+	}
+
+	/**
+		Creates a line material using a custom shader
+	**/
+	public static function createLineCustom(shaderPath:String, ?shaderFlags:Array<String>, thickness:Float=1):FoxMaterial {
+		if(shaderFlags == null) shaderFlags = ["VERTEX_COLORS"];
+		var mat = FoxMaterial.createCustom(shaderPath, shaderFlags);
+		mat.renderMode = 1; // GL.LINES
+		mat.lineWidth = thickness;
+		return mat;
+	}
 	
 	/**
 		Loads a material from a Foxlite's custom JSON format
