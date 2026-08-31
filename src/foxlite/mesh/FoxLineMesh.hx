@@ -1,10 +1,10 @@
 package foxlite.mesh;
 
+import haxe.ds.IntMap;
 import foxlite.material.FoxMaterial;
 import foxlite.mesh.FoxMesh;
 import foxlite.renderer.FoxRenderer;
-import haxe.ds.IntMap;
-import lime.math.Vector4;
+import flixel.util.FlxColor;
 import openfl.geom.Vector3D;
 
 /**
@@ -46,9 +46,7 @@ class FoxLineMesh extends FoxMesh {
 		@param end The position where the line will end
 		@param color Optional: The line color
 	**/
-	public function addLine(from:Vector3D, to:Vector3D, ?startColor:Vector4, ?endColor:Vector4) {
-		if(startColor == null) startColor = new Vector4(1,1,1,1);
-		if(endColor == null) endColor = startColor;
+	public function addLine(from:Vector3D, to:Vector3D, startColor:FlxColor=0xFFFFFFFF, endColor:FlxColor=0xFFFFFFFF) {
 		linePositions.push(from.x);
 		linePositions.push(from.y);
 		linePositions.push(from.z);
@@ -56,14 +54,14 @@ class FoxLineMesh extends FoxMesh {
 		linePositions.push(to.y);
 		linePositions.push(to.z);
 
-		lineColors.push(startColor.x);
-		lineColors.push(startColor.y);
-		lineColors.push(startColor.z);
-		lineColors.push(startColor.w);
-		lineColors.push(endColor.x);
-		lineColors.push(endColor.y);
-		lineColors.push(endColor.z);
-		lineColors.push(endColor.w);
+		lineColors.push(startColor.redFloat);
+		lineColors.push(startColor.greenFloat);
+		lineColors.push(startColor.blueFloat);
+		lineColors.push(startColor.alphaFloat);
+		lineColors.push(endColor.redFloat);
+		lineColors.push(endColor.greenFloat);
+		lineColors.push(endColor.blueFloat);
+		lineColors.push(endColor.alphaFloat);
 
 		var len = Vector3D.distance(from, to);
 		lineUVs.push(0);
@@ -100,7 +98,7 @@ class FoxLineMesh extends FoxMesh {
 		__uvsUpdates.clear();
 	}
 
-	public function updateLine(index:Int, from:Vector3D, to:Vector3D, ?startColor:Vector4, ?endColor:Vector4) {
+	public function updateLine(index:Int, from:Vector3D, to:Vector3D, ?startColor:FlxColor, ?endColor:FlxColor) {
 		var posIdx = index * 6;
 		var colorIdx = index * 8;
 		var uvIdx = index * 4;
@@ -122,18 +120,18 @@ class FoxLineMesh extends FoxMesh {
 		__uvsUpdates.set(uvIdx, lineUVs.slice(uvIdx, uvIdx+4));
 		
 		if(startColor != null) {
-			lineColors[colorIdx  ] = startColor.x;
-			lineColors[colorIdx+1] = startColor.y;
-			lineColors[colorIdx+2] = startColor.z;
-			lineColors[colorIdx+3] = startColor.w;
+			lineColors[colorIdx  ] = startColor.redFloat;
+			lineColors[colorIdx+1] = startColor.greenFloat;
+			lineColors[colorIdx+2] = startColor.blueFloat;
+			lineColors[colorIdx+3] = startColor.alphaFloat;
 
 			__colorsUpdates.set(colorIdx, lineColors.slice(colorIdx, colorIdx+4));
 		}
 		if(endColor != null) {
-			lineColors[colorIdx+4] = endColor.x;
-			lineColors[colorIdx+5] = endColor.y;
-			lineColors[colorIdx+6] = endColor.z;
-			lineColors[colorIdx+7] = endColor.w;
+			lineColors[colorIdx+4] = endColor.redFloat;
+			lineColors[colorIdx+5] = endColor.greenFloat;
+			lineColors[colorIdx+6] = endColor.blueFloat;
+			lineColors[colorIdx+7] = endColor.alphaFloat;
 
 			__colorsUpdates.set(colorIdx+4, lineColors.slice(colorIdx+4, colorIdx+8));
 		}
