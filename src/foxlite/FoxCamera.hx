@@ -3,7 +3,6 @@ package foxlite;
 import flixel.util.FlxColor;
 import foxlite.FoxLayer;
 import foxlite.animation.FoxLerp;
-import foxlite.culling.FrustumCone;
 import foxlite.lights.FoxLightData;
 import foxlite.math.FoxMathUtil;
 import foxlite.renderer.FoxRenderPass;
@@ -33,9 +32,6 @@ class FoxCamera extends FoxObject {
 	**/
 	public var modelLayers:FoxLayer = 0x1;
 
-	//public var active:Bool = true;
-	//public var visible:Bool = true;
-	
 	/**
 		 Any custom pass you want for this camera, add them here.
 
@@ -54,10 +50,9 @@ class FoxCamera extends FoxObject {
 	// Temporary matrix for space coordinate transforms
 	public final __tempMatrix = new Matrix3D();
 
-	// Frustum culling
+	// Frustum culling (TODO)
 
 	public var doFrustumCulling:Bool = true;
-	public var frustumCone:FrustumCone = new FrustumCone();
 
 	/**
 		The light data associated with this camera.
@@ -110,9 +105,6 @@ class FoxCamera extends FoxObject {
 		__invViewMatrix.copyRawDataFrom(viewMatrix.rawData);
 		__invViewMatrix.invert();
 		__invViewMatrix.transpose();
-
-		frustumCone.setFromCamera(this);
-
 	}
 
 	public function render(drawGroups:Array<FoxDrawTree>) {
