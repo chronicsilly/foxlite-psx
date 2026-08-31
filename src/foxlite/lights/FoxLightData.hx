@@ -29,8 +29,6 @@ class FoxLightData {
 	public inline static final MAX_SPOT_LIGHTS 		  =  8;
 	public inline static final MAX_AREA_LIGHTS 		  =  8;
 
-	public var ambientLight:Vector3D = new Vector3D(1, 1, 1);
-
 	public final directionalLights:Array<FoxDirectionalLight> = [];
 	public final orderedPointLights:BalancedTree<Float, FoxPointLight> = new BalancedTree();
 	public final orderedSpotLights:BalancedTree<Float, FoxSpotLight> = new BalancedTree();
@@ -336,16 +334,7 @@ class FoxLightData {
 		}
 	}
 
-	public function setAmbientLight(color:Vector3D) {
-		ambientLight.copyFrom(color);
-	}
-
-	public function setAmbientLightFlxColor(color:FlxColor) {
-		ambientLight.setTo(color.redFloat, color.greenFloat, color.blueFloat);
-	}
-
 	public function updateShaderLights(shader:FoxShader) {
-		shader.setVector3("ambientLight", ambientLight);
 		shader.setIntArray("lightCount", lightCount);
 
 		for(i in 0...lightCount[FoxLightType.DIRECTIONAL]) {

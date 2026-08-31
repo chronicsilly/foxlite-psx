@@ -1,5 +1,7 @@
 package foxlite.loaders;
 
+import flixel.util.FlxColor;
+import foxlite.environment.FoxEnvironment;
 import Reflect;
 import Array;
 import haxe.Json;
@@ -120,14 +122,8 @@ class FoxJSONLoader {
 				for(samplerName in Reflect.fields(mat.textures)) {
 					var tex = Reflect.field(mat.textures, samplerName);
 					if(tex == null) continue;
-					// TODO: add more formats maybe?
-					var mipFilter = Std.isOfType(tex.mipFilter, String) ? FoxMipFilter.fromString(tex.mipFilter) : FoxMipFilter.MIPNONE;
-					var texture = FoxTexture.fromImage(FoxLoaderUtil.imagePath(tex.name), mipFilter != FoxMipFilter.MIPNONE, null, {
-						wrapMode: Std.isOfType(tex.wrapMode, String) ? FoxWrapMode.fromString(tex.wrapMode) : FoxWrapMode.CLAMP,
-						mipFilter: mipFilter,
-						filter: Std.isOfType(tex.filter, String) ? FoxTextureFilter.fromString(tex.filter) : FoxTextureFilter.LINEAR
-					});
-					material.textures.set(samplerName, texture);
+					var texture = __parseTexture(tex);
+					if(texture != null) material.textures.set(samplerName, texture);
 				}
 			}
 			
@@ -153,12 +149,36 @@ class FoxJSONLoader {
 				material.stencil = stencil;
 			}
 
+			// Environment
+			if(mat.environment != null) {
+				var env = new FoxEnvironment();
+				if(Std.isOfType(mat.fogColor, String)) env.fogColor = FlxColor.fromString(mat.fogColor);
+				if(Std.isOfType(mat.fogStart, Float) || Std.isOfType(mat.fogStart, Int)) env.fogStart = mat.fogStart;
+				if(Std.isOfType(mat.fogEnd, Float) || Std.isOfType(mat.fogEnd, Int)) env.fogEnd = mat.fogEnd;
+				if(Std.isOfType(mat.ambientLight, String)) env.ambientLight = FlxColor.fromString(mat.ambientLight);
+				if(Std.isOfType(mat.skyOffset, Array)) env.skyOffset.setTo(mat.skyOffset[0], mat.skyOffset[1]);
+				if(mat.skyTexture != null) {
+					env.skyTexture = __parseTexture(mat.skyTexture);
+				}
+			}
+
 			materials.set(matName, material);
 		}
 
 		FoxCache.materialLibs().set(name, materials);
 
 		return materials;
+	}
+
+	@:dox(hide)
+	@:noCompletion public static function __parseTexture(tex:Dynamic):FoxTexture {
+		// TODO: add more formats maybe?
+		var mipFilter = Std.isOfType(tex.mipFilter, String) ? FoxMipFilter.fromString(tex.mipFilter) : FoxMipFilter.MIPNONE;
+		return FoxTexture.fromImage(FoxLoaderUtil.imagePath(tex.name), mipFilter != FoxMipFilter.MIPNONE, null, {
+			wrapMode: Std.isOfType(tex.wrapMode, String) ? FoxWrapMode.fromString(tex.wrapMode) : FoxWrapMode.CLAMP,
+			mipFilter: mipFilter,
+			filter: Std.isOfType(tex.filter, String) ? FoxTextureFilter.fromString(tex.filter) : FoxTextureFilter.LINEAR
+		});
 	}
 
 	/**

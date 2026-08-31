@@ -9,6 +9,7 @@ import foxlite.renderer.FoxRenderPass;
 import foxlite.renderer.FoxRenderer;
 import foxlite.system.FoxDrawTree;
 import foxlite.texture.FoxFramebuffer;
+import foxlite.environment.FoxEnvironment;
 import lime.math.Vector2;
 import openfl.geom.Matrix3D;
 import openfl.geom.Vector3D;
@@ -64,6 +65,11 @@ class FoxCamera extends FoxObject {
 		so you don't need to touch this unless you know what you're doing!
 	**/
 	public var lightData:FoxLightData = new FoxLightData();
+
+	/**
+		If set, this camera will use a custom environment
+	**/
+	public var environment:FoxEnvironment;
 
 	public function new(x:Float=0, y:Float=0, z:Float=0, _bgColor:FlxColor=0x0, ortho:Bool=false) {
 		super(x, y, z);

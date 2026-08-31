@@ -3,6 +3,7 @@ package foxlite.material;
 import Reflect;
 import haxe.ds.StringMap;
 import foxlite.FoxShader;
+import foxlite.environment.FoxEnvironment;
 import foxlite.loaders.FoxMTLLoader;
 import foxlite.material.FoxBlendMode;
 import foxlite.material.FoxDepthCompareMode;
@@ -49,6 +50,11 @@ class FoxMaterial {
 	public var name:String;
 	public var shader:FoxShader = null;
 	public var assetsKey:String;
+
+	/**
+		A custom environment only for this material
+	**/
+	public var environment:FoxEnvironment;
 
 	/**
 		This controls the rendering order of materials.

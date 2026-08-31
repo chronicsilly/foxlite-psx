@@ -3,6 +3,7 @@ package foxlite;
 import flixel.util.FlxColor;
 import foxlite.FoxBasic;
 import foxlite.FoxCamera;
+import foxlite.environment.FoxEnvironment;
 import foxlite.funkin.FoxExtendableSprite;
 import foxlite.funkin.PolymodUtils;
 import foxlite.group.FoxGroup;
@@ -44,7 +45,14 @@ class FoxScene extends FoxExtendableSprite {
 	**/
 	public var outputColorIndex:Int = 0;
 
+	/**
+		A FoxGroup containing all of foxlite's active objects (including other groups)
+	**/
 	public var foxGroup:FoxTypedGroup<FoxBasic> = #if !foxlite_polymod new FoxGroup(); #else PolymodUtils.getFoxGroup(); #end
+
+	/**
+		An array containing `FoxCamera`s, this is intended to be used globally
+	**/
 	public var foxCameras:Array<FoxCamera> = [];
 
 	/**
@@ -53,12 +61,7 @@ class FoxScene extends FoxExtendableSprite {
 		This is just a holder object for global environment variables, such as sky textures.
 		Note: Subject to change in the future.
 	**/
-	public var environment:{skyTexture:FoxTexture, skyOffset:Vector2, fogColor:Vector3D, ambientLight:FlxColor} = {
-		skyTexture: null,
-		skyOffset: new Vector2(),
-		fogColor: new Vector3D(),
-		ambientLight: FlxColor.WHITE
-	};
+	public var environment:FoxEnvironment = new FoxEnvironment();
 
 	/**
 	* An array of `BalancedTree` containing sorted `FoxDrawTree` for drawing.
@@ -240,6 +243,7 @@ class FoxScene extends FoxExtendableSprite {
 			var cam = foxCameras.pop();
 			cam.destroy();
 		}
+		environment.destroy();
 		foxGroup.destroy();
 		disposeBuffers();
 		super.destroy();

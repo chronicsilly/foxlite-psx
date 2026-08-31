@@ -179,7 +179,7 @@ class FoxRenderPass {
 				}
 
 				// Sets the GL context and updates material params
-				setGlobals(matShader, camera, framebuffer);
+				setGlobals(mat, matShader, camera, framebuffer);
 
 				if(matShader.__hasLights) {
 					camera.lightData.updateShaderLights(matShader);
@@ -320,14 +320,10 @@ class FoxRenderPass {
 		}
 	}
 
-	public function setGlobals(shader:FoxShader, camera:FoxCamera, framebuffer:FoxFramebuffer) {
+	public function setGlobals(material:FoxMaterial, shader:FoxShader, camera:FoxCamera, framebuffer:FoxFramebuffer) {
 		// Set global data
-		var env = camera.scene.environment;
-		if(env.skyTexture != null) shader.setSampler2D("skyTexture", env.skyTexture);
-		else shader.textureInput.remove('skyTexture');
-		
-		shader.setVector2("skyOffset", env.skyOffset);
-		shader.setVector4("fogColor", env.fogColor);
+		var env = material.environment ?? camera.environment ?? camera.scene.environment;
+		env.setEnvironment(material, shader, camera);
 
 		iResolution.setTo(framebuffer.glTexture.__width, framebuffer.glTexture.__height);
 		shader.setVector2("iResolution", iResolution);
