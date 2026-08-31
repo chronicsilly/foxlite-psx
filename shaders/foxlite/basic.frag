@@ -95,7 +95,7 @@ void main() {
 	//}
 	#ifdef FOG
 	
-	#ifdef NO_FOG_TRANSPARENCY
+	#ifndef FOG_TRANSPARENCY
 		// const uniform hack for GLES
 		#define fogFragColor fogColor.rgb
 	#else
