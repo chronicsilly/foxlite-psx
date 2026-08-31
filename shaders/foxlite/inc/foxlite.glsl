@@ -42,7 +42,7 @@ precision mediump int;
 
 #ifdef FRAGMENT
 #define varying in
-#ifdef DEFERRED
+#ifdef FORWARDPLUS
 layout(location = 0) out vec4 _GL_DRAW_BUFFERS[4];
 #else
 layout(location = 0) out vec4 _GL_DRAW_BUFFERS[1];
