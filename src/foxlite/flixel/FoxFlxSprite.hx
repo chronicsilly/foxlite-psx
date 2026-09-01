@@ -119,7 +119,11 @@ class FoxFlxSprite extends FoxModel {
 			var width = sprite.pixels.width;
 			var height = sprite.pixels.height;
 			var frame = sprite.frame.frame;
+			var src = sprite.frame.sourceSize;
 			var offset = sprite.frame.offset;
+			var offsetX = offset.x;
+			var offsetY = offset.y;
+
 			var u = frame.x / width;
 			var v = frame.y / height;
 			var uw = (frame.x + frame.width) / width;
@@ -132,16 +136,27 @@ class FoxFlxSprite extends FoxModel {
 			uvsRaw[6] = u;  uvsRaw[7] = vh;
 			mesh.updateBufferRaw(FoxMeshBufferType.UVS, uvsRaw);
 			
-			var ps = pixelSize * 0.5;
-			u = offset.x * ps;
-			v = -offset.y * ps;
+			#if cne
+			offsetX -= sprite.frameOffset.x * (sprite.flipX ? -1 : 1); // * (height / width);
+			offsetY -= sprite.frameOffset.y * (sprite.flipY ? -1 : 1) / (pixelSize * (frame.height / frame.width)); // ????
+			#end
+
+			final ps = pixelSize;
+			final srcX = src.x * ps;
+			final srcY = src.y * ps;
+
 			uw = frame.width * ps;
 			vh = frame.height * ps;
+			u = (offsetX * ps);
+			v = (offsetY *-ps * (vh / uw) * ps) - srcY;
 
-			verticesRaw[0] = -uw + u; verticesRaw[1] =  vh + v; //verticesRaw[2] = 0;
-			verticesRaw[3] =  uw + u; verticesRaw[4] =  vh + v; //verticesRaw[5] = 0;
-			verticesRaw[6] =  uw + u; verticesRaw[7] = -vh + v; //verticesRaw[8] = 0;
-			verticesRaw[9] = -uw + u; verticesRaw[10] = -vh + v; //verticesRaw[11] = 0;
+			final sw = sprite.width * ps * 0.5;
+			final sh = sprite.height * ps * 0.5;
+
+			verticesRaw[0] =  0 + u - sw; verticesRaw[1]  =  vh + v + sh; //verticesRaw[2] = 0;
+			verticesRaw[3] = uw + u - sw; verticesRaw[4]  =  vh + v + sh; //verticesRaw[5] = 0;
+			verticesRaw[6] = uw + u - sw; verticesRaw[7]  =   0 + v + sh; //verticesRaw[8] = 0;
+			verticesRaw[9] =  0 + u - sw; verticesRaw[10] =   0 + v + sh; //verticesRaw[11] = 0;
 			mesh.updateBufferRaw(FoxMeshBufferType.VERTICES, verticesRaw);
 		}
 		if(__recalculateBounds) {
