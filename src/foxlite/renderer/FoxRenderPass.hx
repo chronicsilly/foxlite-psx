@@ -192,6 +192,7 @@ class FoxRenderPass {
 				
 				matShader.setMatrix4("view", camera.viewMatrix);
 				matShader.setMatrix4("invView", camera.__invViewMatrix);
+				if(FoxRenderer.calculateMotionVectors) matShader.setMatrix4("prevView", camera.__prevViewMatrix);
 
 				render(data, matShader, visibilityLayers, samplerId);
 			}
@@ -294,17 +295,25 @@ class FoxRenderPass {
 			if(prevModel != model) {
 				prevModel = model;
 				_shader.setMatrix4("model", model.transform);
+				if(FoxRenderer.calculateMotionVectors) _shader.setMatrix4("prevModel", model.__prevTransform);
 						
 				// -- Skinned mesh --
 				var skinloc = _shader.__uSkinnedLocation;
 				if(skinloc != -1) {
-					if(model.skin == null) GL.uniform1i(cast skinloc, 0);	// uSkinned = false
+					if(model.skin == null || model.skin.bones.length == 0) GL.uniform1i(cast skinloc, 0);	// uSkinned = false
 					else {
 						// Upload bone transforms
 						var boneData = model.skin.boneData;
 						FoxRenderer.useTexture(samplerOffset, boneData);
 						GL.uniform1i(cast _shader.__bonesDataLocation, samplerOffset); // Set BONESDATA to bones buffer
 						GL.uniform1f(cast _shader.__bonesDataSizeLocation, 1 / boneData.getLength()); // BONESDATA texel size
+
+						if(FoxRenderer.calculateMotionVectors) {
+							samplerOffset += 1;
+							var prevBoneData = model.skin.__prevBoneData;
+							FoxRenderer.useTexture(samplerOffset, prevBoneData);
+							GL.uniform1i(cast _shader.__prevBonesDataLocation, samplerOffset); // Set PREV_BONESDATA to prev bones buffer
+						}
 
 						GL.uniform1i(cast skinloc, 1); // uSkinned = true
 					}

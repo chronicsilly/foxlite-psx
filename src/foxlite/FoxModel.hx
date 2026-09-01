@@ -10,6 +10,7 @@ import foxlite.mesh.FoxMesh;
 import foxlite.renderer.FoxRenderer;
 import foxlite.skin.FoxSkinData;
 import openfl.display3D.Context3D;
+import openfl.geom.Matrix3D;
 
 class FoxModel extends FoxObject {
 
@@ -17,6 +18,13 @@ class FoxModel extends FoxObject {
 	public var frustumCulling:Bool;
 
 	public var context:Context3D;
+
+	/**
+		This is the object's transform from a previous frame, used for motion vector calculations.
+		
+		Having to calculate previous transforms on empty objects is a bit pointless, so that's why this is here.
+	**/
+	public var __prevTransform:Matrix3D = new Matrix3D();
 
 	/**
 		The draw groups from a scene this object will be drawn on.
@@ -102,6 +110,11 @@ class FoxModel extends FoxObject {
 		frustumCulling = culling;
 		context = FoxRenderer.getContext();
 		name = "FoxModel";
+	}
+
+	public override function update(dt:Float) {
+		if(FoxRenderer.calculateMotionVectors) __prevTransform.copyRawDataFrom(transform.rawData);
+		super.update(dt);
 	}
 
 	public override function pushDrawData(scene:FoxScene) {

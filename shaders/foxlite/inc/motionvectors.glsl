@@ -9,17 +9,19 @@ uniform mat4 prevView;
 // Motion for simple objects
 uniform mat4 prevModel;
 
+// Vertex -> Fragment motion vector data
+varying vec3 motionVectors;
+
 // Motion for animated objects
 uniform sampler2D PREV_BONESDATA;
 
 // Motion for instance transforms in instancing mode
+#ifdef VERTEX
 attribute vec4 foxlite_PrevInstanceData0;
 attribute vec4 foxlite_PrevInstanceData1;
 attribute vec4 foxlite_PrevInstanceData2;
 
 #define foxlite_PrevInstanceTransform mat4(vec3(foxlite_PrevInstanceData0), 0, vec3(foxlite_PrevInstanceData1), 0, vec3(foxlite_PrevInstanceData2), 0, foxlite_PrevInstanceData0.w, foxlite_PrevInstanceData1.w, foxlite_PrevInstanceData2.w, 1)
-
-varying vec4 motionVectors;
 
 mat4 prevSkin() {
 	ivec4 index = ivec4(foxlite_BoneIndex);
@@ -32,6 +34,7 @@ mat4 prevSkin() {
 
 	return transform;
 }
+#endif
 
 vec3 getMotion(vec4 curClipSpace, vec4 prevClipSpace) {
 	vec3 curNDC = curClipSpace.xyz / curClipSpace.w;

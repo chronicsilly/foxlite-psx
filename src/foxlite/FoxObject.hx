@@ -32,8 +32,11 @@ class FoxObject extends FoxBasic {
 	public var angleY(get, set):Float;
 	public var angleZ(get, set):Float;
 
-	// Internal transforms
+	/**
+		This is the global transform for this Object, it encodes position, rotation and scale in a 4x4 matrix
+	**/
 	public var transform:Matrix3D = new Matrix3D();
+
 	// TODO? add a setter and update position/rotation/scale in global space
 	public var globalPosition(get, null):Vector3D = new Vector3D(); 
 	public var globalRotation(get, null):Vector3D = new Vector3D(); 

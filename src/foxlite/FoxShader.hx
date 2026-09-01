@@ -125,6 +125,7 @@ class FoxShader {
 	**/
 	public var __bonesDataLocation:Int = -1;
 	public var __bonesDataSizeLocation:Int = -1;
+	public var __prevBonesDataLocation:Int = -1;
 
 	/**
 		Cached instanced location for fast access
@@ -205,9 +206,7 @@ class FoxShader {
 		if(flags == null) flags = [];
 		else flags = flags.copy();
 		
-		for(f in GLOBAL_FLAGS) {
-			if(!flags.contains(f)) flags.push(f);
-		}
+		flags = FoxShader.sanitizeFlags(flags);
 
 		var defs:String = "";
 		for(def in flags) defs += '#define $def\n';
@@ -284,9 +283,7 @@ class FoxShader {
 
 	public static function fromAsset(name:String, ?flagsDefs:Array<String>):FoxShader {
 		var flags:Array<String> = [];
-		if(flagsDefs != null) for(f in flagsDefs) if(!flags.contains(f)) flags.push(f);
-		for(i=>f in flags) flags[i] = f.toUpperCase();
-		flags.sort((a:String, b:String) -> a < b ? -1 : 1);
+		if(flagsDefs != null) flags = FoxShader.sanitizeFlags(flagsDefs);
 		// Javascript removes [ ] when converting an array to string so we add them back
 		// We don't use the #if js preprocessor because Polymod has a parsing bug.
 		var defHash:String = flags.toString();
@@ -375,6 +372,7 @@ class FoxShader {
 		// Bone data
 		__bonesDataLocation = uniformCache.get("BONESDATA")?.location ?? -1;
 		__bonesDataSizeLocation = uniformCache.get("BONESDATA_TWIDTH")?.location ?? -1;
+		__prevBonesDataLocation = uniformCache.get("PREV_BONESDATA")?.location ?? -1;
 
 		__hasLights = uniformCache.exists("lightCount") 
 				   && uniformCache.exists("directionalLights[0].color")
@@ -419,6 +417,14 @@ class FoxShader {
 		return shader;
 	}
 
+	public static function sanitizeFlags(flags:Array<String>):Array<String> {
+		var sanitizedFlags:Array<String> = [];
+		for(f in flags) if(!sanitizedFlags.contains(f) && Std.isOfType(f, String)) sanitizedFlags.push(f.toUpperCase());
+		for(f in FoxShader.GLOBAL_FLAGS) if(!sanitizedFlags.contains(f) && Std.isOfType(f, String)) sanitizedFlags.push(f.toUpperCase());
+		sanitizedFlags.sort((a:String, b:String) -> a < b ? -1 : 1);
+		return sanitizedFlags;
+	}
+
 	/**
 		Recompiles this shader using the cached `vert` and `frag` sources.
 
@@ -428,7 +434,7 @@ class FoxShader {
 		a new shader will be created and `this` will be marked as not combined.
 	**/
 	public function recompile(?flags:Array<String>) {
-		if(flags == null) flags = shaderDefines;
+		if(flags == null) flags = FoxShader.sanitizeFlags(shaderDefines);
 		disposeProgram();
 		uniformCache.clear();
 

@@ -5,6 +5,10 @@
 #include "foxlite/inc/lighting.glsl"
 #include "foxlite/inc/sky.glsl"      // For worldDirection and sky funcs
 
+#ifdef FORWARDPLUS_MOTION
+#include "foxlite/inc/motionvectors.glsl"
+#endif
+
 void main() {
 	#ifndef SOLID
 	

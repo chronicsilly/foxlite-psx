@@ -48,6 +48,11 @@ class FoxCamera extends FoxObject {
 	public var projectionMatrix:Matrix3D = new Matrix3D();
 	public var __invProjectionMatrix:Matrix3D = new Matrix3D(); // For raytracing effects
 
+	/**
+		This is the view matrix from a previous frame, used for motion vector calculations
+	**/
+	public var __prevViewMatrix:Matrix3D = new Matrix3D();
+
 	// Temporary matrix for space coordinate transforms
 	public final __tempMatrix = new Matrix3D();
 
@@ -85,6 +90,7 @@ class FoxCamera extends FoxObject {
 		super.update(dt);
 		if(scene == null) return;
 		// Create from transform so other influences can affect the camera
+		if(FoxRenderer.calculateMotionVectors) __prevViewMatrix.copyRawDataFrom(viewMatrix.rawData);
 		FoxMathUtil.viewMatrixFromTransform(viewMatrix, transform);
 
 		if(__updateProjection) {

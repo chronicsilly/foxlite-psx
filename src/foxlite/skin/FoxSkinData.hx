@@ -1,5 +1,6 @@
 package foxlite.skin;
 
+import foxlite.renderer.FoxRenderer;
 import foxlite.loaders.FoxJSONLoader;
 import foxlite.texture.FoxTextureBuffer;
 import foxlite.FoxObject;
@@ -16,7 +17,16 @@ class FoxSkinData {
 
 	public final root:FoxObject = new FoxObject(); // Holder transform
 	public var bones:Array<FoxBone> = [];
-	public var boneData:FoxTextureBuffer = new FoxTextureBuffer(4, 4);
+
+	/**
+		A texture buffer that stores bone transformations
+	**/
+	public var boneData:FoxTextureBuffer = new FoxTextureBuffer(1, 4);
+
+	/**
+		The previous bone transformations texture buffer
+	**/
+	public var __prevBoneData:FoxTextureBuffer = new FoxTextureBuffer(1, 4);
 	public var assetsKey:String;
 
 	// Temporary Matrix3D for joint -> rest space conversion
@@ -62,8 +72,14 @@ class FoxSkinData {
 		if(w == 0) return;
 		if(boneData.getLength() != w) {
 			boneData.create(w, 4); // reallocate
+			if(FoxRenderer.calculateMotionVectors) __prevBoneData.create(w, 4);
 		}
 
+		// Save previous bone data
+		if(FoxRenderer.calculateMotionVectors) {
+			@:privateAccess __prevBoneData.bytes.blit(0, boneData.bytes, 0, boneData.bytes.length);
+			__prevBoneData.updateGPU();
+		}
 		for(i => bone in bones.keyValueIterator()) {
 			bone.update(dt); // Calculate transform
 			// Joint to Rest
@@ -100,6 +116,7 @@ class FoxSkinData {
 		for(b in bones) b.destroy();
 		bones = null;
 		boneData.destroy();
+		__prevBoneData.destroy();
 		FoxCache.skins().remove(assetsKey);
 	}
 }

@@ -7,6 +7,10 @@
 #include "foxlite/inc/sky.glsl"      // For worldDirection and sky reflections
 #include "foxlite/inc/armature.glsl"
 
+#ifdef FORWARDPLUS_MOTION
+#include "foxlite/inc/motionvectors.glsl"
+#endif
+
 #define transformInstance(M, T) (M = M * T)
 #define transformSkinned(M, S) (M = M * S)
 
@@ -153,6 +157,6 @@ void main(void)
 
 	vec4 prevViewPos = prevFmodelView * localPosition;
 	vec4 previousClip = projection * prevViewPos;
-	motionVectors = getMotion(gl_Position, previousClip);
+	motionVectors = getMotion(gl_Position, previousClip)*100.;
 	#endif
 }
