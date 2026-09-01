@@ -282,8 +282,11 @@ class FoxShader {
 		return source;
 	}
 
-	public static function fromAsset(name:String, ?flags:Array<String>):FoxShader {
-		if(flags == null) flags = [];
+	public static function fromAsset(name:String, ?flagsDefs:Array<String>):FoxShader {
+		var flags:Array<String> = [];
+		if(flagsDefs != null) for(f in flagsDefs) if(!flags.contains(f)) flags.push(f);
+		for(i=>f in flags) flags[i] = f.toUpperCase();
+		flags.sort((a:String, b:String) -> a < b ? -1 : 1);
 		// Javascript removes [ ] when converting an array to string so we add them back
 		// We don't use the #if js preprocessor because Polymod has a parsing bug.
 		var defHash:String = flags.toString();
@@ -309,6 +312,7 @@ class FoxShader {
 
 		var shader = FoxShader.fromSources(vert, frag, flags);
 		shader.assetsKey = name;
+		trace("[FoxLite > FoxShader]: Add shader to cache: " + name + defHash);
 		FoxCache.shaders().set(name + defHash, shader);
 		return shader;
 	}
