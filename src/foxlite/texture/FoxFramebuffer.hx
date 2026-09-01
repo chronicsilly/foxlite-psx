@@ -13,6 +13,7 @@ import lime.utils.Float32Array;
 import lime.utils.UInt8Array;
 import openfl.display3D.Context3D;
 import openfl.display3D.textures.Texture;
+import openfl.display3D.textures.CubeTexture;
 import openfl.errors.RangeError;
 #if foxlite_polymod
 import lime.utils.BytePointer;
@@ -75,7 +76,16 @@ class FoxFramebuffer {
 		glTexture.__glFramebuffer = GL.createFramebuffer();
 	}
 
+	/**
+		Attaches a depth texture to this framebuffer.
+
+		Setting `texture` to null removes the attachment.
+
+		@param texture A valid `FoxTexture`
+		@returns `true` if the framebuffer attachment has been successful
+	**/
 	public function setDepthTexture(?texture:FoxTexture, withStencil:Bool=true):Bool {
+		if(texture != null && Std.isOfType(texture.glTexture, CubeTexture)) throw "Invalid texture!";
 		var gl = context.gl;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, glTexture.__glFramebuffer);
 		// Don't overwrite ours, openfl
@@ -91,7 +101,16 @@ class FoxFramebuffer {
 		return FoxRenderer.checkFrameBuffer();
 	}
 
+	/**
+		Attaches a color texture to this framebuffer, you can also specify a color buffer output (first attachment MUST be 0)
+
+		Setting `texture` to null removes the attachment.
+
+		@param texture A valid `FoxTexture`
+		@returns `true` if the framebuffer attachment has been successful
+	**/
 	public function setColorTexture(index:Int, ?texture:FoxTexture):Bool {
+		if(texture != null && Std.isOfType(texture.glTexture, CubeTexture)) throw "Invalid texture!";
 		var gl = context.gl;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, glTexture.__glFramebuffer);
 
@@ -297,7 +316,6 @@ class FoxFramebuffer {
 		fb.setDepthTexture(depth, false);
 
 		fb.setColorTexture(0, FoxTexture.create(width, height, "r8"));
-
 		return fb;
 	}
 }

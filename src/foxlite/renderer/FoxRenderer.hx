@@ -84,10 +84,23 @@ class FoxRenderer {
 	public static var mustRebuildDrawGroups:Bool = true;
 
 	/**
+		If enabled, motion vectors will be calculated for 3D objects.
+
+		Motion vectors are used for all sort of neat effects such as Motion Blur and Temporal Reprojection,
+		plus some additional advanced rendering
+
+		Note that to output motion vector data you'll need a compatible shader with the respective flags enabled
+
+		This technique might require a bit more memory since previous transfomation matrices are stored in memory for each object.
+	**/
+	public static var calculateMotionVectors:Bool = false;
+
+	/**
 		If greater than 0, forces the renderer to render using `GL.LINES` with the specified width
 	**/
 	public static var debugWireframe:Float = 0.0;
 	public static var __shader:FoxShader = null;
+	public static var __target:FoxFramebuffer = null;
 
 	public static var context:Context3D = null;
 
@@ -122,7 +135,7 @@ class FoxRenderer {
 		trace(BUILD_NAME, VERSION, renderContext, frameCount, drawCalls, verticesDrawn, stateSwitches, __blendMode, 
 			__depthTest, __shader, __stencilTest, renderMode, debugWireframe, mustRebuildDrawGroups, 
 			renderedInstances, onPreDraw, onPostDraw, __indexBuffer, __scissorTest, glDeviceName, MISSING_TEXTURE, 
-			MISSING_MATERIAL, MISSING_SHADER, initialized
+			MISSING_MATERIAL, MISSING_SHADER, initialized, __target, calculateMotionVectors
 		);
 		#end
 		
@@ -268,6 +281,7 @@ class FoxRenderer {
 		FoxRenderer.allocationsThisFrame = 0;
 		FoxRenderer.renderedInstances = 0;
 		FoxRenderer.__shader = null;
+		FoxRenderer.__target = null;
 		// Save previous index buffer (exclusively for FlxAnimate sprites)
 		var gl = context.gl;
 		FoxRenderer.__indexBuffer = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
@@ -305,11 +319,16 @@ class FoxRenderer {
 		gl.generateMipmap(glTex.__textureTarget);
 	}
 
-	// Set target framebuffer
-	public static function setTarget(?target:FoxFramebuffer) {
+	/**
+		Sets the target framebuffer where to render stuff to. Setting it to null unbinds the target.
+
+		@param side If the target is a `FoxFramebufferCubemap`, you can specify which side of the cube to use
+	**/
+	public static function setTarget(?target:FoxFramebuffer, side:FoxCubemapSide=5) {
 		var context = FoxRenderer.context;
 		var gl = context.gl;
 		
+		FoxRenderer.__target = target;
 		if(target == null) {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null); // Use back buffer
 			FoxRenderer.stateSwitches += 1;
@@ -321,6 +340,14 @@ class FoxRenderer {
 		context.__state.renderToTextureDepthStencil = target.hasDepth;
 		
 		context.__flushGLFramebuffer();
+		if(Std.isOfType(target.colorBuffers[0]?.glTexture, CubeTexture))  {
+			var cubeSide = getGLCubemapSide(side);
+			var attachment:Int = target.hasDepth && target.hasStencil ? gl.DEPTH_STENCIL_ATTACHMENT : (
+				target.hasDepth ? gl.DEPTH_ATTACHMENT : (target.hasStencil ? gl.STENCIL_ATTACHMENT : -1)
+			);
+			if(attachment != -1) gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, cubeSide, cast target.depthBuffer?.glTexture?.__textureID, 0);
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, cubeSide, cast target.colorBuffers[0]?.glTexture?.__textureID, 0);
+		}
 		GL.drawBuffers(target.drawBuffers);
 		FoxRenderer.stateSwitches += 1;
 	}
