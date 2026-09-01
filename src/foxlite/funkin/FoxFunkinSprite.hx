@@ -18,14 +18,14 @@ typedef FunkinSprite = Dynamic; // Keep haxe happy
 	__that have a filter attached to them__ because it makes
 	use of their __Render Texture__ instead.
 
-	If the sprite doesn't have a filter attached, the behavior is undefined.
+	If the sprite doesn't have a shader attached, the behavior is undefined.
 	
-	__Note:__ You can create a dummy filter for your sprite like this:
+	__Note:__ You can create a dummy shader for your sprite like this:
 	```haxe
-	import openfl.filters.BitmapFilter;
+	import flixel.graphics.tile.FlxGraphicsShader;
 
 	myAnimateSprite.useRenderTexture = true;
-	myAnimateSprite.filters = [new BitmapFilter()];
+	myAnimateSprite.shader = new FlxGraphicsShader(); 
 	```
 */
 
