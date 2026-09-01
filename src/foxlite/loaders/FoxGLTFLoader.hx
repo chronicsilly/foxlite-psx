@@ -116,19 +116,12 @@ class FoxGLTFLoader {
 		You can use the meshes array, but all meshes will be positioned at the origin. Instead, call
 		`FoxObjectGroup.fromGLTF()`, this takes a gltf json structure and parses the respective objects with
 		their respective parent, skin data, animations and so on
+
+		__Note:__ Cache is applied only to foxlite resources such as textures, materials and so on. The gltf aswell as
+		its binary buffers will be loaded every time you call this function to refresh the cache if something is missing.
 	**/
 	public static function load(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String):GLTFData {
 		var dir:String = Path.directory(name) + '/';
-
-		// Check cache
-		// Meshes are enough since everything consists of the same gltf
-		if(FoxCache.meshes().exists(name)) return {
-			meshes: FoxCache.meshes().get(name),
-			materials: FoxCache.materialLibs().get(name),
-			animations: FoxCache.animationLibs().get(name),
-			skins: FoxCache.skins().get(name),
-			gltfJson: null
-		};
 
 		var gltfJson:Dynamic = FoxLoaderUtil.loadJSON(name);
 		if(gltfJson == null) {
@@ -179,8 +172,10 @@ class FoxGLTFLoader {
 
 	/**
 		Loads models, animations and lights from a GLTF binary file `.glb`. This method is identical to `load()`
+
+		__Note:__ Cache is applied only to foxlite resources such as textures, materials and so on. The gltf aswell as
+		its binary buffers will be loaded every time you call this function to refresh the cache if something is missing.
 	**/
-	// Warning: TODO
 	public static function loadBinary(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String):GLTFData {
 		var path = FoxLoaderUtil.filePath(name);
 		if(!Assets.exists(path)) {
@@ -295,13 +290,14 @@ class FoxGLTFLoader {
 					var imagePath = isDataUrl ? image.uri : FoxLoaderUtil.filePath(directory + Std.string(image.uri));
 					texture = FoxTexture.fromImageRaw(imagePath, mipmaps, cast 1, params) ?? FoxRenderer.MISSING_TEXTURE;
 				}
-				else {
+				else if(!FoxCache.textures().exists(directory + image.name)) {
 					texture = new FoxTexture();
-					texture.assetsKey = image.name;
+					texture.assetsKey = directory + image.name;
 					texture.wrapMode = params.wrapMode;
 					texture.filter = params.filter;
 					texture.mipFilter = params.mipFilter;
-					FoxCache.textures().set(image.name, texture);
+					trace("[FoxLite > FoxGLTFLoader]: Add buffer texture to cache: " + texture.assetsKey);
+					FoxCache.textures().set(directory + image.name, texture);
 
 					var view = bufferViews[image.bufferView];
 					var buffer = buffers[view.buffer];
@@ -318,6 +314,7 @@ class FoxGLTFLoader {
 						(cast texture.glTexture:Texture).uploadFromTypedArray(image.buffer.data);
 					});
 				}
+				else texture = FoxCache.textures().get(directory + image.name);
 				textures.push(texture);
 			}
 			else textures.push(null);
@@ -327,6 +324,7 @@ class FoxGLTFLoader {
 			materials = new StringMap();
 			for(idx=>mat in (gltfJson.materials:Array<Dynamic>)) {
 				if(!Std.isOfType(mat.name, String)) mat.name = 'Material.${StringTools.lpad(Std.string(idx), '0', 3)}';
+				mat.name = directory + mat.name;
 				var material:FoxMaterial = materials?.get(mat.name);
 
 				if(material != null) {
@@ -335,7 +333,7 @@ class FoxGLTFLoader {
 				}
 
 				material = new FoxMaterial();
-				material.assetsKey = gltfJson.assetsKey;
+				material.assetsKey = mat.name;
 				if(Std.isOfType(mat.doubleSided, Bool)) material.culling = mat.doubleSided ? FoxTriangleFace.NONE : FoxTriangleFace.BACK;
 				
 				if(Std.isOfType(mat.alphaMode, String)) switch(mat.alphaMode:String) {
@@ -415,6 +413,7 @@ class FoxGLTFLoader {
 			}
 			FoxCache.materialLibs().set(name, materials);
 		}
+		else for(m in materials) materialArray.push(m);
 
 		if(meshes.length == 0) {
 			for(mesh in (gltfJson.meshes:Array<Dynamic>)) {
@@ -528,7 +527,6 @@ class FoxGLTFLoader {
 		}
 
 		var skins:Array<FoxSkinData> = FoxCache.skins().get(name) ?? [];
-
 		// Skinning
 		if(gltfJson.skins != null && skins.length == 0) {
 			// Temporary vectors for Quaternion -> Euler conversion
