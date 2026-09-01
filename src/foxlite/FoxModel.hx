@@ -194,7 +194,7 @@ class FoxModel extends FoxObject {
 	}
 
 	public override function destroy() {
-		meshes.resize(0);
+		meshes = null;
 		super.destroy();
 	}
 }
