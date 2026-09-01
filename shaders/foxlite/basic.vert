@@ -156,7 +156,7 @@ void main(void)
 	#endif
 
 	vec4 prevViewPos = prevFmodelView * localPosition;
-	vec4 previousClip = projection * prevViewPos;
-	motionVectors = getMotion(gl_Position, previousClip)*100.;
+	vec4 prevClipPos = projection * prevViewPos;
+	motionVectors = getMotion(gl_Position, prevClipPos);
 	#endif
 }
