@@ -44,8 +44,8 @@ class FoxDirectionalSound extends FoxObject {
 	}
 
 	public override function update(dt:Float) {
-		if(sound == null) return;
 		super.update(dt);
+		if(sound == null) return;
 		var camera = scene.foxCameras[cameraIndex];
 		var screenPos = camera?.getScreenPoint(globalPosition);
 		if(screenPos == null) return;
