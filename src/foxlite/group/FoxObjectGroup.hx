@@ -48,6 +48,7 @@ class FoxObjectGroup extends FoxObject {
 			FoxRenderer.mustRebuildDrawGroups = true;
 			return member;
 		}
+		else if(members[pos] == member) return member;
 		else members.insert(pos, member);
 		if(member.parent == null) member.parent = this;
 		member.scene = this.scene;
@@ -70,6 +71,25 @@ class FoxObjectGroup extends FoxObject {
 		onMemberRemoved.dispatch(member);
 		return member;
 	}
+
+	/**
+		Changes the index of a member so it's processed before or after other members
+
+		If index is smaller than 0, the member will move to the start of the list.
+
+		If the index exceeds member count, the member will move to the end of the list.
+
+		__Note:__ If there index is a free `null` space, the object will occupy it.
+
+		__Note 2:__ This doesn't affect anything visually aside from transformations,
+		if you want members to show over other members, configure their materials or render passes
+	**/
+	public function setOrder(member:FoxObject, index:Int=-1):FoxObject {
+		if(!members.contains(member)) return null;
+		remove(member);
+		return insert(index < 0 ? 0 : (index >= length ? length-1 : index), member);
+	}
+
 	public function getByName(name:String):Array<FoxObject> {
 		return members.filter(f -> f != null && f.name == name);
 	}
@@ -90,6 +110,10 @@ class FoxObjectGroup extends FoxObject {
 			}
 			func(m);
 		}
+	}
+
+	public inline function iterator() {
+		return members.iterator();
 	}
 
 	public inline function keyValueIterator() {
