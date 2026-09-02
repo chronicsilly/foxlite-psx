@@ -1,10 +1,9 @@
 package foxlite.renderer;
 
-import flixel.FlxG;
-import foxlite.polyfill.TypedArray;
 import EReg;
 import Reflect;
 import StringTools;
+import haxe.ds.StringMap;
 import foxlite.FoxCache;
 import foxlite.FoxShader;
 import foxlite.instancing.FoxInstanceData;
@@ -18,10 +17,12 @@ import foxlite.flixel.FlxTypedSignalImpl;
 import foxlite.system.Int32BufferCache;
 import foxlite.texture.FoxCubemapSide;
 import foxlite.texture.FoxFramebuffer;
+import foxlite.texture.FoxFramebufferCubemap;
 import foxlite.texture.FoxTexture;
 import foxlite.texture.FoxTextureFilter;
 import foxlite.texture.FoxWrapMode;
-import haxe.ds.StringMap;
+import foxlite.polyfill.TypedArray;
+
 import lime.graphics.opengl.GL;
 import lime.utils.DataPointer;
 import lime.utils.Float32Array;
@@ -31,8 +32,8 @@ import openfl.display3D.VertexBuffer3D;
 import openfl.display3D.textures.CubeTexture;
 import openfl.display3D.textures.Texture;
 import openfl.geom.Rectangle;
-#if foxlite_polymod
 import flixel.FlxG;
+#if foxlite_polymod
 import lime.utils.DataPointer;
 #end
 
@@ -340,13 +341,15 @@ class FoxRenderer {
 		context.__state.renderToTextureDepthStencil = target.hasDepth;
 		
 		context.__flushGLFramebuffer();
-		if(Std.isOfType(target.colorBuffers[0]?.glTexture, CubeTexture))  {
+		if(target.isCubemap()) {
 			var cubeSide = getGLCubemapSide(side);
 			var attachment:Int = target.hasDepth && target.hasStencil ? gl.DEPTH_STENCIL_ATTACHMENT : (
 				target.hasDepth ? gl.DEPTH_ATTACHMENT : (target.hasStencil ? gl.STENCIL_ATTACHMENT : -1)
 			);
 			if(attachment != -1) gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, cubeSide, cast target.depthBuffer?.glTexture?.__textureID, 0);
-			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, cubeSide, cast target.colorBuffers[0]?.glTexture?.__textureID, 0);
+			
+			for(i=>colorAttachment in target.drawBuffers)
+				gl.framebufferTexture2D(gl.FRAMEBUFFER, colorAttachment, cubeSide, cast target.colorBuffers[i]?.glTexture?.__textureID, 0);
 		}
 		GL.drawBuffers(target.drawBuffers);
 		FoxRenderer.stateSwitches += 1;

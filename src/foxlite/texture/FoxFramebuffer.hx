@@ -231,6 +231,10 @@ class FoxFramebuffer {
 
 		return buffer;
 	}
+	
+	public function isCubemap():Bool {
+		return false;
+	}
 
 	public function destroy(destroyBuffers:Bool=false) {
 		var gl = context.gl;

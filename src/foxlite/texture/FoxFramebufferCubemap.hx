@@ -44,8 +44,6 @@ class FoxFramebufferCubemap extends FoxFramebuffer {
 		Setting `texture` to null removes the attachment.
 
 		@param texture A valid `FoxTextureCubemap` (`FoxTexture` is allowed only if the wrapped GL texture is a cubemap)
-		
-		__Note:__ For cubemaps, only index 0 is supported
 
 		@returns Always `false` since the framebuffer doesn't have any starting attachments
 	**/
@@ -92,6 +90,10 @@ class FoxFramebufferCubemap extends FoxFramebuffer {
 	// Not supported
 	public override function readPixels(x:Int = 0, y:Int = 0, ?width:Int, ?height:Int):UInt8Array {return null; }
 	public override function readDepth(x:Int = 0, y:Int = 0, ?width:Int, ?height:Int):Float32Array {return null; }
+
+	public override function isCubemap():Bool {
+		return true;
+	}
 
 	/**
 		Creates a framebuffer with a cubemap attached, this is 6 textures (one for each face of the cube) for color and depth each
