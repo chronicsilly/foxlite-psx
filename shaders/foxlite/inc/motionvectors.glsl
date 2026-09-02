@@ -10,7 +10,8 @@ uniform mat4 prevView;
 uniform mat4 prevModel;
 
 // Vertex -> Fragment motion vector data
-varying vec3 motionVectors;
+varying vec4 motionCurClipPos;
+varying vec4 motionPrevClipPos;
 
 // Motion for animated objects
 uniform sampler2D PREV_BONESDATA;

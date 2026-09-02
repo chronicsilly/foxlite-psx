@@ -130,7 +130,7 @@ void main() {
 	gl_FragData[1].w = metallic;
 	#endif
 	#if defined(FORWARDPLUS_MOTION) && defined(MOTIONVECTORS_GLSL)
-	gl_FragData[2].xyz = motionVectors;
+	gl_FragData[2].xyz = getMotion(motionCurClipPos, motionPrevClipPos);
 	gl_FragData[2].w = roughness;
 	#endif
 }

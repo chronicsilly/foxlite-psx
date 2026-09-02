@@ -157,6 +157,8 @@ void main(void)
 
 	vec4 prevViewPos = prevFmodelView * localPosition;
 	vec4 prevClipPos = projection * prevViewPos;
-	motionVectors = getMotion(gl_Position, prevClipPos);
+
+	motionCurClipPos = gl_Position;
+	motionPrevClipPos = prevClipPos;
 	#endif
 }
