@@ -74,9 +74,16 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 	public var onFinish:FlxTypedSignalImpl<()->Void> = new FlxTypedSignalImpl();
 	public var onUpdate:FlxTypedSignalImpl<()->Void> = new FlxTypedSignalImpl();
 
-	public function new(?library:Map<String, FoxAnimation>) {
+	/**
+		Creates a new animation player. This interpolates tracks from a `FoxAnimation` and handles property linking for any
+		object.
+
+		@param library Either a single `FoxAnimation` or a `StringMap` containing multiple `FoxAnimation` for the player's library
+	**/
+	public function new(?library:Dynamic) {
 		super();
-		if(library != null) for(anim in library) addAnimation(anim);
+		if(Std.isOfType(library, FoxAnimation)) addAnimation(library);
+		else for(anim in (library:Map<String, FoxAnimation>)) addAnimation(anim);
 		name = "FoxAnimationPlayer";
 	}
 
