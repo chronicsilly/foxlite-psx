@@ -31,8 +31,13 @@ class FoxAnimationLinker extends FoxBasic {
 			linkData.set(trackName, [new FoxTrackLinkData(object, property)]);
 			return 0;
 		}
-		data.push(new FoxTrackLinkData(object, property));
-		return data.length-1;
+		
+		var idx = findLink(trackName, object, property);
+		if(idx == -1) {
+			data.push(new FoxTrackLinkData(object, property));
+			return data.length-1;
+		}
+		return idx;
 	}
 
 	/**
@@ -119,6 +124,16 @@ class FoxAnimationLinker extends FoxBasic {
 		unlink('$trackPrefix:quaternion', object, "setRotationQuaternion");
 		unlink('$trackPrefix:scale', object, "setScale");
 		unlink('$trackPrefix:position', object, "setPosition");
+	}
+
+	/**
+		Searches for a link for a track and returns its index on the linker
+	**/
+	public function findLink(trackName:String, object:Dynamic, property:String):Int {
+		var data = linkData.get(trackName);
+		if(data == null) return -1;
+		for(i=>link in data) if(link.object == object && link.property == property) return i;
+		return -1;
 	}
 
 	public function clearLinks() {
