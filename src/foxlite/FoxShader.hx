@@ -1,21 +1,3 @@
-/*
-*    ___           __ _ _       
-*   / __\____  __ / /(_) |_ ___ 
-*  / _\/ _ \ \/ // / | | __/ _ \
-* / / | (_) >  </ /__| | ||  __/
-* \/   \___/_/\_\____/_|\__\___| by dwdvIl
-*                              
-* 	     -- FoxShader --
-* 
-* Simple GL shader implementation
-* KNOWN LIMITATIONS
-* Only supported uniforms are: float, int, bool, vec2-4, sampler2D, mat4.
-* mat2, mat3 or any array of them are NOT supported for now
-* (Context3D has no functions for them, and we can't use DataPointer due to NativeCFFI not working)
-* Rigged models have a maximum of 64 bone uniforms, and 4 bones per vertex
-* Use your draw calls sparingly
-*
-*/
 
 package foxlite;
 
