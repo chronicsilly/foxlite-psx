@@ -9,6 +9,10 @@
     {
       "name": "Kuru-Bot",
 	    "role": "Helper"
+    },
+    {
+      "name": "betpowo",
+      "role": "CNE Sprites helper"
     }
   ],
   "id": "foxlite",
@@ -17,6 +21,6 @@
   },
   "optionalDependencies": null,
   "api_version": "0.8.6",
-  "mod_version": "0.1.0",
+  "mod_version": "0.1.1",
   "license": "MIT"
 }
