@@ -29,7 +29,7 @@ class FoxEnvironment {
 			shader.setFloat("fogEnd", fogEnd);
 		}
 		
-		shader.setFloatArray("ambientLight", [ambientLight.redFloat, ambientLight.blueFloat, ambientLight.greenFloat]);
+		shader.setFloatArray("ambientLight", [ambientLight.redFloat, ambientLight.greenFloat, ambientLight.blueFloat]);
 	}
 
 	public function destroy() {
