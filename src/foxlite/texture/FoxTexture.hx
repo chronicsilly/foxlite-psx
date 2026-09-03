@@ -175,7 +175,7 @@ class FoxTexture {
 		}
 		
 		foxTex.assetsKey = name;
-		trace("[FoxLite > FoxTexture]: Add texture to cache: " + name);
+		trace("[FoxLite > FoxTexture]: Add texture to cache: " + (StringTools.startsWith(name, "data:") ? "<Base64URL_String>" : name));
 		FoxCache.textures().set(name, foxTex);
 		return foxTex;
 	}
