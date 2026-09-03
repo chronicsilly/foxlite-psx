@@ -3,6 +3,7 @@ package foxlite;
 import foxlite.FoxCamera;
 import foxlite.FoxScene;
 import foxlite.group.FoxGroup;
+import foxlite.animation.FoxAnimationPlayer;
 
 class FoxBasic {
 	
@@ -13,15 +14,16 @@ class FoxBasic {
 	public var __destroyed:Bool = false;
 
 	/**
-		A group of FoxBasic that can do stuff from this basic.
-		Use this to store animation players, blenders, and other stuff you may find useful for your needs!
+		An animation controller for this basic.
+		Although properties have to be manually linked,
+		this is intended to be a general-purpose animator for this object
 	**/
-	public var managers:FoxGroup;
+	public var animation:FoxAnimationPlayer;
 
 	public function new():Void {}
 
 	public function update(dt:Float) {
-		if(managers?.active == true) managers?.update(dt);
+		if(animation?.active == true) animation?.update(dt);
 	}
 
 	/**
