@@ -92,7 +92,7 @@ On your `Project.xml`, under `<project>` add this line:
   ## Guides
 Currently, there's not a lot of guides because I'm the only one developing this focusing more on the code, but people have made some to help you get started.
 
-- [Guide for Foxlite](https://docs.google.com/document/d/1Re14NmxilY3wVHONkEN4RcmGM7P8gpLoebiIztWSOiQ/edit?usp=sharing) by [@hereswhisper](https://x.com/hereswhisper), for Codename Engine modders.
+- You can check the [Codename Engine discord server](https://discord.com/invite/D7ZqGtbqtE), we're mostly active there 
 
 Also check out the [API Docs!](https://dwdvil.github.io/foxlite-api-docs/)
   
