@@ -46,7 +46,7 @@ class FoxBasic {
 		if(scene != null && !__destroyed) scene.remove(this);
 		__destroyed = true;
 		scene = null;
-		managers = null;
+		animation = null;
 	}
 
 	private function set_visible(v:Bool):Bool {

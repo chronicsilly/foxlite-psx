@@ -83,7 +83,8 @@ class FoxMaterial {
 		params.set("color", [1, 1, 1, 1]);
 		params.set("uvOffset", [0, 0]);
 		params.set("uvScale", [1, 1]);
-		params.set("uScattering", 0.0);
+		params.set("uRoughness", 0.0);
+		params.set("uMetallic", 0.0);
 		shader = shader_;
 	}
 
@@ -237,6 +238,7 @@ class FoxMaterial {
 		mat.renderPriority = renderPriority;
 		mat.lineWidth = lineWidth;
 		mat.stencil = stencil;
+		mat.environment = environment;
 		return mat;
 	}
 
