@@ -1,7 +1,9 @@
 package foxlite.math;
 
+import haxe.ds.ReadOnlyArray;
 import foxlite.polyfill.VectorFactory;
 import foxlite.renderer.FoxRenderer;
+import foxlite.texture.FoxCubemapSide;
 import openfl.geom.Matrix3D;
 import openfl.geom.Vector3D;
 
@@ -32,14 +34,39 @@ class FoxMathUtil {
 	// Vector3D Axes
 	public static final RIGHT 	  = new Vector3D(1, 0, 0);
 	public static final UP 		  = new Vector3D(0, 1, 0);
-	public static final FORWARD	  = new Vector3D(0, 0, 1);
+	public static final FORWARD	  = new Vector3D(0, 0, -1);
+	public static final LEFT	  = new Vector3D(-1, 0, 0);
+	public static final DOWN	  = new Vector3D(0, -1, 0);
+	public static final BACK	  = new Vector3D(0, 0, 1);
 	public static final ZERO 	  = new Vector3D(0, 0, 0);
 	public static final ONE 	  = new Vector3D(1, 1, 1);
 
+	/**
+		A list of matrix directions corresponding to `FoxCubemapSide`.
+
+		__Note:__ The offsets of the matrices can change so it represents positions aswell,
+		if you want it to be at the origin, set `matrix.position` to `FoxMathUtil.ZERO`
+	**/
+	public static final MATRIX_DIRECTIONS:ReadOnlyArray<Matrix3D> = [
+		new Matrix3D(), // right
+		new Matrix3D(), // left
+		new Matrix3D(), // top
+		new Matrix3D(), // bottom
+		new Matrix3D(), // back
+		new Matrix3D() // front
+	];
+
 	public static function staticInit() {
 		#if foxlite_polymod
-		trace(degToRad, radToDeg, RIGHT, UP, FORWARD, ZERO, ONE, TAU, PI_2, __tempVector, __tempVector2, __tempVector3, MATRIX_IDENTITY);
+		trace(degToRad, radToDeg, RIGHT, UP, FORWARD, LEFT, DOWN, BACK, ZERO, ONE, TAU, PI_2, __tempVector, __tempVector2, __tempVector3, MATRIX_IDENTITY, MATRIX_DIRECTIONS);
 		#end
+		// Idk why some directions are inverted, but this seems to correspond to what foxlite uses
+		MATRIX_DIRECTIONS[FoxCubemapSide.RIGHT].pointAt(ZERO, RIGHT, DOWN);
+		MATRIX_DIRECTIONS[FoxCubemapSide.LEFT].pointAt(ZERO, LEFT, DOWN);
+		MATRIX_DIRECTIONS[FoxCubemapSide.TOP].pointAt(ZERO, UP, BACK);
+		MATRIX_DIRECTIONS[FoxCubemapSide.BOTTOM].pointAt(ZERO, DOWN, FORWARD);
+		MATRIX_DIRECTIONS[FoxCubemapSide.BACK].pointAt(ZERO, BACK, UP);
+		MATRIX_DIRECTIONS[FoxCubemapSide.FRONT].pointAt(ZERO, FORWARD, UP);
 	}
 
 	public static function perspectiveMatrix(mp:Matrix3D, fov:Float, aspect:Float, near:Float, far:Float):Matrix3D {
@@ -113,7 +140,7 @@ class FoxMathUtil {
 		// it just messes up our rotations, we need YXZ order to preserve Z rotation:
 		var rot = rotEuler.clone();
 		rot.scaleBy(radToDeg);
-		if(rot.z != 0) matTRS.appendRotation(rot.z, FORWARD);
+		if(rot.z != 0) matTRS.appendRotation(rot.z, BACK);
 		if(rot.y != 0) matTRS.appendRotation(rot.y, UP);
 		if(rot.x != 0) matTRS.appendRotation(rot.x, RIGHT);
 
@@ -135,7 +162,7 @@ class FoxMathUtil {
 		rot.scaleBy(-radToDeg);
 		if(rot.y != 0) matRT.appendRotation(rot.y, UP);
 		if(rot.x != 0) matRT.appendRotation(rot.x, RIGHT);
-		if(rot.z != 0) matRT.appendRotation(rot.z, FORWARD);
+		if(rot.z != 0) matRT.appendRotation(rot.z, BACK);
 		FoxRenderer.allocationsThisFrame += 4;
 
 		return matRT;
@@ -152,7 +179,7 @@ class FoxMathUtil {
 		var rot = eulerFromMatrix(transform, __tempVector, scaleFromMatrix(transform, __tempVector2));
 		rot.scaleBy(-radToDeg);
 		
-		if(rot.z != 0) output.appendRotation(rot.z, FORWARD);
+		if(rot.z != 0) output.appendRotation(rot.z, BACK);
 		if(rot.y != 0) output.appendRotation(rot.y, UP);
 		if(rot.x != 0) output.appendRotation(rot.x, RIGHT);
 		FoxRenderer.allocationsThisFrame += 3;
