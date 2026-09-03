@@ -111,6 +111,10 @@ haxelib dev foxlite <your directory>
 
 3. Include it in your haxeflixel `Project.xml` by adding `<haxelib name="foxlite"/>` under `<project>`
 
+## Supporting the project!
+Github sponsor button wouldn't appear twt
+
+If you want to support my work or appreciate my dedication, consider making a donation! https://buymeacoffee.com/drewnyr
   
 
 ## License
