@@ -40,8 +40,8 @@ import lime.utils.DataPointer;
 // TODO: Make this a singleton so we don't use this many static vars
 class FoxRenderer {
 
-	public static final BUILD_NAME = "Preview";
-	public static final VERSION = "1.0.1";
+	public static final BUILD_NAME = "Beta";
+	public static final VERSION = "0.1.1";
 
 	public static var frameCount:Int = 0;
 	public static var drawCalls:Int = 0;
