@@ -1,4 +1,6 @@
-![Foxlite logo concept by WafflesFox](https://github.com/dwdvIl/foxlite/blob/master/assets/images/foxlite.png?raw=true)
+<p width="100%" align="center">
+<img src="https://github.com/dwdvIl/foxlite/blob/master/assets/images/foxlite.png?raw=true" alt="Foxlite logo concept by WafflesFox" width="512" />
+</p>
 
 Foxlite is a hardware-accelerated 3D renderer made in Haxe that aims to leverage Flixel's and Lime's capabilities to beyond what's intended.
 Its main feature it's its open and flexible rendering pipeline, designed to render from the simplest of scenes to full-on Forward+ graphics.
