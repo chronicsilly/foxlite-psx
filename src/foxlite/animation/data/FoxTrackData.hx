@@ -18,7 +18,7 @@ class FoxTrackData {
 	}
 
 	/**
-		Returns an object that will
+		Returns the default value for an animation track of `FoxTrackType`
 
 		@param def (Optional) Provides custom default values. For non-atomic types, must supply an array.
 	**/
