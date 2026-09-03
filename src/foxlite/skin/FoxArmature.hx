@@ -7,6 +7,9 @@ import foxlite.skin.FoxSkinData;
 import foxlite.funkin.PolymodUtils;
 #end
 
+/**
+	An easy way of managing armatures for model groups
+**/
 class FoxArmature extends FoxObjectGroup {
 	
 	/**

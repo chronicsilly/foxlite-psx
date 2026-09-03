@@ -1,5 +1,6 @@
 package foxlite.loaders;
 
+import foxlite.animation.FoxAnimationPlayer;
 import StringTools;
 import haxe.Json;
 import haxe.io.Path;
@@ -13,6 +14,7 @@ import foxlite.animation.FoxTrackType;
 import foxlite.animation.FoxAnimationTrack;
 import foxlite.animation.FoxEaseType;
 import foxlite.culling.BoundingBox;
+import foxlite.group.FoxObjectGroup;
 import foxlite.material.FoxMaterial;
 import foxlite.material.FoxTriangleFace;
 import foxlite.material.FoxBlendMode;
@@ -23,6 +25,12 @@ import foxlite.polyfill.VectorFactory;
 import foxlite.renderer.FoxRenderer;
 import foxlite.skin.FoxSkinData;
 import foxlite.skin.FoxBone;
+import foxlite.skin.FoxArmature;
+import foxlite.lights.FoxSpotLight;
+import foxlite.lights.FoxDirectionalLight;
+import foxlite.lights.FoxPointLight;
+import foxlite.lights.FoxBaseLight;
+import foxlite.FoxObject;
 import foxlite.texture.FoxMipFilter;
 import foxlite.texture.FoxTextureFilter;
 import foxlite.texture.FoxWrapMode;
@@ -103,7 +111,8 @@ typedef GLTFData = {
 	?materials:Map<String, FoxMaterial>, 
 	?animations:Map<String, FoxAnimation>, 
 	?skins:Array<FoxSkinData>,
-	gltfJson:Dynamic
+	gltf:Dynamic,
+	scenes:Array<FoxObjectGroup>
 }
 
 class FoxGLTFLoader {
@@ -113,8 +122,8 @@ class FoxGLTFLoader {
 
 		GLTF models are scenes, this means they have an unique structure models should follow.
 
-		You can use the meshes array, but all meshes will be positioned at the origin. Instead, call
-		`FoxObjectGroup.fromGLTF()`, this takes a gltf json structure and parses the respective objects with
+		You can use the meshes array, but all meshes will be positioned at the origin. Instead, use the `scenes` property.
+		This contains parsed `FoxObjectGroup`s containing the respective objects with
 		their respective parent, skin data, animations and so on
 
 		__Note:__ Cache is applied only to foxlite resources such as textures, materials and so on. The gltf aswell as
@@ -135,7 +144,7 @@ class FoxGLTFLoader {
 		gltfJson.assetsKey = name;
 		
 		var buffers:Array<ByteArray> = [];
-		for(i=>buf in (gltfJson.buffers:Array<Dynamic>)) {
+		if(gltfJson.buffers != null) for(i=>buf in (gltfJson.buffers:Array<Dynamic>)) {
 			var isDataUrl = StringTools.startsWith(buf.uri, "data:");
 			var bufPath = isDataUrl ? buf.uri : FoxLoaderUtil.filePath(dir + buf.uri);
 
@@ -160,7 +169,7 @@ class FoxGLTFLoader {
 			buffers.push(buffer);
 		}
 
-		if(false && buffers.filter(f -> f == null).length == buffers.length) {
+		if(buffers.length != 0 && buffers.filter(f -> f == null).length == buffers.length) {
 			trace('[FoxLite > FoxGLTFLoader]: Could not load "$name". (All buffers are missing)');
 			return null;
 		}
@@ -413,9 +422,9 @@ class FoxGLTFLoader {
 			}
 			FoxCache.materialLibs().set(name, materials);
 		}
-		else for(m in materials) materialArray.push(m);
+		else if(materials != null) for(m in materials) materialArray.push(m);
 
-		if(meshes.length == 0) {
+		if(meshes.length == 0 && gltfJson.meshes != null) {
 			for(mesh in (gltfJson.meshes:Array<Dynamic>)) {
 				for(i=>prim in (mesh.primitives:Array<Dynamic>)) {
 					var mesh = new FoxMesh();
@@ -672,12 +681,113 @@ class FoxGLTFLoader {
 			FoxCache.animationLibs().set(name, animations);
 		}
 
-		return {
+		var data:GLTFData = {
 			meshes: meshes,
 			materials: materials,
 			skins: skins,
 			animations: animations,
-			gltfJson: gltfJson
+			gltf: gltfJson,
+			scenes: null
 		};
+		data.scenes = buildScenes(data);
+
+		return data;
+	}
+
+	/**
+		Builds `FoxObjectGroup`s containing models, meshes and lights from GLTF data
+	**/
+	public static function buildScenes(gltf:GLTFData):Array<FoxObjectGroup> {
+		var groups:Array<FoxObjectGroup> = [];
+		if(gltf?.gltf == null) return groups;
+		var nodes:Array<Dynamic> = gltf.gltf.nodes;
+		var skins:Array<Dynamic> = gltf.gltf.skins ?? [];
+		var scenes:Array<Dynamic> = gltf.gltf.scenes;
+		// For lights
+		var KHR_lights_punctual:Dynamic = gltf.gltf.extensions?.KHR_lights_punctual;
+
+		// Skinned meshes, animations and objects
+		var armatures:Array<FoxArmature> = skins.map(f -> new FoxArmature());
+		var linkMapping:IntMap<FoxObject> = new IntMap();
+		
+		if(scenes != null) for(idx=>scene in scenes) {
+			var group = new FoxObjectGroup();
+			group.name = scene.name;
+
+			function process(node:Dynamic, parent:FoxObjectGroup, nodeIndex:Int) {
+				if(skins.filter(j -> j.joints[0] == nodeIndex).length != 0) return; // Don't walk bone structures (already built)
+
+				var parentGroup:FoxObjectGroup = parent;
+				if(node.mesh != null) {
+					var model = new FoxModel();
+					model.name = node.name;
+					model.meshes = [gltf.meshes[node.mesh]];
+					if(Std.isOfType(node.translation, Array)) model.setPosition(node.translation[0], node.translation[1], node.translation[2]);
+					if(Std.isOfType(node.rotation, Array)) model.setRotationQuaternion(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+					if(Std.isOfType(node.scale, Array)) model.setScale(node.scale[0], node.scale[1], node.scale[2]);
+					if(node.skin != null) {
+						// Add to the armature parent instead
+						var armature = armatures[node.skin];
+						armature.skin = gltf.skins[node.skin];
+						armature.add(model);
+						parent.add(armature); // Add to group once
+					}
+					else parent.add(model);
+					linkMapping.set(nodeIndex, model);
+				}
+				else if(node.extensions?.KHR_lights_punctual != null) {
+					var lightData = KHR_lights_punctual.lights[node.extensions?.KHR_lights_punctual.light];
+					var light:FoxBaseLight = switch(lightData.type) {
+						case "directional": new FoxDirectionalLight();
+						case "point": new FoxPointLight();
+						case "spot": new FoxSpotLight(0, 0, 0, 0xFFFFFFFF, 1, 5, 1, lightData.outerConeAngle * FoxMathUtil.radToDeg);
+						default: null;
+					}
+					if(light != null) {
+						if(Std.isOfType(lightData?.color, Array)) light.color.setTo(lightData.color[0], lightData.color[1], lightData.color[2]);
+						if(Std.isOfType(node.translation, Array)) light.setPosition(node.translation[0], node.translation[1], node.translation[2]);
+						if(Std.isOfType(node.rotation, Array)) light.setRotationQuaternion(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+						light.name = node.name;
+						parent.add(light);
+						linkMapping.set(nodeIndex, light);
+					}
+				}
+				else {
+					parentGroup = new FoxObjectGroup();
+					parentGroup.name = node.name;
+					if(Std.isOfType(node.translation, Array)) parentGroup.setPosition(node.translation[0], node.translation[1], node.translation[2]);
+					if(Std.isOfType(node.rotation, Array)) parentGroup.setRotationQuaternion(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+					if(Std.isOfType(node.scale, Array)) parentGroup.setScale(node.scale[0], node.scale[1], node.scale[2]);
+					parent.add(parentGroup);
+					linkMapping.set(nodeIndex, parentGroup);
+				}
+
+				if(node.children != null) for(c in (node.children:Array<Dynamic>)) {
+					var child:Dynamic = nodes[c];
+					process(child, parentGroup, c);
+				}
+			}
+			
+			for(sceneNode in (scene.nodes:Array<Dynamic>)) {
+				process(nodes[sceneNode], group, sceneNode);
+			}
+
+			var animations:Array<Dynamic> = gltf.gltf.animations;
+
+			if(animations != null) { // Map animations
+				var player = new FoxAnimationPlayer(gltf.animations);
+				group.animation = player;
+
+				for(anim in animations) for(channel in (anim.channels:Array<Dynamic>)) {
+					var object = linkMapping.get(channel.target.node);
+					if(object == null) continue;
+					var trackName = object.name;
+					player.linkObject(trackName, object);
+				}
+				for(skin in gltf.skins) player.linkSkin(skin);
+			}
+			groups.push(group);
+		}
+		return groups;
 	}
 }
