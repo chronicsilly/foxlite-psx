@@ -146,7 +146,7 @@ class FoxGLTFLoader {
 		var buffers:Array<ByteArray> = [];
 		if(gltfJson.buffers != null) for(i=>buf in (gltfJson.buffers:Array<Dynamic>)) {
 			var isDataUrl = StringTools.startsWith(buf.uri, "data:");
-			var bufPath = isDataUrl ? buf.uri : FoxLoaderUtil.filePath(dir + buf.uri);
+			var bufPath = isDataUrl ? buf.uri : StringTools.urlDecode(FoxLoaderUtil.filePath(dir + buf.uri));
 
 			var buffer:ByteArray = null;
 			if(!isDataUrl) {
@@ -296,7 +296,7 @@ class FoxGLTFLoader {
 
 				var texture:FoxTexture = null;
 				if(!isBuffer) {
-					var imagePath = isDataUrl ? image.uri : FoxLoaderUtil.filePath(directory + Std.string(image.uri));
+					var imagePath = isDataUrl ? image.uri : StringTools.urlDecode(FoxLoaderUtil.filePath(directory + Std.string(image.uri)));
 					texture = FoxTexture.fromImageRaw(imagePath, mipmaps, cast 1, params) ?? FoxRenderer.MISSING_TEXTURE;
 				}
 				else if(!FoxCache.textures().exists(directory + image.name)) {
