@@ -31,14 +31,15 @@
 package foxlite.animation;
 
 import Reflect;
+import haxe.ds.StringMap;
 import foxlite.FoxCache;
 import foxlite.animation.FoxAnimation;
 import foxlite.animation.FoxAnimationTrack;
 import foxlite.animation.FoxAnimationLinker;
 import foxlite.animation.FoxCallbackTrack;
 import foxlite.animation.FoxLerp;
+import foxlite.math.FoxMathUtil;
 import foxlite.flixel.FlxTypedSignalImpl;
-import haxe.ds.StringMap;
 import openfl.geom.Matrix3D;
 import openfl.geom.Vector3D;
 import flixel.math.FlxMath;
@@ -92,7 +93,7 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 		
 		time = curAnim.loop ? FlxMath.mod(time, curAnim.duration) : FlxMath.bound(time, 0, curAnim.duration);
 		var tDir = reverse ? -1 : 1;
-
+		
 		interpolateTracks(time, tDir, curAnim, trackData.get(curAnim.name), __playFrame, __reset ? (reverse ? 0xFFFFFFF : 0) : -1);
 
 		time += (reverse ? -dt : dt) * timeScale;
@@ -109,7 +110,6 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 			}
 		}
 		else {
-			__reset = false;
 			onUpdate.dispatch();
 		}
 		__playFrame = false;
@@ -220,10 +220,11 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 
 	public function play(name:String, ?from:Float, ?reversed:Bool) {
 		curAnim = library.get(name);
+		if(curAnim == null) return;
 		if(reversed != null) reverse = reversed;
 		__playFrame = true;
 		playing = true;
-		if(from != null) seek(from);
+		seek(from ?? (reverse ? curAnim.duration : 0));
 	}
 
 	/**
@@ -242,7 +243,10 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 				break; 
 			}
 			else {
-				data.frameIndex = nextIndex;
+				var dir = FoxMathUtil.direction1D(time - curTime);
+				if(dir == 0) break;
+				data.frameIndex += dir;
+				data.frameIndex = Std.int(FlxMath.mod(data.frameIndex, len));
 			}
 		}
 		return data.frameIndex;

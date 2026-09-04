@@ -289,6 +289,13 @@ class FoxMathUtil {
 		return scale;
 	}
 
+	/**
+		Returns the direction of a 1D value (similar to sign, but can be 0)
+	**/
+	public inline static function direction1D(dir:Float):Int {
+		return dir < 0 ? -1 : (dir > 0 ? 1 : 0);
+	}
+
 	public static function directionOf(matrix:Matrix3D):Vector3D {
 		FoxRenderer.allocationsThisFrame += 1;
 		var a = matrix.rawData.__array;
