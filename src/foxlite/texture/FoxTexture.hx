@@ -161,11 +161,15 @@ class FoxTexture {
 		if(!data.readable) { // Already uploaded to GPU
 			foxTex = FoxTexture.wrap(data);
 		}
-		else {
+		else if(data.image?.buffer != null) {
 			var tex = FoxRenderer.getContext().createTexture(data.width, data.height, format, false);
 			tex.__uploadFromImage(data.image);
 			data.dispose(); // Cleanup in CPU
 			foxTex = FoxTexture.wrapGL(tex);
+		}
+		else {
+			trace('[Foxlite > FoxTexture]: Could not load image: ${name} (No Image Data!!)');
+			return null;
 		}
 
 		if(params != null) {
