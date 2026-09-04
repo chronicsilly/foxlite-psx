@@ -164,7 +164,7 @@ class FoxLightData {
 
 	public static function staticInit() {
 		#if foxlite_polymod
-		trace(MAX_AREA_LIGHTS, MAX_DIRECTIONAL_LIGHTS MAX_POINT_LIGHTS MAX_SPOT_LIGHTS);
+		trace(MAX_AREA_LIGHTS, MAX_DIRECTIONAL_LIGHTS, MAX_POINT_LIGHTS, MAX_SPOT_LIGHTS);
 		#end
 	}
 
