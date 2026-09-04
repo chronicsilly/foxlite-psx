@@ -158,7 +158,7 @@ class FoxTexture {
 
 		var foxTex:FoxTexture;
 
-		if(!data.readable) { // Already uploaded to GPU
+		if(!data.readable && data.getTexture(FoxRenderer.getContext()) != null) { // Already uploaded to GPU
 			foxTex = FoxTexture.wrap(data);
 		}
 		else if(data.image?.buffer != null) {
