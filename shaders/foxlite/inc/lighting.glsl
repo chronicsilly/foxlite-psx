@@ -1,3 +1,5 @@
+#ifndef LIGHTING_GLSL
+#define LIGHTING_GLSL
 #include "foxlite/inc/material.glsl" // For material data
 #include "foxlite/inc/sdf3d.glsl"
 
@@ -198,3 +200,4 @@ vec3 light(vec3 unlit, vec3 normal, vec3 viewPosition, vec3 lightSpecular, float
 	unlit *= diffuse;
 	return unlit + specular * lightSpecular;
 }
+#endif

@@ -79,7 +79,7 @@ void main() {
 	#endif
 
 	#ifndef UNSHADED
-	float shininess = (1.0 - roughness) * (1.0 - roughness) * 256.0;
+	float shininess = max((1.0 - roughness) * (1.0 - roughness) * 256.0, 1.0);
 	albedo.rgb = light(albedo.rgb * ao, -normalView, viewPosition.xyz, specular, shininess);
 	#endif
 
