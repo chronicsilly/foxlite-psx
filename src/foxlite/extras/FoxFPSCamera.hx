@@ -1,5 +1,6 @@
 package foxlite.extras;
 
+import foxlite.math.FoxMathUtil;
 import Reflect;
 import flixel.FlxG;
 import flixel.math.FlxMath;
@@ -92,8 +93,13 @@ class FoxFPSCamera extends FoxCamera {
 				var deltaY:Float = 0;
 
 				#if !FLX_NO_MOUSE
+				#if (flixel >= "5.9.0")
 				deltaX += FlxG.mouse.deltaViewX;
 				deltaY += FlxG.mouse.deltaViewY;
+				#elseif (flixel >= "5.3.0")
+				deltaX += FlxG.mouse.deltaX;
+				deltaY += FlxG.mouse.deltaY;
+				#end
 				#end
 				
 				#if !FLX_NO_TOUCH
@@ -110,7 +116,7 @@ class FoxFPSCamera extends FoxCamera {
 
 				targetAngle.x -= deltaY * sensitivity;
 				targetAngle.y -= deltaX * sensitivity;
-				targetAngle.x = FlxMath.bound(targetAngle.x, minPitch, maxPitch);
+				targetAngle.x = FoxMathUtil.glslClamp(targetAngle.x, minPitch, maxPitch);
 			}
 
 			rotation.x = FlxMath.lerp(rotation.x, targetAngle.x, ddt);

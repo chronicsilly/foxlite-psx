@@ -296,6 +296,26 @@ class FoxMathUtil {
 		return dir < 0 ? -1 : (dir > 0 ? 1 : 0);
 	}
 
+	/**
+		GLSL euclidean modulo operation, always unsigned
+
+		From Flixel 6's FlxMath, but here for older versions
+	**/
+	public static inline function glslMod(a:Float, b:Float):Float
+	{
+		b = Math.abs(b);
+		return a - b * Math.floor(a / b);
+	}
+	
+	public static inline function glslClamp(v:Float, min:Float, max:Float):Float {
+		return Math.min(Math.max(v, min), max);
+	}
+
+	public static inline function glslClampInt(v:Int, min:Int, max:Int):Int {
+		v = v > min ? v : min;
+		return v < max ? v : max;
+	}
+
 	public static function directionOf(matrix:Matrix3D):Vector3D {
 		FoxRenderer.allocationsThisFrame += 1;
 		var a = matrix.rawData.__array;

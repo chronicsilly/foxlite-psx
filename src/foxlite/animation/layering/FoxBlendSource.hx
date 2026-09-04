@@ -5,7 +5,7 @@ import foxlite.animation.data.FoxTrackData;
 import foxlite.animation.layering.FoxBaseNode;
 import foxlite.animation.FoxAnimationBlender;
 import foxlite.material.FoxBlendMode;
-import flixel.math.FlxMath;
+import foxlite.math.FoxMathUtil;
 
 /**
 	Provides an animation source to the animation blender
@@ -38,7 +38,7 @@ class FoxBlendSource extends FoxBaseNode {
 
 		initialize(player.trackData.get(animName));
 		
-		time = loop ? FlxMath.mod(time, animation.duration) : FlxMath.bound(time, 0, animation.duration);
+		time = loop ? FoxMathUtil.glslMod(time, animation.duration) : FoxMathUtil.glslClamp(time, 0, animation.duration);
 		player.interpolateTracks(time, reverse ? -1 : 1, animation, data, false, __seekIndex);
 
 		time += (reverse ? -blender.delta : blender.delta) * timeScale;

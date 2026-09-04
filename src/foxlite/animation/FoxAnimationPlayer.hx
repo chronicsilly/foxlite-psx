@@ -91,7 +91,7 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 	public override function update(dt:Float) {
 		if(curAnim == null || !playing) return;
 		
-		time = curAnim.loop ? FlxMath.mod(time, curAnim.duration) : FlxMath.bound(time, 0, curAnim.duration);
+		time = curAnim.loop ? FoxMathUtil.glslMod(time, curAnim.duration) : FoxMathUtil.glslClamp(time, 0, curAnim.duration);
 		var tDir = reverse ? -1 : 1;
 		
 		interpolateTracks(time, tDir, curAnim, trackData.get(curAnim.name), __playFrame, __reset ? (reverse ? 0xFFFFFFF : 0) : -1);
@@ -143,7 +143,7 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 			if(fineTuned) data.frameIndex = fineTune(data, frames, time, direction, animation.duration);
 			
 			var curFrame = frames[data.frameIndex];
-			var nextFrame = frames[Std.int(FlxMath.bound(data.frameIndex + direction, 0, len))];
+			var nextFrame = frames[FoxMathUtil.glslClampInt(data.frameIndex + direction, 0, len)];
 
 			var timeLerp = FoxLerp.inverseLerp(curFrame.time, nextFrame.time, time);
 
@@ -154,7 +154,7 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 			else if(timeLerp < 0) data.frameIndex -= direction; // if for some crazy reason it's negative, go backwards
 
 			// Advance frame
-			data.frameIndex = Std.int(FlxMath.bound(data.frameIndex, 0, len));
+			data.frameIndex = FoxMathUtil.glslClampInt(data.frameIndex, 0, len);
 
 			var v0 = curFrame.value;
 			var v1 = nextFrame.value;
@@ -169,7 +169,7 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 			}
 
 			// Easing
-			timeLerp = FoxAnimationTrack.getEaseWeight(FlxMath.bound(timeLerp, 0, 1), curFrame.ease);
+			timeLerp = FoxAnimationTrack.getEaseWeight(FoxMathUtil.glslClamp(timeLerp, 0, 1), curFrame.ease);
 
 			// Save interpolated value
 			switch(track.type) {
@@ -235,7 +235,7 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 	public function fineTune(data:FoxTrackData, frames:Array<FoxKeyframe<Any>>, time:Float, direction:Int, duration:Float):Int {
 		var len = frames.length;
 		if(direction != 0) for(i in 0...len) {
-			var nextIndex = Std.int(FlxMath.mod(data.frameIndex + direction, len));
+			var nextIndex = Std.int(FoxMathUtil.glslMod(data.frameIndex + direction, len));
 			var curTime = frames[data.frameIndex].time;
 			var nextTime = frames[nextIndex].time;
 
@@ -246,7 +246,7 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 				var dir = FoxMathUtil.direction1D(time - curTime);
 				if(dir == 0) break;
 				data.frameIndex += dir;
-				data.frameIndex = Std.int(FlxMath.mod(data.frameIndex, len));
+				data.frameIndex = Std.int(FoxMathUtil.glslMod(data.frameIndex, len));
 			}
 		}
 		return data.frameIndex;
@@ -259,7 +259,7 @@ class FoxAnimationPlayer extends FoxAnimationLinker {
 	**/
 	public function seek(seekTime:Float, forceUpdate:Bool=false) {
 		if(curAnim == null) return;
-		time = FlxMath.bound(seekTime, 0, curAnim.duration);
+		time = FoxMathUtil.glslClamp(seekTime, 0, curAnim.duration);
 		if(forceUpdate) update(0);
 	}
 

@@ -2,6 +2,7 @@ package foxlite.flixel;
 
 import flixel.FlxObject;
 import flixel.math.FlxMath;
+import foxlite.math.FoxMathUtil;
 import flixel.sound.FlxSound;
 import openfl.geom.Vector3D;
 
@@ -52,7 +53,7 @@ class FoxDirectionalSound extends FoxObject {
 
 		// Because projection can be mirrored if behind the camera, make sure we keep it absolute
 		var signW = FlxMath.signOf(screenPos.w);
-		var panX = FlxMath.bound(screenPos.x * signW, -1, 1);
+		var panX = FoxMathUtil.glslClamp(screenPos.x * signW, -1, 1);
 
 		// Stereo pan
 		sound.pan = panX - panX*(1 - panStrength);
