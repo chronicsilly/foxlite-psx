@@ -149,14 +149,16 @@ class FoxTexture {
 			var components = name.split(',');
 			data = BitmapData.fromBase64(components[1], components[0].substr(5, components[0].indexOf(';base64')-5));
 		} 
-		else data = Assets.getBitmapData(name, false);
+		else {
+			data = Assets.getBitmapData(name, false #if cne , false #end);
+		}
 
 		if(data == null) {
 			trace('[Foxlite > FoxTexture]: Could not load image: ${name} (BitmapData error.)');
 			return null;
 		}
 
-		var foxTex:FoxTexture;
+		var foxTex:FoxTexture = null;
 
 		if(!data.readable && data.getTexture(FoxRenderer.getContext()) != null) { // Already uploaded to GPU
 			foxTex = FoxTexture.wrap(data);
@@ -167,8 +169,12 @@ class FoxTexture {
 			data.dispose(); // Cleanup in CPU
 			foxTex = FoxTexture.wrapGL(tex);
 		}
-		else {
-			trace('[Foxlite > FoxTexture]: Could not load image: ${name} (No Image Data!!)');
+		else if(data.image == null) {
+			trace('[Foxlite > FoxTexture]: Could not load image: ${name} (Asset was found, but Image failed to create.)');
+			return null;
+		}
+		else if(data.image.buffer == null) {
+			trace('[Foxlite > FoxTexture]: Could not load image: ${name} (Asset was found, but Buffer is non-existant.)');
 			return null;
 		}
 
