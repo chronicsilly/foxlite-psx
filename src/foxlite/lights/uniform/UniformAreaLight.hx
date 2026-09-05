@@ -7,7 +7,7 @@ class UniformAreaLight {
 	public var position:Vector3D = new Vector3D();
 	public var direction:Vector3D = new Vector3D();
 	public var sdfData:Vector3D = new Vector3D();
-	public var casterIndex:Int = -1;
+	public var shadowData:Vector3D = new Vector3D();
 
 	public function new() {}
 }

@@ -31,13 +31,13 @@ struct DirLight {
 	vec4 color;
 	vec4 direction;
 	vec4 shadowRegion;
-	int shadowCaster;
+	vec4 shadowData;
 };
 
 struct PointLight {
 	vec4 color;
 	vec4 position;
-	int shadowCaster;
+	vec4 shadowData;
 };
 
 struct SpotLight {
@@ -45,7 +45,7 @@ struct SpotLight {
 	vec4 position;
 	vec4 direction;
 	vec4 shadowRegion;
-	int shadowCaster;
+	vec4 shadowData;
 };
 
 struct AreaLight {
@@ -53,7 +53,7 @@ struct AreaLight {
 	vec4 position;
 	vec4 direction;
 	vec4 sdfData;
-	int shadowCaster;
+	vec4 shadowData;
 };
 
 #if MAX_DIRECTIONAL_LIGHTS > 0
@@ -170,7 +170,7 @@ vec3 light(vec3 unlit, vec3 normal, vec3 viewPosition, vec3 lightSpecular, float
 		vec2 levels = directionalLight(L.direction.xyz, viewPosition, normal, shininess);
 		#ifdef SHADOW_GLSL
 		float shadow = 1.0;
-		if(L.shadowCaster != -1 && levels.s != 0.0) shadow = shadowDirectional(directionalShadowLightSpace[i], L.shadowRegion);
+		if(L.shadowData[ESHADOW_CASTER] >= 0.0 && levels.s != 0.0) shadow = shadowDirectional(directionalShadowLightSpace[i], L.shadowRegion, L.shadowData[ESHADOW_BLUR]);
 		#else
 		const float shadow = 1.0;
 		#endif
@@ -184,7 +184,7 @@ vec3 light(vec3 unlit, vec3 normal, vec3 viewPosition, vec3 lightSpecular, float
 		PointLight L = pointLights[i];
 		#ifdef SHADOW_GLSL
 		float shadow = 1.0;
-		if(L.shadowCaster != -1) shadow = shadowPointCubemap(pointShadowLightSpace[0]);
+		if(L.shadowData[ESHADOW_CASTER] >= 0.0) shadow = shadowPointCubemap(pointShadowLightSpace[0]);
 		#else
 		const float shadow = 1.0;
 		#endif
@@ -199,7 +199,7 @@ vec3 light(vec3 unlit, vec3 normal, vec3 viewPosition, vec3 lightSpecular, float
 		vec2 levels = spotLight(L.position.xyz, L.direction.xyz, L.color.w, L.direction.w, L.position.w, viewPosition, normal, shininess);
 		#ifdef SHADOW_GLSL
 		float shadow = 1.0;
-		if(L.shadowCaster != -1 && levels.s != 0.0) shadow = shadowSpot(spotShadowLightSpace[i], L.shadowRegion);
+		if(L.shadowData[ESHADOW_CASTER] >= 0.0 && levels.s != 0.0) shadow = shadowSpot(spotShadowLightSpace[i], L.shadowRegion, L.shadowData[ESHADOW_BIAS], L.shadowData[ESHADOW_BLUR]);
 		#else
 		const float shadow = 1.0;
 		#endif
@@ -213,7 +213,7 @@ vec3 light(vec3 unlit, vec3 normal, vec3 viewPosition, vec3 lightSpecular, float
 		AreaLight L = areaLights[i];
 		#ifdef SHADOW_GLSL
 		float shadow = 1.0;
-		if(L.shadowCaster != -1) shadow = shadowArea(areaShadowLightSpace[0]);
+		if(L.shadowData[ESHADOW_CASTER] >= 0.0) shadow = shadowArea(areaShadowLightSpace[0]);
 		#else
 		const float shadow = 1.0;
 		#endif
