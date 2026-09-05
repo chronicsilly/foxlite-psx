@@ -107,8 +107,8 @@ class FoxCamera extends FoxObject {
 		__invSkyViewMatrix.copyRawDataFrom(skyData);
 
 		for (i in 0...16) {
-			invProjection[i] = cam3D.__invProjectionMatrix.rawData[i];
-			invSkyView[i] = cam3D.__invSkyViewMatrix.rawData[i];
+			__invProjectionData[i] = __invProjectionMatrix.rawData[i];
+			__invSkyViewData[i] = __invSkyViewMatrix.rawData[i];
 		}
 
 		if(__updateProjection) {
