@@ -17,6 +17,31 @@ class FoxBaseLight extends FoxObject {
 	**/
 	public var colorHex(get, set):FlxColor;
 
+	/**
+		Applies a small depth offset for the shadow casted by this light to prevent Shadow Acne.
+
+		Too high values will cause the shadow to look disconnected from the mesh, tweak this value accordingly
+	**/
+	public var shadowBias:Float = 0.00025;
+
+	/**
+		Applies an offset slided by the normal for the shadow casted by this light.
+
+		Helps to reduce Shadow Acne.
+
+		__Note:__ This currently isn't implemented yet
+	**/
+	public var shadowNormalBias:Float = 1.0;
+
+	/**
+		Controls the blurring of the shadow, gives them a softer or harder look
+
+		Too high values will cause noticeable blurring artifacts
+
+		__Note:__ This value corresponds to the pixel area of the shadowmap
+	**/
+	public var shadowBlur:Float = 1.5;
+
 	function get_colorHex():FlxColor {
 		return FoxColorUtil.toFlxColor(this.color);
 	}

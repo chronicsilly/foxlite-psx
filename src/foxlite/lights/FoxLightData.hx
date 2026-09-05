@@ -24,10 +24,10 @@ import openfl.geom.Vector3D;
 
 class FoxLightData {
 
-	public inline static final MAX_DIRECTIONAL_LIGHTS =  4;
-	public inline static final MAX_POINT_LIGHTS 	  = 16;
-	public inline static final MAX_SPOT_LIGHTS 		  =  8;
-	public inline static final MAX_AREA_LIGHTS 		  =  8;
+	public static var MAX_DIRECTIONAL_LIGHTS  =  4;
+	public static var MAX_POINT_LIGHTS 	  	  = 16;
+	public static var MAX_SPOT_LIGHTS 		  =  8;
+	public static var MAX_AREA_LIGHTS 		  =  8;
 
 	public final directionalLights:Array<FoxDirectionalLight> = [];
 	public final orderedPointLights:BalancedTree<Float, FoxPointLight> = new BalancedTree();
@@ -181,8 +181,13 @@ class FoxLightData {
 			camera.__invViewMatrix.transformVectorToOutput(light.direction, buf.direction); // invView * direction
 
 			if(light.shadow) {
-				buf.casterIndex = shadowLights.length;
-				shadowCasterData.setMatrix4(buf.casterIndex*16, light.viewProjection);
+				buf.shadowData.setTo(
+					shadowLights.length,
+					light.shadowBias,
+					light.shadowBlur
+				);
+				buf.shadowData.w = light.shadowNormalBias;
+				shadowCasterData.setMatrix4(Std.int(buf.shadowData.x)*16, light.viewProjection);
 				shadowLights.push(light);
 				buf.shadowRegion = light.shadowAtlasUV;
 			}
@@ -229,8 +234,13 @@ class FoxLightData {
 			d.w = Math.cos(light.angle * FoxMathUtil.degToRad);
 
 			if(light.shadow) {
-				buf.casterIndex = shadowLights.length;
-				shadowCasterData.setMatrix4(buf.casterIndex*16, light.viewProjection);
+				buf.shadowData.setTo(
+					shadowLights.length,
+					light.shadowBias,
+					light.shadowBlur
+				);
+				buf.shadowData.w = light.shadowNormalBias;
+				shadowCasterData.setMatrix4(Std.int(buf.shadowData.x)*16, light.viewProjection);
 				shadowLights.push(light);
 				buf.shadowRegion = light.shadowAtlasUV;
 			}
@@ -344,8 +354,8 @@ class FoxLightData {
 			var packed = directionalLightBuffer[i];
 			shader.setVector4('directionalLights[$i].color', packed.color);
 			shader.setVector4('directionalLights[$i].direction', packed.direction);
-			shader.setInt('directionalLights[$i].shadowCaster', packed.casterIndex);
-			if(packed.casterIndex > -1) {
+			shader.setVector4('directionalLights[$i].shadowData', packed.shadowData);
+			if(packed.shadowData.x >= 0) {
 				shader.setVector4('directionalLights[$i].shadowRegion', packed.shadowRegion);
 			}
 		}
@@ -354,7 +364,7 @@ class FoxLightData {
 			var packed = pointLightBuffer[i];
 			shader.setVector4('pointLights[$i].color', packed.color);
 			shader.setVector4('pointLights[$i].position', packed.position);
-			shader.setInt('pointLights[$i].shadowCaster', packed.casterIndex);
+			//shader.setVector4('pointLights[$i].shadowData', packed.shadowData);
 		}
 
 		for(i in 0...lightCount[FoxLightType.SPOT]) {
@@ -362,8 +372,8 @@ class FoxLightData {
 			shader.setVector4('spotLights[$i].color', packed.color);
 			shader.setVector4('spotLights[$i].position', packed.position);
 			shader.setVector4('spotLights[$i].direction', packed.direction);
-			shader.setInt('spotLights[$i].shadowCaster', packed.casterIndex);
-			if(packed.casterIndex > -1) {
+			shader.setVector4('spotLights[$i].shadowData', packed.shadowData);
+			if(packed.shadowData.x >= 0) {
 				shader.setVector4('spotLights[$i].shadowRegion', packed.shadowRegion);
 			}
 		}
@@ -374,7 +384,7 @@ class FoxLightData {
 			shader.setVector4('areaLights[$i].position', packed.position);
 			shader.setVector4('areaLights[$i].direction', packed.direction);
 			shader.setVector4('areaLights[$i].sdfData', packed.sdfData);
-			shader.setInt('areaLights[$i].shadowCaster', packed.casterIndex);
+			//shader.setVector4('spotLights[$i].shadowData', packed.shadowData);
 		}
 
 		if(shadowLights.length > 0) { // If there's at least one shadow
