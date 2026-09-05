@@ -63,7 +63,7 @@ uniform vec2 iResolution;		// Camera Viewport size
 #endif
 
 #ifdef VERTEX
-#define ScreenUV (gl_Position.xy*.5+.5)
+#define ScreenUV (gl_Position.xy*0.5+0.5)
 #define ScreenCoord (ScreenUV * iResolution.xy)
 #endif 
 
@@ -162,21 +162,21 @@ float interleavedGradientNoise(vec2 n) {
 // Bayer dithering without bitwise ops from: https://www.shadertoy.com/view/4ssfWM
 float Bayer2(vec2 a) {
     a = floor(a);
-    return fract(a.x / 2. + a.y * a.y * .75);
+    return fract(a.x / 2.0 + a.y * a.y * 0.75);
 }
 
 // Function instead of define for Mobile GLSL
 float Bayer4(vec2 a) {
-	return Bayer2(.5*a)*.25 + Bayer2(a);
+	return Bayer2(0.5*a)*0.25 + Bayer2(a);
 }
 
-#define Bayer8(a) (Bayer4 (.5 *(a)) * .25 + Bayer2(a))
+#define Bayer8(a) (Bayer4 (0.5 *(a)) * 0.25 + Bayer2(a))
 
 #ifdef FRAGMENT
 float alphaDither(float alpha) {
 	#ifdef ALPHA_DITHER_FAST
 	// Discard 2x2 fragments rather than 1x1 (saves performance)
-	return floor(min(alpha*1.0061 + Bayer8(gl_FragCoord.xy*.5), 1.0));
+	return floor(min(alpha*1.0061 + Bayer8(gl_FragCoord.xy*0.5), 1.0));
 	#else
 	return floor(min(alpha*1.0061 + Bayer8(gl_FragCoord.xy), 1.0));
 	#endif

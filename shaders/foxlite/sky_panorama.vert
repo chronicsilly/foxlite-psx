@@ -10,7 +10,7 @@ void main(void) {
 	// check utils.inc for the functions for this
 	vec3 ndc = screenToNDC(foxlite_TexCoord);
 	vec4 view = ndcToView(ndc);
-	view.y *= -1.;
+	view.y *= -1.0;
 	
 	worldDirection = viewToWorld(view);
 

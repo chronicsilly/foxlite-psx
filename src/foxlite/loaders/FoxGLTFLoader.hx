@@ -350,6 +350,7 @@ class FoxGLTFLoader {
 				if(Std.isOfType(mat.alphaMode, String)) switch(mat.alphaMode:String) {
 					case "OPAQUE": addFlag("NO_ALPHA_SCISSOR");
 					case "BLEND": material.blendMode = FoxBlendMode.MIX;
+					case "MASK": material.alphaScissor = 0.5;
 				}
 
 				if(Std.isOfType(mat.alphaCutoff, Float) || Std.isOfType(mat.alphaCutoff, Int))
