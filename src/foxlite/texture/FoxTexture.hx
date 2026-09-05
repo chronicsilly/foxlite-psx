@@ -149,7 +149,7 @@ class FoxTexture {
 			var components = name.split(',');
 			data = BitmapData.fromBase64(components[1], components[0].substr(5, components[0].indexOf(';base64')-5));
 		} 
-		else data = Assets.getBitmapData(name, false);
+		else data = Assets.getBitmapData(name, false, false);
 
 		if(data == null) {
 			trace('[Foxlite > FoxTexture]: Could not load image: ${name} (BitmapData error.)');

@@ -6,7 +6,7 @@
 	<haxeflag name="--macro" value="foxlite.macro.HScriptCompatMacro.run()" />
 
 	<!-- Include default foxlite shaders for easy debugging/modding -->
-	<assets path="shaders/foxlite" rename="assets/shaders/foxlite" />
+	<assets path="shaders/foxlite" rename="assets/shaders/foxlite" embed="true" unless="PSX_TEST_BUILD"/>
+	<assets path="shaders/foxlite" rename="assets/shaders/foxlite" if="PSX_TEST_BUILD"/>
 	<assets path="assets/images" exclude="foxlite.png" />
-
 </project>

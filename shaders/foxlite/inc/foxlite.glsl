@@ -192,13 +192,13 @@ vec2 fox_textureBufferVec2(sampler2D data, int i, float pixelSize) {
 	i /= 2;
 
 	#if __VERSION__ >= 300
-	vec4 sample = texelFetch(data, ivec2(i, 0), 0);
+	vec4 s = texelFetch(data, ivec2(i, 0), 0);
 	#elif defined(VERTEX)
-	vec4 sample = texture2DLod(data, vec2(float(i) * pixelSize, 0), 0.0);
+	vec4 s = texture2DLod(data, vec2(float(i) * pixelSize, 0), 0.0);
 	#else
-	vec4 sample = texture2D(data, vec2(float(i) * pixelSize, 0));
+	vec4 s = texture2D(data, vec2(float(i) * pixelSize, 0));
 	#endif
-	return mix(sample.xy, sample.zw, float(idx));
+	return mix(s.xy, s.zw, float(idx));
 }
 
 vec4 fox_textureBufferVec4(sampler2D data, int i, float pixelSize) {

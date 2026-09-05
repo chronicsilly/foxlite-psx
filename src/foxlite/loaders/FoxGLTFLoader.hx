@@ -428,17 +428,17 @@ class FoxGLTFLoader {
 			for(mesh in (gltfJson.meshes:Array<Dynamic>)) {
 				for(i=>prim in (mesh.primitives:Array<Dynamic>)) {
 					var mesh = new FoxMesh();
-					var meshAccessors:IntMap<String> = new IntMap();
+					var meshAttributes:IntMap<String> = new IntMap();
 					var skip = false;
 
-					for(attrib in Reflect.fields(prim.attributes)) meshAccessors.set(Reflect.field(prim.attributes, attrib), attrib.toUpperCase());
-					meshAccessors.set(prim.indices, "INDICES");
+					for(attrib in Reflect.fields(prim.attributes)) meshAttributes.set(Reflect.field(prim.attributes, attrib), attrib.toUpperCase());
+					meshAttributes.set(prim.indices, "INDICES");
 					
-					for(accessorIndex=>attrib in meshAccessors) {
-						var accessor:Dynamic = accessors[accessorIndex];
+					for(attribIndex=>attrib in meshAttributes) {
+						var accessor:Dynamic = accessors[attribIndex];
 						var view:Dynamic = bufferViews[accessor.bufferView];
 						var buffer:ByteArray = buffers[view.buffer];
-						if(buffer == null) {
+						if(buffer == null && accessor.sparse == null) {
 							trace('Warning! Buffer ${view.buffer} not found for mesh $i/$attrib, skipping!');
 							skip = true;
 							break;
@@ -466,6 +466,14 @@ class FoxGLTFLoader {
 							default: null;
 						}
 
+						var stride:Int = switch(accessor.componentType:Int) {
+							case AccessorComponentType.SHORT,
+								 AccessorComponentType.UNSIGNED_SHORT: 2;
+							case AccessorComponentType.UNSIGNED_INT,
+								 AccessorComponentType.FLOAT: 4;
+							default: 1;
+						}
+
 						// Write data
 						#if js
 						var blitBuffer:Bytes = Bytes.ofData(dataArray.buffer);
@@ -473,7 +481,11 @@ class FoxGLTFLoader {
 						var blitBuffer:Bytes = dataArray.buffer;
 						#end
 
-						blitBuffer.blit(0, buffer, (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0), dataArray.byteLength);
+						if(buffer != null) blitBuffer.blit(0, buffer, (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0), dataArray.byteLength);
+						
+						if(accessor.sparse != null) {
+							trace('Sparse not implemented yet.');
+						}
 						
 						var gpuBuffer:Any = null;
 						
@@ -507,7 +519,7 @@ class FoxGLTFLoader {
 							case "TEXCOORD_0": mesh.uvBuffer = gpuBuffer;
 							case "JOINTS_0": {
 								mesh.boneIndices = gpuBuffer;
-								mesh.boneIndices.__stride = 4; // Fix OpenFL stride bugs
+								mesh.boneIndices.__stride = stride * 4; // Fix OpenFL stride bugs
 							}
 							case "WEIGHTS_0": mesh.boneWeights = gpuBuffer;
 							case "COLOR_0": mesh.colorBuffer = gpuBuffer;
