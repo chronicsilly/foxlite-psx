@@ -13,11 +13,11 @@ uniform mat4 prevModel;
 varying vec4 motionCurClipPos;
 varying vec4 motionPrevClipPos;
 
+#ifdef VERTEX
 // Motion for animated objects
 uniform sampler2D PREV_BONESDATA;
 
 // Motion for instance transforms in instancing mode
-#ifdef VERTEX
 attribute vec4 foxlite_PrevInstanceData0;
 attribute vec4 foxlite_PrevInstanceData1;
 attribute vec4 foxlite_PrevInstanceData2;

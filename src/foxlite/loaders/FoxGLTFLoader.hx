@@ -780,7 +780,7 @@ class FoxGLTFLoader {
 				}
 			}
 			
-			for(sceneNode in (scene.nodes:Array<Dynamic>)) {
+			if(scene.nodes != null) for(sceneNode in (scene.nodes:Array<Dynamic>)) {
 				process(nodes[sceneNode], group, sceneNode);
 			}
 

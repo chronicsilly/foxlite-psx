@@ -250,6 +250,7 @@ class FoxMesh {
 		if(influences?.length > 0) {
 			boneIndices?.dispose();
 			boneIndices = context.createVertexBuffer(Std.int(influences.length / 4), 4);
+			boneIndices.__stride = 4;
 			boneIndices.__usage = bufferUsage;
 			//setBuffer(FoxMeshBufferType.BONE_INDICES, influences); // Upload to GPU
 			setBufferRaw(FoxMeshBufferType.BONE_INDICES, TypedArray.UInt8ClampedArray(influences));
