@@ -3,8 +3,10 @@
 
 #define SHADOW_BIAS 0.00015
 
+#ifdef VERTEX
 uniform sampler2D shadowCasterData;
 uniform float shadowCasterDataSize;
+#endif
 
 uniform sampler2D shadowtex0; // Directional light shadow atlas
 uniform samplerCube shadowtex1; // wip - Point light shadow cubemap

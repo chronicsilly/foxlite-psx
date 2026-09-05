@@ -16,8 +16,9 @@ class FoxMathUtil {
 
 	public inline static final degToRad =  0.0174532925199433;
 	public inline static final radToDeg = 57.2957795130823209;
-	public inline static final TAU = 	   6.2831853071795865; // PI x 2
+	public inline static final TAU = 	   6.2831853071795865; // PI * 2
 	public inline static final PI_2 = 	   1.5707963267948967; // PI / 2
+	public inline static final LN2 =   	   0.6931471805599453; // Math.log(2)
 
 	/**
 		Cache temporary vectors
@@ -314,6 +315,13 @@ class FoxMathUtil {
 	public static inline function glslClampInt(v:Int, min:Int, max:Int):Int {
 		v = v > min ? v : min;
 		return v < max ? v : max;
+	}
+
+	/**
+		Returns the base 2 logarithm of a number
+	**/
+	public static inline function glslLog2(v:Float):Float {
+		return Math.log(v) / LN2;
 	}
 
 	public static function directionOf(matrix:Matrix3D):Vector3D {

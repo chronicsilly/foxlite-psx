@@ -1,8 +1,10 @@
 // Samplers
+#ifdef FRAGMENT
 uniform sampler2D bitmap;	   // Albedo
 uniform sampler2D normalMap;   // Normals
 uniform sampler2D emissiveMap; // Emissive
 uniform sampler2D ormMap;      // AO, Roughness, Metallic
+#endif
 
 // For Phong BRDF and PBR
 uniform float uRoughness;  	  // = 0.0

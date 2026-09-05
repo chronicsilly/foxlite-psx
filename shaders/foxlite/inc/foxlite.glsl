@@ -220,16 +220,16 @@ mat4 fox_textureBufferMat4(sampler2D data, int i, float pixelSize) {
 	vec4 c3 = texelFetch(data, ivec2(i+3, 0), 0);
 	#elif defined(VERTEX)
 	float j = float(i); // Sample pixel center
-	vec4 c0 = texture2DLod(data, vec2((j+0.5) * pixelSize, 0), 0.0);
-	vec4 c1 = texture2DLod(data, vec2((j+1.5) * pixelSize, 0), 0.0);
-	vec4 c2 = texture2DLod(data, vec2((j+2.5) * pixelSize, 0), 0.0);
-	vec4 c3 = texture2DLod(data, vec2((j+3.5) * pixelSize, 0), 0.0);
+	vec4 c0 = texture2DLod(data, vec2((j+0.5) * pixelSize, 0), 0.5);
+	vec4 c1 = texture2DLod(data, vec2((j+1.5) * pixelSize, 0), 0.5);
+	vec4 c2 = texture2DLod(data, vec2((j+2.5) * pixelSize, 0), 0.5);
+	vec4 c3 = texture2DLod(data, vec2((j+3.5) * pixelSize, 0), 0.5);
 	#else
 	float j = float(i); // Sample pixel center
-	vec4 c0 = texture2D(data, vec2((j+0.5) * pixelSize, 0));
-	vec4 c1 = texture2D(data, vec2((j+1.5) * pixelSize, 0));
-	vec4 c2 = texture2D(data, vec2((j+2.5) * pixelSize, 0));
-	vec4 c3 = texture2D(data, vec2((j+3.5) * pixelSize, 0));
+	vec4 c0 = texture2D(data, vec2((j+0.5) * pixelSize, 0.5));
+	vec4 c1 = texture2D(data, vec2((j+1.5) * pixelSize, 0.5));
+	vec4 c2 = texture2D(data, vec2((j+2.5) * pixelSize, 0.5));
+	vec4 c3 = texture2D(data, vec2((j+3.5) * pixelSize, 0.5));
 	#endif
 	return mat4(c0, c1, c2, c3);
 }
