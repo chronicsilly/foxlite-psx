@@ -24,10 +24,10 @@ import openfl.geom.Vector3D;
 
 class FoxLightData {
 
-	public inline static final MAX_DIRECTIONAL_LIGHTS =  4;
-	public inline static final MAX_POINT_LIGHTS 	  = 16;
-	public inline static final MAX_SPOT_LIGHTS 		  =  8;
-	public inline static final MAX_AREA_LIGHTS 		  =  8;
+	public static var MAX_DIRECTIONAL_LIGHTS  =  4;
+	public static var MAX_POINT_LIGHTS 	  	  = 16;
+	public static var MAX_SPOT_LIGHTS 		  =  8;
+	public static var MAX_AREA_LIGHTS 		  =  8;
 
 	public final directionalLights:Array<FoxDirectionalLight> = [];
 	public final orderedPointLights:BalancedTree<Float, FoxPointLight> = new BalancedTree();

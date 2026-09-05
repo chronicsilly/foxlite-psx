@@ -16,10 +16,18 @@ uniform samplerCube shadowtex3; // wip - Area light shadow cubemap
 uniform vec2 shadowtex0size;
 uniform vec2 shadowtex2size;
 
-varying vec4 directionalShadowLightSpace[MAX_DIRECTIONAL_LIGHTS];
-varying vec4 pointShadowLightSpace[1];
-varying vec4 spotShadowLightSpace[MAX_SPOT_LIGHTS];
-varying vec4 areaShadowLightSpace[1];
+#if MAX_DIRECTIONAL_LIGHTS > 0
+	varying vec4 directionalShadowLightSpace[MAX_DIRECTIONAL_LIGHTS];
+#endif
+#if MAX_POINT_LIGHTS > 0
+	varying vec4 pointShadowLightSpace[1];
+#endif
+#if MAX_SPOT_LIGHTS > 0
+	varying vec4 spotShadowLightSpace[MAX_SPOT_LIGHTS];
+#endif
+#if MAX_AREA_LIGHTS > 0
+	varying vec4 areaShadowLightSpace[1];
+#endif
 
 // For shadow clipping
 #define outsideBounds(v) any(bvec2(any(lessThan(v, vec2(0))), any(greaterThan(v, vec2(1)))))
@@ -27,6 +35,7 @@ varying vec4 areaShadowLightSpace[1];
 #ifdef VERTEX
 void setupShadows(vec4 worldPosition) {
 
+	#if MAX_DIRECTIONAL_LIGHTS > 0
 	for(int i = 0; i < MAX_DIRECTIONAL_LIGHTS; ++i) {
 		if(i >= lightCount[LIGHT_DIRECTIONAL]) break;
 		DirLight L = directionalLights[i];
@@ -37,7 +46,9 @@ void setupShadows(vec4 worldPosition) {
 			directionalShadowLightSpace[i].z -= SHADOW_BIAS;
 		}
 	}
+	#endif
 
+	#if MAX_POINT_LIGHTS > 0
 	for(int i = 0; i < 1; ++i) {
 		if(i >= lightCount[LIGHT_POINT]) break;
 		PointLight L = pointLights[i];
@@ -46,7 +57,9 @@ void setupShadows(vec4 worldPosition) {
 			pointShadowLightSpace[i] = viewProjection * worldPosition;
 		}
 	}
+	#endif
 
+	#if MAX_SPOT_LIGHTS > 0
 	for(int i = 0; i < MAX_SPOT_LIGHTS; ++i) {
 		if(i >= lightCount[LIGHT_SPOT]) break;
 		SpotLight L = spotLights[i];
@@ -55,7 +68,9 @@ void setupShadows(vec4 worldPosition) {
 			spotShadowLightSpace[i] = viewProjection * worldPosition;
 		}
 	}
+	#endif
 
+	#if MAX_AREA_LIGHTS > 0
 	for(int i = 0; i < 1; ++i) {
 		if(i >= lightCount[LIGHT_AREA]) break;
 		AreaLight L = areaLights[i];
@@ -64,6 +79,7 @@ void setupShadows(vec4 worldPosition) {
 			areaShadowLightSpace[i] = viewProjection * worldPosition;
 		}
 	}
+	#endif
 
 }
 #endif
@@ -152,6 +168,7 @@ float sampleShadowPoisson18(sampler2D tex, vec2 coord, float Z, vec2 S) {
 float shadowDirectional(in vec4 projCoords, const vec4 rect) {
 	//vec3 projCoords = S.xyz;
 	float shadow = 1.0;
+	#if MAX_DIRECTIONAL_LIGHTS > 0
 	if(!outsideBounds(projCoords.xy)) {
 		vec2 coord = mix(rect.xy, rect.zw, projCoords.xy); // Atlas rect
 		
@@ -165,6 +182,7 @@ float shadowDirectional(in vec4 projCoords, const vec4 rect) {
 		shadow -= sampleShadowPoisson18(shadowtex0, coord, projCoords.z, shadowtex0size);
 		#endif
 	}
+	#endif
 	return shadow;
 }
 
@@ -174,6 +192,7 @@ float shadowSpot(in vec4 S, const vec4 rect) {
 	projCoords.z -= SHADOW_BIAS;
 
 	float shadow = 1.0;
+	#if MAX_SPOT_LIGHTS > 0
 	if(!outsideBounds(projCoords.xy)) {
 		vec2 coord = mix(rect.xy, rect.zw, projCoords.xy); // Atlas rect
 		
@@ -187,14 +206,15 @@ float shadowSpot(in vec4 S, const vec4 rect) {
 		shadow -= sampleShadowPoisson18(shadowtex2, coord, projCoords.z, shadowtex2size);
 		#endif
 	}
+	#endif
 	return shadow;
 }
 
 float shadowPointCubemap(in vec4 S) {
-	return 0.0;
+	return 1.0;
 }
 
 float shadowArea(in vec4 S) {
-	return 0.0;
+	return 1.0;
 }
 #endif

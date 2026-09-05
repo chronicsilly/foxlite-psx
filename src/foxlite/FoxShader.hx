@@ -356,10 +356,11 @@ class FoxShader {
 		__bonesDataSizeLocation = uniformCache.get("BONESDATA_TWIDTH")?.location ?? -1;
 		__prevBonesDataLocation = uniformCache.get("PREV_BONESDATA")?.location ?? -1;
 
-		__hasLights = uniformCache.exists("lightCount") 
-				   && uniformCache.exists("directionalLights[0].color")
-				   && uniformCache.exists("pointLights[0].color")
-				   && uniformCache.exists("spotLights[0].color");
+		__hasLights = uniformCache.exists("lightCount") && (
+				      uniformCache.exists("directionalLights[0].color")
+				   || uniformCache.exists("pointLights[0].color")
+				   || uniformCache.exists("spotLights[0].color")
+				   || uniformCache.exists("areaLights[0].color"));
 	}
 
 	/**
@@ -401,8 +402,23 @@ class FoxShader {
 
 	public static function sanitizeFlags(flags:Array<String>):Array<String> {
 		var sanitizedFlags:Array<String> = [];
-		for(f in flags) if(!sanitizedFlags.contains(f) && Std.isOfType(f, String)) sanitizedFlags.push(f.toUpperCase());
-		for(f in FoxShader.GLOBAL_FLAGS) if(!sanitizedFlags.contains(f) && Std.isOfType(f, String)) sanitizedFlags.push(f.toUpperCase());
+		
+		function checkAndAdd(f:Any) {
+			if(!Std.isOfType(f, String)) return;
+			
+			var flagString = StringTools.trim(f).toUpperCase();
+			if(flagString.length == 0) return;
+			var flagComps:Array<String> = flagString.split("="); // Check flags that have values on them
+			var flag:String = StringTools.trim(flagComps[0]);
+			var flagValue:String = StringTools.trim(flagComps[1] ?? "");
+			if(sanitizedFlags.filter(ff -> StringTools.startsWith(ff, flag)).length == 0) { // Add if doesn't exist
+				sanitizedFlags.push(flagValue != "" ? '$flag $flagValue' : flag);
+			}
+		}
+
+		for(f in flags) checkAndAdd(f);
+		for(f in FoxShader.GLOBAL_FLAGS) checkAndAdd(f);
+
 		sanitizedFlags.sort((a:String, b:String) -> a < b ? -1 : 1);
 		return sanitizedFlags;
 	}
