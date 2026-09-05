@@ -199,8 +199,8 @@ class FoxModel extends FoxObject {
 		return data;
 	}
 
-	public function loadOBJ(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String) {
-		var data = FoxOBJLoader.load(name, extraShaderFlags, customShaderPath);
+	public function loadOBJ(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String, ?texturePath:String) {
+		var data = FoxOBJLoader.load(name, extraShaderFlags, customShaderPath, texturePath);
 		if(data == null) return null;
 		meshes = data.meshes;
 		return data;

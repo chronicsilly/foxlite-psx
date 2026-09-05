@@ -26,7 +26,7 @@ class FoxOBJLoader {
 
 		@returns An Object containing an Array of meshes (with materials applied) and a Map containing the materials from the MTL file (if it exists).
 	**/
-	public static function load(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String):{meshes:Array<FoxMesh>, materials:Map<String, FoxMaterial>} {
+	public static function load(name:String, ?extraShaderFlags:Array<String>, ?customShaderPath:String, ?texturePath:String):{meshes:Array<FoxMesh>, materials:Map<String, FoxMaterial>} {
 		// Check cache
 		if(FoxCache.meshes().exists(name)) {
 			var meshes = FoxCache.meshes().get(name);
@@ -108,7 +108,7 @@ class FoxOBJLoader {
 			switch(op) {
 				case 'mtllib': { // Load material
 					matPath = name.substr(0, name.lastIndexOf('/')+1) + data.join(' ');
-					materials = FoxMTLLoader.load(matPath, extraShaderFlags, customShaderPath);
+					materials = FoxMTLLoader.load(matPath, extraShaderFlags, customShaderPath, texturePath);
 				};
 				case 'usemtl': { // Set material
 					var material = materials?.get(data.join(' ')); // Join spaces since names can have them
