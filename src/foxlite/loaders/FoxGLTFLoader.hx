@@ -305,7 +305,9 @@ class FoxGLTFLoader {
 					texture.wrapMode = params.wrapMode;
 					texture.filter = params.filter;
 					texture.mipFilter = params.mipFilter;
+					#if debug
 					trace("[FoxLite > FoxGLTFLoader]: Add buffer texture to cache: " + texture.assetsKey);
+					#end
 					FoxCache.textures().set(directory + image.name, texture);
 
 					var view = bufferViews[image.bufferView];

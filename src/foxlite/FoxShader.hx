@@ -291,7 +291,9 @@ class FoxShader {
 
 		var shader = FoxShader.fromSources(vert, frag, flags);
 		shader.assetsKey = name;
+		#if debug
 		trace("[FoxLite > FoxShader]: Add shader to cache: " + name + defHash);
+		#end
 		FoxCache.shaders().set(name + defHash, shader);
 		return shader;
 	}

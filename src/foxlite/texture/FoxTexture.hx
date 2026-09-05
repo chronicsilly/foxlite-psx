@@ -73,7 +73,9 @@ class FoxTexture {
 	**/
 	public function resize(width:Int, height:Int):FoxTexture {
 		if(__format == null || __type == null) {
+			#if debug
 			trace("[FoxLite > FoxTexture]: Wrapped/Loaded textures cannot be resized!!!");
+			#end
 			return this;
 		}
 		glTexture?.dispose();
@@ -185,7 +187,9 @@ class FoxTexture {
 		}
 		
 		foxTex.assetsKey = name;
+		#if debug
 		trace("[FoxLite > FoxTexture]: Add texture to cache: " + (StringTools.startsWith(name, "data:") ? "<Base64URL_String>" : name));
+		#end
 		FoxCache.textures().set(name, foxTex);
 		return foxTex;
 	}

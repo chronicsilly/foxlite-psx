@@ -58,12 +58,14 @@ class FoxJSONLoader {
 		for(model in modelData) {
 			var material:FoxMaterial = null;
 			if(model.material != null) {
+				#if debug
 				trace("[FoxLite > FoxJSONLoader]: Loading material file: " + model.material.split(":")[0]);
+				#end
 				material = FoxMaterial.fromJSON(path + model.material); // Adds to cache automatically
-				if(material == null) {
-					trace("[FoxLite > FoxMaterial]: Warning: material not found!! " + model.material);
-				}
-				else materials.set(material.name, material);
+				if(material != null) materials.set(material.name, material);
+				#if debug
+				else trace("[FoxLite > FoxMaterial]: Warning: material not found!! " + model.material);
+				#end
 			}
 
 			var mesh = new FoxMesh();

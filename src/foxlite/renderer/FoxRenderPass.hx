@@ -340,7 +340,9 @@ class FoxRenderPass {
 
 	public static function fromAsset(name:String):Array<FoxRenderPass> {
 		var data:Array<Dynamic> = FoxLoaderUtil.loadJSON(name);
+		#if debug
 		trace("[FoxLite > FoxRenderPass]: LOADING PIPELINE: ", data);
+		#end
 		if(data == null || data.length == 0) return null;
 
 		var pipeline = [];
