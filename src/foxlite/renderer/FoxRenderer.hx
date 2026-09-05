@@ -582,7 +582,14 @@ class FoxRenderer {
 
 		// Skinning
 		if(attrib.boneWeight != -1) context.setVertexBufferAt(attrib.boneWeight, mesh.boneWeights, 0);
-		if(attrib.boneIndex != -1) FoxRenderer.vertexAtrribPtrUByte(context, attrib.boneIndex, mesh.boneIndices); // OpenFL normalizes bytes... we don't want that so we use our own
+		if(attrib.boneIndex != -1) switch(mesh.boneIndices?.__stride ?? -1) {
+			case 4: FoxRenderer.vertexAtrribPtrUByte(context, attrib.boneIndex, mesh.boneIndices); // Unsigned Byte
+			case 8: FoxRenderer.vertexAtrribPtrUShort(context, attrib.boneIndex, mesh.boneIndices); // Unsigned Short
+			default: {
+				GL.disableVertexAttribArray(attrib.boneIndex);
+				context.__bindGLArrayBuffer(null);
+			}
+		}
 
 		// Draw things the OpenGL way
 		@:privateAccess // Shut up haxe everything is okay
@@ -620,7 +627,14 @@ class FoxRenderer {
 
 		// Skinning
 		if(attrib.boneWeight != -1) context.setVertexBufferAt(attrib.boneWeight, mesh.boneWeights, 0);
-		if(attrib.boneIndex != -1) FoxRenderer.vertexAtrribPtrUByte(context, attrib.boneIndex, mesh.boneIndices); // OpenFL normalizes bytes... we don't want that so we use our own
+		if(attrib.boneIndex != -1) switch(mesh.boneIndices?.__stride ?? -1) {
+			case 4: FoxRenderer.vertexAtrribPtrUByte(context, attrib.boneIndex, mesh.boneIndices); // Unsigned Byte
+			case 8: FoxRenderer.vertexAtrribPtrUShort(context, attrib.boneIndex, mesh.boneIndices); // Unsigned Short
+			default: {
+				GL.disableVertexAttribArray(attrib.boneIndex);
+				context.__bindGLArrayBuffer(null);
+			}
+		}
 
 		// Instance data
 		var ID = attrib.instanceData;
@@ -934,5 +948,16 @@ class FoxRenderer {
 		context.__bindGLArrayBuffer(buffer.__id);
 		GL.enableVertexAttribArray(index); //  		     	       vvvvv literally just fixing this
 		GL.vertexAttribPointer(index, 4, context.gl.UNSIGNED_BYTE, false, buffer.__stride, bufferOffet);
+	}
+
+	public static function vertexAtrribPtrUShort(context:Context3D, index:Int, buffer:VertexBuffer3D, bufferOffet:Int=0) {
+		if(buffer == null) {
+			GL.disableVertexAttribArray(index);
+			context.__bindGLArrayBuffer(null);
+			return;
+		}
+		context.__bindGLArrayBuffer(buffer.__id);
+		GL.enableVertexAttribArray(index);
+		GL.vertexAttribPointer(index, 4, context.gl.UNSIGNED_SHORT, false, buffer.__stride, bufferOffet);
 	}
 }
