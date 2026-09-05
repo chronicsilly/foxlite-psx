@@ -41,7 +41,7 @@ class FoxMaterial {
 	public var depthWrite:Bool = true;
 	public var colorWrite:Bool = true;
 	public var culling:FoxTriangleFace = FoxTriangleFace.NONE;
-	public var shadowCulling:FoxTriangleFace = FoxTriangleFace.FRONT;
+	public var shadowCulling:FoxTriangleFace = FoxTriangleFace.BACK;
 	public var blendMode:FoxBlendMode = FoxBlendMode.NONE;
 	public var alphaScissor:Float = 0; // Pixels with alpha below this threshold will be discarded
 	public var stencil:FoxStencilAction; // Assign a FoxStencilAction to enable stencil test
