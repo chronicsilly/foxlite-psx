@@ -47,6 +47,7 @@ class FoxCamera extends FoxObject {
 	public var __invViewMatrix:Matrix3D = new Matrix3D();
 	public var projectionMatrix:Matrix3D = new Matrix3D();
 	public var __invProjectionMatrix:Matrix3D = new Matrix3D(); // For raytracing effects
+	public var __invSkyViewMatrix:Matrix3D = new Matrix3D();
 
 	/**
 		This is the view matrix from a previous frame, used for motion vector calculations
@@ -76,6 +77,9 @@ class FoxCamera extends FoxObject {
 	**/
 	public var environment:FoxEnvironment;
 
+	public var __invProjectionData:Array<Float> = [for (i in 0...16) 0.0];
+	public var __invSkyViewData:Array<Float> = [for (i in 0...16) 0.0];
+
 	public function new(x:Float=0, y:Float=0, z:Float=0, _bgColor:FlxColor=0x0, ortho:Bool=false) {
 		super(x, y, z);
 		bgColor = _bgColor;
@@ -92,6 +96,20 @@ class FoxCamera extends FoxObject {
 		// Create from transform so other influences can affect the camera
 		if(FoxRenderer.calculateMotionVectors) __prevViewMatrix.copyRawDataFrom(viewMatrix.rawData);
 		FoxMathUtil.viewMatrixFromTransform(viewMatrix, transform);
+		__invSkyViewMatrix.copyRawDataFrom(viewMatrix.rawData);
+		__invSkyViewMatrix.invert();
+
+		var skyData = __invSkyViewMatrix.rawData;
+		skyData[12] = 0;
+		skyData[13] = 0;
+		skyData[14] = 0;
+		skyData[15] = 1;
+		__invSkyViewMatrix.copyRawDataFrom(skyData);
+
+		for (i in 0...16) {
+			invProjection[i] = cam3D.__invProjectionMatrix.rawData[i];
+			invSkyView[i] = cam3D.__invSkyViewMatrix.rawData[i];
+		}
 
 		if(__updateProjection) {
 			__aspect = scene != null ? scene.__width / scene.__height : 1;
@@ -148,6 +166,7 @@ class FoxCamera extends FoxObject {
 	public override function destroy() {
 		transform = null;
 		projectionMatrix = null;
+		__invSkyViewMatrix = null;
 		lightData.destroy();
 		super.destroy();
 	}
