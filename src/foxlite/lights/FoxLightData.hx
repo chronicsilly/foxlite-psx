@@ -191,7 +191,7 @@ class FoxLightData {
 				shadowLights.push(light);
 				buf.shadowRegion = light.shadowAtlasUV;
 			}
-			else buf.shadowRegion = null;
+			else buf.shadowData.x = -1;
 
 			i += 1;
 		}
@@ -244,7 +244,7 @@ class FoxLightData {
 				shadowLights.push(light);
 				buf.shadowRegion = light.shadowAtlasUV;
 			}
-			else buf.shadowRegion = null;
+			else buf.shadowData.x = -1;
 			i += 1;
 		}
 		lightCount[FoxLightType.SPOT] = i;
